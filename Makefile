@@ -1,5 +1,5 @@
 # Path variables
-PYTHON = python3.8
+PYTHON = python3.10
 VENV_DIR = .venv
 
 install:
