@@ -7,7 +7,17 @@ readme = "README.md"
 requires-python = ">=3.8"
 
 [project.optional-dependencies]
-dev = ["pytest", "black", "ruff", "mypy", "bandit", "pre-commit", "hatch"]
+dev = [
+    "pytest",
+    "black",
+    "ruff",
+    "mypy",
+    "bandit",
+    "pre-commit",
+    "hatch",
+    "git-changelog"
+]
+
 
 [build-system]
 requires = ["hatchling"]
