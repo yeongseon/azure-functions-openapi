@@ -20,3 +20,13 @@ test:
 
 # Run all quality checks: format, lint, type check, and tests
 check: format lint typecheck test
+
+# Bump version using hatch
+version-patch:
+	hatch version patch
+
+version-minor:
+	hatch version minor
+
+version-major:
+	hatch version major
