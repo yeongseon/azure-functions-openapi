@@ -1,10 +1,15 @@
 # src/azure_functions_openapi/decorator.py
-from typing import Callable, Dict, Any
+from typing import Callable, Dict, Any, Optional
 
 # Global registry to hold OpenAPI metadata for each function
 _openapi_registry: Dict[str, Dict[str, Any]] = {}
 
-def openapi(summary: str = "", description: str = "", response: Dict[int, Dict[str, Any]] = None) -> Callable:
+
+def openapi(
+    summary: str = "",
+    description: str = "",
+    response: Optional[Dict[int, Dict[str, Any]]] = None,
+) -> Callable:
     """
     Decorator to attach OpenAPI metadata to a function.
 
@@ -13,6 +18,7 @@ def openapi(summary: str = "", description: str = "", response: Dict[int, Dict[s
     :param response: Dictionary of response codes and descriptions
     :return: Decorated function with metadata registered
     """
+
     def decorator(func: Callable) -> Callable:
         _openapi_registry[func.__name__] = {
             "summary": summary,
@@ -20,7 +26,9 @@ def openapi(summary: str = "", description: str = "", response: Dict[int, Dict[s
             "response": response or {},
         }
         return func
+
     return decorator
+
 
 def get_openapi_registry() -> Dict[str, Dict[str, Any]]:
     """

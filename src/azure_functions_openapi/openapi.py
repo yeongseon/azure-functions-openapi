@@ -3,6 +3,7 @@ from typing import Dict, Any
 from azure_functions_openapi.decorator import get_openapi_registry
 import json
 
+
 def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[str, Any]:
     """
     Generate OpenAPI 3.0 specification from the registered metadata.
@@ -25,18 +26,16 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                 "description": metadata["description"],
                 "responses": {
                     str(code): value for code, value in metadata["response"].items()
-                }
+                },
             }
         }
 
     return {
         "openapi": "3.0.0",
-        "info": {
-            "title": title,
-            "version": version
-        },
-        "paths": paths
+        "info": {"title": title, "version": version},
+        "paths": paths,
     }
+
 
 def get_openapi_json() -> str:
     """
