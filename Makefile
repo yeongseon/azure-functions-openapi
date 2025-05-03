@@ -85,4 +85,4 @@ precommit-run: ## Run all pre-commit hooks on all files
 # Changelog
 # ------------------------
 changelog: ## Generate CHANGELOG.md from git tags
-	git-changelog generate --tag-pattern "v*" --output CHANGELOG.md --template keepachangelog
+	$(VENV_DIR)/bin/git-changelog --output CHANGELOG.md --template keepachangelog
