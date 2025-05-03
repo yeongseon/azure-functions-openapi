@@ -1,32 +1,56 @@
-# Create a virtual environment and install the project in editable mode with development dependencies
+# Path variables
+PYTHON = python3.8
+VENV_DIR = .venv
+
 install:
-	python -m venv .venv && . .venv/bin/activate && pip install -e ".[dev]"
+	$(PYTHON) -m venv $(VENV_DIR)
+	$(VENV_DIR)/bin/pip install uv
+	$(VENV_DIR)/bin/uv pip install -e ".[dev]"
 
-# Format Python code using Black
 format:
-	black src/ tests/
+	$(VENV_DIR)/bin/black src/ tests/
 
-# Lint Python code using Ruff
 lint:
-	ruff src/ tests/
+	$(VENV_DIR)/bin/ruff src/ tests/
 
-# Perform static type checking using MyPy
 typecheck:
-	mypy src/
+	$(VENV_DIR)/bin/mypy src/
 
-# Run tests using Pytest
 test:
-	pytest tests/
+	$(VENV_DIR)/bin/pytest tests/
 
-# Run all quality checks: format, lint, type check, and tests
 check: format lint typecheck test
 
-# Bump version using hatch
+clean:
+	rm -rf __pycache__/ *.egg-info .mypy_cache .pytest_cache dist build
+
+dist:
+	$(VENV_DIR)/bin/hatch build
+
+# Versioning
 version-patch:
-	hatch version patch
+	$(VENV_DIR)/bin/hatch version patch
 
 version-minor:
-	hatch version minor
+	$(VENV_DIR)/bin/hatch version minor
 
 version-major:
-	hatch version major
+	$(VENV_DIR)/bin/hatch version major
+
+# Release automation
+release-patch: version-patch git-release
+release-minor: version-minor git-release
+release-major: version-major git-release
+
+git-release:
+	git add .
+	git commit -m "chore: release v$(shell grep -oP '__version__ = \"\K[^\"]+' src/azure_functions_openapi/__init__.py)"
+	git tag v$(shell grep -oP '__version__ = \"\K[^\"]+' src/azure_functions_openapi/__init__.py)"
+	git push origin main --tags
+
+# Pre-commit
+precommit-install:
+	$(VENV_DIR)/bin/pre-commit install
+
+precommit-run:
+	$(VENV_DIR)/bin/pre-commit run --all-files
