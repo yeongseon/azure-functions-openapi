@@ -25,7 +25,7 @@ format: ## Format code using black
 	$(VENV_DIR)/bin/black src/ tests/
 
 lint: ## Lint using ruff
-	$(VENV_DIR)/bin/ruff src/ tests/
+	$(VENV_DIR)/bin/ruff check src/ tests/
 
 typecheck: ## Static type checking using mypy
 	$(VENV_DIR)/bin/mypy src/
