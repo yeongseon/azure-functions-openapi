@@ -1,0 +1,12 @@
+# This file sets code formatting rules that are respected by many editors and IDEs
+# It helps maintain consistent coding style across different environments
+
+root = true
+
+[*]
+charset = utf-8                  # Use UTF-8 encoding for all files
+end_of_line = lf                 # Use LF (Unix-style) line endings
+indent_style = space            # Use spaces instead of tabs
+indent_size = 4                 # Indent with 4 spaces
+trim_trailing_whitespace = true # Remove any whitespace characters at the end of lines
+insert_final_newline = true     # Ensure every file ends with a newline
