@@ -1,0 +1,42 @@
+# tests/test_function_app.py
+
+import azure.functions as func
+from examples.openapi_json import function_app
+
+
+def test_http_trigger_query():
+    req = func.HttpRequest(
+        method="GET",
+        url="/api/http_trigger?name=Azure",
+        body=b"",
+        params={"name": "Azure"},
+        headers={},
+    )
+
+    resp = function_app.http_trigger(req)
+    assert resp.status_code == 200
+    assert "Hello, Azure" in resp.get_body().decode()
+
+
+def test_http_trigger_body():
+    req = func.HttpRequest(
+        method="POST",
+        url="/api/http_trigger",
+        body=b'{"name": "Function"}',
+        params={},
+        headers={"Content-Type": "application/json"},
+    )
+
+    resp = function_app.http_trigger(req)
+    assert resp.status_code == 200
+    assert "Hello, Function" in resp.get_body().decode()
+
+
+def test_http_trigger_no_name():
+    req = func.HttpRequest(
+        method="GET", url="/api/http_trigger", body=b"", params={}, headers={}
+    )
+
+    resp = function_app.http_trigger(req)
+    assert resp.status_code == 200
+    assert "Pass a name" in resp.get_body().decode()

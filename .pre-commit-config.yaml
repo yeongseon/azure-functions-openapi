@@ -18,5 +18,7 @@ repos:
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.7
     hooks:
-      - id: bandit
-        args: ["-r", "src/"]
+    - id: bandit
+      language: python
+      entry: bandit -r src/ -x tests/
+      pass_filenames: false

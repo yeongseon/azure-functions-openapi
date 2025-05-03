@@ -25,3 +25,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.version]
 path = "src/azure_functions_openapi/__init__.py"
+
+[tool.bandit]
+exclude_dirs = ["tests"]
