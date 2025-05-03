@@ -9,12 +9,12 @@
 
 ---
 
-## ⬜ M2. Core MVP Features
-- [ ] `@openapi` decorator: capture `summary`, `description`, `response`
-- [ ] Central registry for function metadata
-- [ ] `/openapi.json` route for OpenAPI spec generation
-- [ ] `/docs` route to serve Swagger UI
-- [ ] Create example Azure Function
+## ✅ M2. Core MVP Features
+- [x] `@openapi` decorator: capture `summary`, `description`, `response`
+- [x] Central registry for function metadata
+- [x] `/openapi.json` route for OpenAPI spec generation
+- [x] `/docs` route to serve Swagger UI
+- [x] Create example Azure Function
 
 ---
 
