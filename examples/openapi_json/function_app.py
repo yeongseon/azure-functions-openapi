@@ -11,6 +11,22 @@ app = func.FunctionApp()
     summary="HTTP Trigger with name parameter",
     description="Returns a greeting using the name from query or body.",
     response={200: {"description": "Successful response with greeting"}},
+    parameters=[
+        {
+            "name": "name",
+            "in": "query",
+            "required": False,
+            "schema": {"type": "string"},
+            "description": "Name to greet",
+        }
+    ],
+    request_body={
+        "type": "object",
+        "properties": {
+            "name": {"type": "string"},
+        },
+        "required": ["name"],
+    },
 )
 def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Python HTTP trigger function processed a request.")
@@ -20,9 +36,9 @@ def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
         try:
             req_body = req.get_json()
         except ValueError:
-            pass
+            req_body = None
         else:
-            name = req_body.get("name")
+            name = req_body.get("name") if req_body else None
 
     if name:
         return func.HttpResponse(
@@ -56,7 +72,7 @@ def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
       <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
       <script>
         SwaggerUIBundle({
-          url: "/api/openapi.json",
+          url: "/openapi.json",
           dom_id: '#swagger-ui',
         });
       </script>

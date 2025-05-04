@@ -10,6 +10,15 @@ def test_generate_openapi_spec_structure():
         summary="Sample summary",
         description="Sample description",
         response={200: {"description": "Success"}},
+        parameters=[
+            {
+                "name": "q",
+                "in": "query",
+                "required": False,
+                "schema": {"type": "string"},
+                "description": "Optional query string",
+            }
+        ],
     )
     def sample_func():
         pass
@@ -26,7 +35,13 @@ def test_generate_openapi_spec_structure():
     assert spec["info"]["version"] == "1.2.3"
     assert "/sample_func" in spec["paths"]
     assert "get" in spec["paths"]["/sample_func"]
-    assert spec["paths"]["/sample_func"]["get"]["summary"] == "Sample summary"
+    get_op = spec["paths"]["/sample_func"]["get"]
+    assert get_op["summary"] == "Sample summary"
+    assert get_op["parameters"][0]["name"] == "q"
+    assert get_op["parameters"][0]["in"] == "query"
+    assert get_op["parameters"][0]["required"] is False
+    assert get_op["parameters"][0]["schema"]["type"] == "string"
+    assert get_op["parameters"][0]["description"] == "Optional query string"
 
 
 def test_get_openapi_json_output():
@@ -37,3 +52,33 @@ def test_get_openapi_json_output():
     assert "info" in data
     assert "paths" in data
     assert isinstance(data["paths"], dict)
+
+
+def test_generate_openapi_spec_with_request_body():
+    @openapi(
+        summary="With Body",
+        description="Endpoint with request body",
+        response={200: {"description": "OK"}},
+    )
+    def func_with_body():
+        pass
+
+    # Register request body schema
+    registry = get_openapi_registry()
+    registry["func_with_body"]["request_body"] = {
+        "type": "object",
+        "properties": {
+            "username": {"type": "string"},
+            "password": {"type": "string"},
+        },
+        "required": ["username", "password"],
+    }
+
+    spec = generate_openapi_spec()
+    request_body = spec["paths"]["/func_with_body"]["get"]["requestBody"]
+
+    assert request_body["required"] is True
+    assert "application/json" in request_body["content"]
+    schema = request_body["content"]["application/json"]["schema"]
+    assert schema["type"] == "object"
+    assert "username" in schema["properties"]

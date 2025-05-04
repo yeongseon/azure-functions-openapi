@@ -9,6 +9,8 @@ def openapi(
     summary: str = "",
     description: str = "",
     response: Optional[Dict[int, Dict[str, Any]]] = None,
+    parameters: Optional[list] = None,
+    request_body: Optional[Dict[str, Any]] = None,
 ) -> Callable:
     """
     Decorator to attach OpenAPI metadata to a function.
@@ -16,6 +18,8 @@ def openapi(
     :param summary: Short summary of the endpoint
     :param description: Detailed description
     :param response: Dictionary of response codes and descriptions
+    :param parameters: List of parameters for the endpoint
+    :param request_body: Dictionary describing the request body
     :return: Decorated function with metadata registered
     """
 
@@ -24,6 +28,8 @@ def openapi(
             "summary": summary,
             "description": description,
             "response": response or {},
+            "parameters": parameters or [],
+            "request_body": request_body or {},
         }
         return func
 

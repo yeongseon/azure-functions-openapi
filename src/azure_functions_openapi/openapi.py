@@ -20,15 +20,26 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
         path = f"/{func_name}"
         method = "get"
 
-        paths[path] = {
-            method: {
-                "summary": metadata["summary"],
-                "description": metadata["description"],
-                "responses": {
-                    str(code): value for code, value in metadata["response"].items()
-                },
-            }
+        operation: Dict[str, Any] = {
+            "summary": metadata["summary"],
+            "description": metadata["description"],
+            "responses": {
+                str(code): value for code, value in metadata["response"].items()
+            },
         }
+
+        # Add parameters if present
+        if metadata.get("parameters"):
+            operation["parameters"] = metadata["parameters"]
+
+        # Add request body if present
+        if metadata.get("request_body"):
+            operation["requestBody"] = {
+                "required": True,
+                "content": {"application/json": {"schema": metadata["request_body"]}},
+            }
+
+        paths[path] = {method: operation}
 
     return {
         "openapi": "3.0.0",
