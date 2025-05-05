@@ -1,4 +1,3 @@
-# src/azure_functions_openapi/openapi.py
 from typing import Dict, Any
 from azure_functions_openapi.decorator import get_openapi_registry
 import json
@@ -16,12 +15,12 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
     paths: Dict[str, Any] = {}
 
     for func_name, metadata in registry.items():
-        path = metadata.get("route", f"/{func_name}")
+        # Ensure path is not None
+        path = metadata.get("route") or f"/{func_name}"
         method = (metadata.get("method") or "get").lower()
 
         # Build responses
         responses: Dict[str, Any] = {}
-
         for code, response_detail in metadata.get("response", {}).items():
             resp_obj: Dict[str, Any] = {
                 "description": response_detail.get("description", "")
@@ -38,9 +37,22 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                 "content": {"application/json": {"schema": schema}},
             }
 
+        # Auto-generate operationId if not provided
+        operation_id = metadata.get("operation_id")
+        if not operation_id:
+            normalized_path = (
+                path.strip("/").replace("/", "_").replace("{", "").replace("}", "")
+            )
+            operation_id = f"{method}_{normalized_path or 'root'}"
+
+        # Use provided tags or default
+        tags = metadata.get("tags") or ["default"]
+
         operation: Dict[str, Any] = {
-            "summary": metadata["summary"],
-            "description": metadata["description"],
+            "summary": metadata.get("summary", ""),
+            "description": metadata.get("description", ""),
+            "operationId": operation_id,
+            "tags": tags,
             "responses": responses,
         }
 
@@ -52,7 +64,6 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                 "required": True,
                 "content": {"application/json": {"schema": metadata["request_body"]}},
             }
-
         elif metadata.get("request_model"):
             schema = metadata["request_model"].model_json_schema()
             operation["requestBody"] = {

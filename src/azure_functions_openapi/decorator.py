@@ -1,5 +1,4 @@
-# src/azure_functions_openapi/decorator.py
-from typing import Callable, Dict, Any, Optional, Type
+from typing import Callable, Dict, Any, Optional, Type, List
 from pydantic import BaseModel
 
 # Global registry to hold OpenAPI metadata for each function
@@ -16,6 +15,8 @@ def openapi(
     response_model: Optional[Type[BaseModel]] = None,
     route: Optional[str] = None,
     method: Optional[str] = None,
+    operation_id: Optional[str] = None,
+    tags: Optional[List[str]] = None,
 ) -> Callable:
     """
     Decorator to attach OpenAPI metadata to a function.
@@ -29,6 +30,8 @@ def openapi(
     :param response_model: Pydantic model for the response body (auto schema)
     :param route: Optional override for route path
     :param method: Optional override for HTTP method
+    :param operation_id: Unique operation identifier (optional)
+    :param tags: List of tags to group the operation (optional)
     :return: Decorated function with metadata registered
     """
 
@@ -43,6 +46,8 @@ def openapi(
             "response_model": response_model,
             "route": route,
             "method": method,
+            "operation_id": operation_id,
+            "tags": tags or ["default"],
         }
         return func
 

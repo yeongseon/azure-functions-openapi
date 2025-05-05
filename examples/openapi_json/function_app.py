@@ -22,6 +22,8 @@ class ResponseModel(BaseModel):
     description="Returns a greeting using the name from query or body.",
     request_model=RequestModel,
     response_model=ResponseModel,
+    operation_id="greetUser",
+    tags=["Example"],
     response={
         200: {
             "description": "Successful response with greeting",
@@ -32,7 +34,7 @@ class ResponseModel(BaseModel):
                             "summary": "Example greeting",
                             "value": {"message": "Hello, Azure!"},
                         }
-                    },
+                    }
                 }
             },
         }
@@ -65,14 +67,15 @@ def openapi_spec(req: func.HttpRequest) -> func.HttpResponse:
     )
 
 
-@app.route(route="swagger", auth_level=func.AuthLevel.ANONYMOUS)
+@app.route(route="docs", auth_level=func.AuthLevel.ANONYMOUS)
 def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
     html = """
     <!DOCTYPE html>
     <html>
     <head>
+      <meta charset="UTF-8">
       <title>Swagger UI</title>
-      <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css">
+      <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
     </head>
     <body>
       <div id="swagger-ui"></div>
@@ -80,7 +83,7 @@ def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
       <script>
         SwaggerUIBundle({
           url: "/openapi.json",
-          dom_id: '#swagger-ui',
+          dom_id: '#swagger-ui'
         });
       </script>
     </body>
