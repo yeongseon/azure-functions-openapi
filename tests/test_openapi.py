@@ -1,5 +1,5 @@
 # tests/test_openapi.py
-
+from pydantic import BaseModel
 from azure_functions_openapi.openapi import generate_openapi_spec, get_openapi_json
 from azure_functions_openapi.decorator import openapi, get_openapi_registry
 import json
@@ -132,3 +132,42 @@ def test_generate_openapi_spec_with_route_and_method():
     spec = generate_openapi_spec()
     assert "/custom-path" in spec["paths"]
     assert "post" in spec["paths"]["/custom-path"]
+
+
+def test_generate_spec_with_pydantic_models():
+    class RequestModel(BaseModel):
+        username: str
+        password: str
+
+    class ResponseModel(BaseModel):
+        message: str
+
+    @openapi(
+        summary="Login user",
+        description="Authenticates a user and returns a welcome message.",
+        request_model=RequestModel,
+        response_model=ResponseModel,
+        method="post",
+        route="/login",
+    )
+    def login():
+        pass
+
+    spec = generate_openapi_spec()
+
+    path = "/login"
+    assert path in spec["paths"]
+    assert "post" in spec["paths"][path]
+    op = spec["paths"][path]["post"]
+
+    assert (
+        op["requestBody"]["content"]["application/json"]["schema"]["type"] == "object"
+    )
+    assert (
+        "username"
+        in op["requestBody"]["content"]["application/json"]["schema"]["properties"]
+    )
+    assert (
+        "message"
+        in op["responses"]["200"]["content"]["application/json"]["schema"]["properties"]
+    )
