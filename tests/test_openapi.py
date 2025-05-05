@@ -82,3 +82,41 @@ def test_generate_openapi_spec_with_request_body():
     schema = request_body["content"]["application/json"]["schema"]
     assert schema["type"] == "object"
     assert "username" in schema["properties"]
+
+
+def test_response_schema_and_examples():
+    @openapi(
+        summary="Greet user",
+        description="Returns a greeting message.",
+        response={
+            200: {
+                "description": "OK",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {"message": {"type": "string"}},
+                        },
+                        "examples": {
+                            "sample": {
+                                "summary": "A sample response",
+                                "value": {"message": "Hello, Azure!"},
+                            }
+                        },
+                    }
+                },
+            }
+        },
+    )
+    def greet():
+        pass
+
+    spec = generate_openapi_spec()
+    op = spec["paths"]["/greet"]["get"]
+    content = op["responses"]["200"]["content"]["application/json"]
+
+    assert content["schema"]["type"] == "object"
+    assert content["schema"]["properties"]["message"]["type"] == "string"
+    assert "examples" in content
+    assert "sample" in content["examples"]
+    assert content["examples"]["sample"]["value"]["message"] == "Hello, Azure!"

@@ -10,7 +10,26 @@ app = func.FunctionApp()
 @openapi(
     summary="HTTP Trigger with name parameter",
     description="Returns a greeting using the name from query or body.",
-    response={200: {"description": "Successful response with greeting"}},
+    response={
+        200: {
+            "description": "Successful response with greeting",
+            "content": {
+                "application/json": {
+                    "schema": {
+                        "type": "object",
+                        "properties": {"message": {"type": "string"}},
+                        "example": {"message": "Hello, John!"},
+                    },
+                    "examples": {
+                        "sample": {
+                            "summary": "Example greeting",
+                            "value": {"message": "Hello, Azure!"},
+                        }
+                    },
+                }
+            },
+        }
+    },
     parameters=[
         {
             "name": "name",

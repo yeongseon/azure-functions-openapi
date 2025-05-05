@@ -20,12 +20,19 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
         path = f"/{func_name}"
         method = "get"
 
+        # Build the responses with support for description + content (schema + examples)
+        responses = {}
+        for code, response_detail in metadata["response"].items():
+            responses[str(code)] = {
+                "description": response_detail.get("description", "")
+            }
+            if "content" in response_detail:
+                responses[str(code)]["content"] = response_detail["content"]
+
         operation: Dict[str, Any] = {
             "summary": metadata["summary"],
             "description": metadata["description"],
-            "responses": {
-                str(code): value for code, value in metadata["response"].items()
-            },
+            "responses": responses,
         }
 
         # Add parameters if present
