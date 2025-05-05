@@ -196,3 +196,32 @@ def test_markdown_description_rendering():
     assert "### Usage" in path_item["description"]
     assert "`?name=Azure`" in path_item["description"]
     assert "```json" in path_item["description"]
+
+
+def test_generate_openapi_spec_with_cookie_parameter():
+    @openapi(
+        summary="Cookie param example",
+        description="Test endpoint with cookie parameter",
+        parameters=[
+            {
+                "name": "session_id",
+                "in": "cookie",
+                "required": True,
+                "schema": {"type": "string"},
+                "description": "User session ID",
+            }
+        ],
+        route="/cookie_test",
+    )
+    def cookie_test():
+        pass
+
+    spec = generate_openapi_spec()
+    params = spec["paths"]["/cookie_test"]["get"]["parameters"]
+    cookie_param = next((p for p in params if p["in"] == "cookie"), None)
+
+    assert cookie_param is not None
+    assert cookie_param["name"] == "session_id"
+    assert cookie_param["required"] is True
+    assert cookie_param["schema"]["type"] == "string"
+    assert cookie_param["description"] == "User session ID"
