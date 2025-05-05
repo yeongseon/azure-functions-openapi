@@ -25,16 +25,14 @@
 - [x] Support for `requestBody` specification
 - [x] Define response schemas (e.g. JSON schema, examples)
 - [x] Integrate with `pydantic` or type hints
-- [ ] OpenAPI 3.1 support
 - [ ] Custom tags, operationId
-- [ ] Parameter type expansion: `header`, `path`, `cookie` support
 - [ ] Markdown `description` support
-- [ ] OpenAPI version selection (3.0 / 3.1 toggle)
-- [ ] YAML output (openapi.yaml endpoint)
+- [ ] Parameter type expansion: `cookie` (remaining type)
+- [ ] YAML output (`/openapi.yaml` endpoint)
 
 ---
 
-## ⬜ M4. Quality & CI
+## ⬜ M4. Quality & CI (v0.4.0)
 - [x] Makefile targets: `format`, `lint`, `typecheck`, `test`, `check`
 - [x] `pre-commit` hooks (`black`, `ruff`, `mypy`, etc.)
 - [x] Add `pytest` unit tests for decorators and generator
@@ -54,8 +52,6 @@
 
 ---
 
-## ⏱️ Version Plan
-- [x] **v0.1.0** – Initial setup
-- [x] **v0.2.0** – Core MVP (decorator, registry, JSON + Swagger UI)
-- [ ] **v0.3.0** – Extended OpenAPI features (inference, parameters, schema)
-- [ ] **v1.0.0** – Production-ready with full test coverage, PyPI release
+## ⬜ M6. OpenAPI 3.1 & Compatibility (v0.4.0+)
+- [ ] OpenAPI 3.1 support (e.g., `$schema`, JSON Schema 2020-12)
+- [ ] OpenAPI version selection (3.0 / 3.1 toggle)
