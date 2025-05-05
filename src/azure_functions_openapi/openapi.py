@@ -48,6 +48,7 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
         # Use provided tags or default
         tags = metadata.get("tags") or ["default"]
 
+        # NOTE: Swagger UI will render 'description' using CommonMark (supports Markdown)
         operation: Dict[str, Any] = {
             "summary": metadata.get("summary", ""),
             "description": metadata.get("description", ""),
@@ -75,7 +76,11 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
 
     return {
         "openapi": "3.0.0",
-        "info": {"title": title, "version": version},
+        "info": {
+            "title": title,
+            "version": version,
+            "description": "Auto-generated OpenAPI documentation.\nSupports Markdown in descriptions (CommonMark).",
+        },
         "paths": paths,
     }
 

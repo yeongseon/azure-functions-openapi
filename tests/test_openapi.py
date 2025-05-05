@@ -180,10 +180,19 @@ def test_openapi_spec_contains_operation_id_and_tags():
     assert path_item["operationId"] == "greetUser"
     assert path_item["tags"] == ["Example"]
     assert path_item["summary"] == "HTTP Trigger with name parameter"
-    assert (
-        path_item["description"]
-        == "Returns a greeting using the name from query or body."
-    )
+    assert "Returns a greeting using the name" in path_item["description"]
+    assert "### Usage" in path_item["description"]
+    assert "```json" in path_item["description"]
     assert "requestBody" in path_item
     assert "responses" in path_item
     assert "200" in path_item["responses"]
+
+
+def test_markdown_description_rendering():
+    spec = json.loads(get_openapi_json())
+    path_item = spec["paths"]["/http_trigger"]["get"]
+
+    assert "description" in path_item
+    assert "### Usage" in path_item["description"]
+    assert "`?name=Azure`" in path_item["description"]
+    assert "```json" in path_item["description"]

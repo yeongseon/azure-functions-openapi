@@ -19,7 +19,18 @@ class ResponseModel(BaseModel):
 @app.route(route="http_trigger", auth_level=func.AuthLevel.ANONYMOUS)
 @openapi(
     summary="HTTP Trigger with name parameter",
-    description="Returns a greeting using the name from query or body.",
+    description=""""
+Returns a greeting using the name from query or body.
+
+### Usage
+You can pass the name:
+- via query string: `?name=Azure`
+- or via JSON body:
+
+```json
+{ "name": "Azure" }
+```
+""",
     request_model=RequestModel,
     response_model=ResponseModel,
     operation_id="greetUser",

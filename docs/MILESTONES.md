@@ -25,7 +25,7 @@
 - [x] Support for `requestBody` specification
 - [x] Define response schemas (e.g. JSON schema, examples)
 - [x] Integrate with `pydantic` or type hints
-- [ ] Custom tags, operationId
+- [x] Custom tags, operationId
 - [ ] Markdown `description` support
 - [ ] Parameter type expansion: `cookie` (remaining type)
 - [ ] YAML output (`/openapi.yaml` endpoint)
