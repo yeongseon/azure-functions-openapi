@@ -20,20 +20,24 @@
 ---
 
 ## ⬜ M3. Extended Features (v0.3.0)
-- [ ] Inference of HTTP method and route path from Azure trigger
-- [ ] Support for `parameters` (query/path/header)
-- [ ] Support for `requestBody` specification
-- [ ] Define response schemas (e.g. JSON schema, examples)
-- [ ] Optional: Integrate with `pydantic` or type hints
-- [ ] Optional: OpenAPI 3.1 support
-- [ ] Optional: Custom tags, operationId
+- [x] Inference of HTTP method and route path from Azure trigger
+- [x] Support for `parameters` (query/path/header)
+- [x] Support for `requestBody` specification
+- [x] Define response schemas (e.g. JSON schema, examples)
+- [x] Integrate with `pydantic` or type hints
+- [ ] OpenAPI 3.1 support
+- [ ] Custom tags, operationId
+- [ ] Parameter type expansion: `header`, `path`, `cookie` support
+- [ ] Markdown `description` support
+- [ ] OpenAPI version selection (3.0 / 3.1 toggle)
+- [ ] YAML output (openapi.yaml endpoint)
 
 ---
 
 ## ⬜ M4. Quality & CI
 - [x] Makefile targets: `format`, `lint`, `typecheck`, `test`, `check`
 - [x] `pre-commit` hooks (`black`, `ruff`, `mypy`, etc.)
-- [ ] Add `pytest` unit tests for decorators and generator
+- [x] Add `pytest` unit tests for decorators and generator
 - [ ] Integrate GitHub Actions CI workflow
 - [ ] Measure test coverage and add badge
 
@@ -45,6 +49,7 @@
 - [ ] Add Swagger UI screenshot/preview
 - [ ] Add CHANGELOG generator with `git-changelog`
 - [ ] Publish first release to PyPI
+- [ ] Improve Swagger UI rendering (examples, schema preview, rich formatting)
 - [ ] (Optional) Host demo of Swagger UI (e.g., GitHub Pages or Azure Static Web App)
 
 ---
