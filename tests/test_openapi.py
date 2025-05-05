@@ -120,3 +120,23 @@ def test_response_schema_and_examples():
     assert "examples" in content
     assert "sample" in content["examples"]
     assert content["examples"]["sample"]["value"]["message"] == "Hello, Azure!"
+
+
+def test_generate_openapi_spec_with_route_and_method():
+    @openapi(
+        summary="Test with custom route/method",
+        description="Checks that route and method are reflected",
+        response={200: {"description": "OK"}},
+        route="/custom-path",
+        method="post",
+    )
+    def custom_func():
+        pass
+
+    spec = generate_openapi_spec()
+    assert "/custom-path" in spec["paths"]
+    assert "post" in spec["paths"]["/custom-path"]
+    assert (
+        spec["paths"]["/custom-path"]["post"]["summary"]
+        == "Test with custom route/method"
+    )
