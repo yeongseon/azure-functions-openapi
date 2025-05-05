@@ -40,3 +40,14 @@ def test_http_trigger_no_name():
     resp = function_app.http_trigger(req)
     assert resp.status_code == 400
     assert "Invalid request" in resp.get_body().decode()
+
+
+def test_openapi_yaml_response():
+    req = func.HttpRequest(
+        method="GET", url="/api/openapi.yaml", body=b"", params={}, headers={}
+    )
+    resp = function_app.openapi_yaml_spec(req)
+
+    assert resp.status_code == 200
+    assert b"openapi:" in resp.get_body()
+    assert b"paths:" in resp.get_body()

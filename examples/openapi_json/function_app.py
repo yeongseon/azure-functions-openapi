@@ -2,7 +2,7 @@ import azure.functions as func
 import logging
 from pydantic import BaseModel, ValidationError
 from azure_functions_openapi.decorator import openapi
-from azure_functions_openapi.openapi import get_openapi_json
+from azure_functions_openapi.openapi import get_openapi_json, get_openapi_yaml
 
 app = func.FunctionApp()
 
@@ -75,6 +75,15 @@ def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
 def openapi_spec(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse(
         get_openapi_json(), mimetype="application/json", status_code=200
+    )
+
+
+@app.route(route="openapi.yaml", auth_level=func.AuthLevel.ANONYMOUS)
+def openapi_yaml_spec(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse(
+        get_openapi_yaml(),
+        mimetype="application/x-yaml",
+        status_code=200,
     )
 
 

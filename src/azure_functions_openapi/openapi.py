@@ -1,6 +1,7 @@
 from typing import Dict, Any
 from azure_functions_openapi.decorator import get_openapi_registry
 import json
+import yaml  # type: ignore
 
 
 def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[str, Any]:
@@ -91,3 +92,11 @@ def get_openapi_json() -> str:
     """
     spec = generate_openapi_spec()
     return json.dumps(spec, indent=2)
+
+
+def get_openapi_yaml() -> str:
+    """
+    Return the OpenAPI YAML string for HTTP response.
+    """
+    spec = generate_openapi_spec()
+    return yaml.dump(spec, sort_keys=False, allow_unicode=True)
