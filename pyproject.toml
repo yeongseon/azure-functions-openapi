@@ -15,9 +15,9 @@ dev = [
     "bandit",
     "pre-commit",
     "hatch",
-    "git-changelog"
+    "git-changelog",
+    "types-PyYAML"
 ]
-
 
 [build-system]
 requires = ["hatchling"]
@@ -28,3 +28,9 @@ path = "src/azure_functions_openapi/__init__.py"
 
 [tool.bandit]
 exclude_dirs = ["tests"]
+
+[tool.mypy]
+strict = true
+
+[tool.mypy.yaml]
+ignore_missing_imports = true
