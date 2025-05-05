@@ -38,5 +38,5 @@ def test_http_trigger_no_name():
     )
 
     resp = function_app.http_trigger(req)
-    assert resp.status_code == 200
-    assert "Pass a name" in resp.get_body().decode()
+    assert resp.status_code == 400
+    assert "Invalid request" in resp.get_body().decode()

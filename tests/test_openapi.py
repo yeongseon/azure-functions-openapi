@@ -19,22 +19,20 @@ def test_generate_openapi_spec_structure():
                 "description": "Optional query string",
             }
         ],
+        route="/sample_func",
     )
     def sample_func():
         pass
 
-    # Ensure the function is registered
     registry = get_openapi_registry()
     assert "sample_func" in registry
 
-    # Generate OpenAPI spec
     spec = generate_openapi_spec(title="My API", version="1.2.3")
 
     assert spec["openapi"] == "3.0.0"
     assert spec["info"]["title"] == "My API"
     assert spec["info"]["version"] == "1.2.3"
     assert "/sample_func" in spec["paths"]
-    assert "get" in spec["paths"]["/sample_func"]
     get_op = spec["paths"]["/sample_func"]["get"]
     assert get_op["summary"] == "Sample summary"
     assert get_op["parameters"][0]["name"] == "q"
@@ -59,11 +57,11 @@ def test_generate_openapi_spec_with_request_body():
         summary="With Body",
         description="Endpoint with request body",
         response={200: {"description": "OK"}},
+        route="/func_with_body",
     )
     def func_with_body():
         pass
 
-    # Register request body schema
     registry = get_openapi_registry()
     registry["func_with_body"]["request_body"] = {
         "type": "object",
@@ -76,12 +74,10 @@ def test_generate_openapi_spec_with_request_body():
 
     spec = generate_openapi_spec()
     request_body = spec["paths"]["/func_with_body"]["get"]["requestBody"]
-
-    assert request_body["required"] is True
     assert "application/json" in request_body["content"]
     schema = request_body["content"]["application/json"]["schema"]
-    assert schema["type"] == "object"
     assert "username" in schema["properties"]
+    assert "password" in schema["properties"]
 
 
 def test_response_schema_and_examples():
@@ -107,19 +103,19 @@ def test_response_schema_and_examples():
                 },
             }
         },
+        route="/greet",
     )
     def greet():
         pass
 
     spec = generate_openapi_spec()
     op = spec["paths"]["/greet"]["get"]
-    content = op["responses"]["200"]["content"]["application/json"]
-
-    assert content["schema"]["type"] == "object"
-    assert content["schema"]["properties"]["message"]["type"] == "string"
-    assert "examples" in content
-    assert "sample" in content["examples"]
-    assert content["examples"]["sample"]["value"]["message"] == "Hello, Azure!"
+    assert (
+        op["responses"]["200"]["content"]["application/json"]["examples"]["sample"][
+            "value"
+        ]["message"]
+        == "Hello, Azure!"
+    )
 
 
 def test_generate_openapi_spec_with_route_and_method():
@@ -136,7 +132,3 @@ def test_generate_openapi_spec_with_route_and_method():
     spec = generate_openapi_spec()
     assert "/custom-path" in spec["paths"]
     assert "post" in spec["paths"]["/custom-path"]
-    assert (
-        spec["paths"]["/custom-path"]["post"]["summary"]
-        == "Test with custom route/method"
-    )

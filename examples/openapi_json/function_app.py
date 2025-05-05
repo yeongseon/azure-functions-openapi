@@ -1,25 +1,32 @@
 import azure.functions as func
 import logging
+from pydantic import BaseModel, ValidationError
 from azure_functions_openapi.decorator import openapi
 from azure_functions_openapi.openapi import get_openapi_json
 
 app = func.FunctionApp()
 
 
+# Request and Response models using Pydantic
+class RequestModel(BaseModel):
+    name: str
+
+
+class ResponseModel(BaseModel):
+    message: str
+
+
 @app.route(route="http_trigger", auth_level=func.AuthLevel.ANONYMOUS)
 @openapi(
     summary="HTTP Trigger with name parameter",
     description="Returns a greeting using the name from query or body.",
+    request_model=RequestModel,
+    response_model=ResponseModel,
     response={
         200: {
             "description": "Successful response with greeting",
             "content": {
                 "application/json": {
-                    "schema": {
-                        "type": "object",
-                        "properties": {"message": {"type": "string"}},
-                        "example": {"message": "Hello, John!"},
-                    },
                     "examples": {
                         "sample": {
                             "summary": "Example greeting",
@@ -30,22 +37,6 @@ app = func.FunctionApp()
             },
         }
     },
-    parameters=[
-        {
-            "name": "name",
-            "in": "query",
-            "required": False,
-            "schema": {"type": "string"},
-            "description": "Name to greet",
-        }
-    ],
-    request_body={
-        "type": "object",
-        "properties": {
-            "name": {"type": "string"},
-        },
-        "required": ["name"],
-    },
 )
 def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Python HTTP trigger function processed a request.")
@@ -53,21 +44,18 @@ def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
     name = req.params.get("name")
     if not name:
         try:
-            req_body = req.get_json()
-        except ValueError:
-            req_body = None
-        else:
-            name = req_body.get("name") if req_body else None
+            data = req.get_json()
+            model = RequestModel(**data)
+            name = model.name
+        except (ValueError, ValidationError):
+            return func.HttpResponse("Invalid request", status_code=400)
 
-    if name:
-        return func.HttpResponse(
-            f"Hello, {name}. This HTTP triggered function executed successfully."
-        )
-    else:
-        return func.HttpResponse(
-            "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
-            status_code=200,
-        )
+    message = f"Hello, {name}!" if name else "Hello!"
+    return func.HttpResponse(
+        ResponseModel(message=message).model_dump_json(),
+        mimetype="application/json",
+        status_code=200,
+    )
 
 
 @app.route(route="openapi.json", auth_level=func.AuthLevel.ANONYMOUS)
