@@ -1,8 +1,11 @@
 # ------------------------
 # Path variables
 # ------------------------
-PYTHON = python3.10
-VENV_DIR = .venv
+PYTHON     = python3.10
+VENV_DIR   = .venv
+UV         = $(VENV_DIR)/bin/uv
+PIP        = $(VENV_DIR)/bin/pip
+PYTHON_BIN = $(VENV_DIR)/bin/python
 
 # ------------------------
 # Help
@@ -15,8 +18,8 @@ help: ## Show this help.
 # ------------------------
 install: ## Set up the virtual environment and install development dependencies
 	$(PYTHON) -m venv $(VENV_DIR)
-	$(VENV_DIR)/bin/pip install uv
-	$(VENV_DIR)/bin/uv pip install -e ".[dev]"
+	$(PIP) install uv
+	$(UV) pip install --link-mode=copy -e ".[dev]"
 
 # ------------------------
 # Quality Checks

@@ -1,5 +1,8 @@
-from typing import Callable, Dict, Any, Optional, Type, List
+from typing import Callable, Dict, Any, Optional, Type, List, TypeVar
 from pydantic import BaseModel
+
+# Define a generic type variable for functions
+F = TypeVar("F", bound=Callable[..., Any])
 
 # Global registry to hold OpenAPI metadata for each function
 _openapi_registry: Dict[str, Dict[str, Any]] = {}
@@ -9,7 +12,7 @@ def openapi(
     summary: str = "",
     description: str = "",
     response: Optional[Dict[int, Dict[str, Any]]] = None,
-    parameters: Optional[list] = None,
+    parameters: Optional[List[Dict[str, Any]]] = None,
     request_body: Optional[Dict[str, Any]] = None,
     request_model: Optional[Type[BaseModel]] = None,
     response_model: Optional[Type[BaseModel]] = None,
@@ -17,7 +20,7 @@ def openapi(
     method: Optional[str] = None,
     operation_id: Optional[str] = None,
     tags: Optional[List[str]] = None,
-) -> Callable:
+) -> Callable[[F], F]:
     """
     Decorator to attach OpenAPI metadata to a function.
 
@@ -35,7 +38,7 @@ def openapi(
     :return: Decorated function with metadata registered
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: F) -> F:
         _openapi_registry[func.__name__] = {
             "summary": summary,
             "description": description,

@@ -2,7 +2,7 @@ import json
 from azure_functions_openapi.openapi import get_openapi_json
 
 
-def test_openapi_spec_http_trigger_metadata():
+def test_openapi_spec_http_trigger_metadata() -> None:
     spec = json.loads(get_openapi_json())
 
     assert "/http_trigger" in spec["paths"]

@@ -5,7 +5,7 @@ from azure_functions_openapi.decorator import openapi, get_openapi_registry
 import json
 
 
-def test_generate_openapi_spec_structure():
+def test_generate_openapi_spec_structure() -> None:
     @openapi(
         summary="Sample summary",
         description="Sample description",
@@ -21,7 +21,7 @@ def test_generate_openapi_spec_structure():
         ],
         route="/sample_func",
     )
-    def sample_func():
+    def sample_func() -> None:
         pass
 
     registry = get_openapi_registry()
@@ -42,7 +42,7 @@ def test_generate_openapi_spec_structure():
     assert get_op["parameters"][0]["description"] == "Optional query string"
 
 
-def test_get_openapi_json_output():
+def test_get_openapi_json_output() -> None:
     json_str = get_openapi_json()
     data = json.loads(json_str)
 
@@ -52,14 +52,14 @@ def test_get_openapi_json_output():
     assert isinstance(data["paths"], dict)
 
 
-def test_generate_openapi_spec_with_request_body():
+def test_generate_openapi_spec_with_request_body() -> None:
     @openapi(
         summary="With Body",
         description="Endpoint with request body",
         response={200: {"description": "OK"}},
         route="/func_with_body",
     )
-    def func_with_body():
+    def func_with_body() -> None:
         pass
 
     registry = get_openapi_registry()
@@ -80,7 +80,7 @@ def test_generate_openapi_spec_with_request_body():
     assert "password" in schema["properties"]
 
 
-def test_response_schema_and_examples():
+def test_response_schema_and_examples() -> None:
     @openapi(
         summary="Greet user",
         description="Returns a greeting message.",
@@ -105,7 +105,7 @@ def test_response_schema_and_examples():
         },
         route="/greet",
     )
-    def greet():
+    def greet() -> None:
         pass
 
     spec = generate_openapi_spec()
@@ -118,7 +118,7 @@ def test_response_schema_and_examples():
     )
 
 
-def test_generate_openapi_spec_with_route_and_method():
+def test_generate_openapi_spec_with_route_and_method() -> None:
     @openapi(
         summary="Test with custom route/method",
         description="Checks that route and method are reflected",
@@ -126,7 +126,7 @@ def test_generate_openapi_spec_with_route_and_method():
         route="/custom-path",
         method="post",
     )
-    def custom_func():
+    def custom_func() -> None:
         pass
 
     spec = generate_openapi_spec()
@@ -134,7 +134,7 @@ def test_generate_openapi_spec_with_route_and_method():
     assert "post" in spec["paths"]["/custom-path"]
 
 
-def test_generate_spec_with_pydantic_models():
+def test_generate_spec_with_pydantic_models() -> None:
     class RequestModel(BaseModel):
         username: str
         password: str
@@ -150,7 +150,7 @@ def test_generate_spec_with_pydantic_models():
         method="post",
         route="/login",
     )
-    def login():
+    def login() -> None:
         pass
 
     spec = generate_openapi_spec()
@@ -173,7 +173,7 @@ def test_generate_spec_with_pydantic_models():
     )
 
 
-def test_openapi_spec_contains_operation_id_and_tags():
+def test_openapi_spec_contains_operation_id_and_tags() -> None:
     spec = json.loads(get_openapi_json())
     path_item = spec["paths"]["/http_trigger"]["get"]
 
@@ -188,7 +188,7 @@ def test_openapi_spec_contains_operation_id_and_tags():
     assert "200" in path_item["responses"]
 
 
-def test_markdown_description_rendering():
+def test_markdown_description_rendering() -> None:
     spec = json.loads(get_openapi_json())
     path_item = spec["paths"]["/http_trigger"]["get"]
 
@@ -198,7 +198,7 @@ def test_markdown_description_rendering():
     assert "```json" in path_item["description"]
 
 
-def test_generate_openapi_spec_with_cookie_parameter():
+def test_generate_openapi_spec_with_cookie_parameter() -> None:
     @openapi(
         summary="Cookie param example",
         description="Test endpoint with cookie parameter",
@@ -213,7 +213,7 @@ def test_generate_openapi_spec_with_cookie_parameter():
         ],
         route="/cookie_test",
     )
-    def cookie_test():
+    def cookie_test() -> None:
         pass
 
     spec = generate_openapi_spec()

@@ -26,9 +26,9 @@
 - [x] Define response schemas (e.g. JSON schema, examples)
 - [x] Integrate with `pydantic` or type hints
 - [x] Custom tags, operationId
-- [ ] Markdown `description` support
-- [ ] Parameter type expansion: `cookie` (remaining type)
-- [ ] YAML output (`/openapi.yaml` endpoint)
+- [x] Markdown `description` support
+- [x] Parameter type expansion: `cookie` (remaining type)
+- [x] YAML output (`/openapi.yaml` endpoint)
 
 ---
 
@@ -43,7 +43,9 @@
 
 ## ⬜ M5. Release & Documentation
 - [x] `hatch build` for packaging
-- [ ] Add `README.md` usage examples and basic documentation
+- [x] Add `README.md` usage examples and basic documentation
+- [x]  Add docs/ folder with index.md, usage.md, contributing.md
+- [x]  Add mkdocs.yml for structured site docs
 - [ ] Add Swagger UI screenshot/preview
 - [ ] Add CHANGELOG generator with `git-changelog`
 - [ ] Publish first release to PyPI

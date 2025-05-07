@@ -3,7 +3,7 @@
 from azure_functions_openapi.decorator import openapi, get_openapi_registry
 
 
-def test_openapi_registers_metadata():
+def test_openapi_registers_metadata() -> None:
     @openapi(
         summary="Test Summary",
         description="Detailed test description",
@@ -18,7 +18,7 @@ def test_openapi_registers_metadata():
             }
         ],
     )
-    def dummy_function():
+    def dummy_function() -> None:
         pass
 
     registry = get_openapi_registry()
@@ -37,14 +37,14 @@ def test_openapi_registers_metadata():
     assert parameters[0]["description"] == "Optional query string"
 
 
-def test_openapi_registers_metadata_with_request_body():
+def test_openapi_registers_metadata_with_request_body() -> None:
     @openapi(
         summary="Test with body",
         description="Test endpoint with request body",
         response={201: {"description": "Created"}},
         parameters=[],
     )
-    def dummy_with_body():
+    def dummy_with_body() -> None:
         pass
 
     # Register request body schema

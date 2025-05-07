@@ -4,7 +4,7 @@ import azure.functions as func
 from examples.openapi_json import function_app
 
 
-def test_http_trigger_query():
+def test_http_trigger_query() -> None:
     req = func.HttpRequest(
         method="GET",
         url="/api/http_trigger?name=Azure",
@@ -18,7 +18,7 @@ def test_http_trigger_query():
     assert "Hello, Azure" in resp.get_body().decode()
 
 
-def test_http_trigger_body():
+def test_http_trigger_body() -> None:
     req = func.HttpRequest(
         method="POST",
         url="/api/http_trigger",
@@ -32,7 +32,7 @@ def test_http_trigger_body():
     assert "Hello, Function" in resp.get_body().decode()
 
 
-def test_http_trigger_no_name():
+def test_http_trigger_no_name() -> None:
     req = func.HttpRequest(
         method="GET", url="/api/http_trigger", body=b"", params={}, headers={}
     )
@@ -42,7 +42,7 @@ def test_http_trigger_no_name():
     assert "Invalid request" in resp.get_body().decode()
 
 
-def test_openapi_yaml_response():
+def test_openapi_yaml_response() -> None:
     req = func.HttpRequest(
         method="GET", url="/api/openapi.yaml", body=b"", params={}, headers={}
     )

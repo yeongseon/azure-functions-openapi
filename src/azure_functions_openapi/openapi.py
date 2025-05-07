@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from azure_functions_openapi.decorator import get_openapi_registry
 import json
-import yaml  # type: ignore
+import yaml
 
 
 def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[str, Any]:
