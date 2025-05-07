@@ -1,0 +1,29 @@
+site_name: Azure Functions OpenAPI
+site_description: OpenAPI (Swagger) integration for Python-based Azure Functions
+site_author: Yeongseon Choe
+repo_url: https://github.com/yeongseon/azure-functions-openapi
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Usage: usage.md
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - toc:
+      permalink: true
+  - tables
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.tabbed
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.emoji
+
+plugins:
+  - search
