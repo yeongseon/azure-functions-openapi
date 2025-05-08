@@ -26,6 +26,10 @@ dev = [
     "types-PyYAML",
     "pytest-cov"
 ]
+docs = [
+    "mkdocs",
+    "mkdocs-material"
+]
 
 [build-system]
 requires = ["hatchling"]
