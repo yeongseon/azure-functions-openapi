@@ -23,7 +23,8 @@ dev = [
     "pre-commit",
     "pytest",
     "ruff",
-    "types-PyYAML"
+    "types-PyYAML",
+    "pytest-cov"
 ]
 
 [build-system]
@@ -50,5 +51,5 @@ target-version = "py38"
 exclude = ["tests"]
 
 [tool.pytest.ini_options]
-addopts = "-ra -q"
+addopts = "--cov=src/azure_functions_openapi --cov-report=xml -ra -q"
 testpaths = ["tests"]
