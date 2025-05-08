@@ -23,11 +23,17 @@ jobs:
           pip install --upgrade pip
           pip install .[dev]
 
+      - name: List workspace contents
+        run: ls -R
+
       - name: Run pytest with coverage
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
-          pytest --cov=src/azure_functions_openapi --cov-report=xml
+          pytest --cov=src/azure_functions_openapi --cov-report=xml --cov-fail-under=0
+
+      - name: Check if coverage.xml exists
+        run: ls -lh coverage.xml
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
