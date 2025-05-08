@@ -24,18 +24,42 @@ def openapi(
     """
     Decorator to attach OpenAPI metadata to a function.
 
-    :param summary: Short summary of the endpoint
-    :param description: Detailed description
-    :param response: Dictionary of response codes and descriptions
-    :param parameters: List of parameters for the endpoint
-    :param request_body: Schema for the request body (manual)
-    :param request_model: Pydantic model for the request body (auto schema)
-    :param response_model: Pydantic model for the response body (auto schema)
-    :param route: Optional override for route path
-    :param method: Optional override for HTTP method
-    :param operation_id: Unique operation identifier (optional)
-    :param tags: List of tags to group the operation (optional)
-    :return: Decorated function with metadata registered
+    Example usage:
+
+        from pydantic import BaseModel
+        from azure_functions_openapi.decorator import openapi
+
+        class GreetingRequest(BaseModel):
+            name: str
+
+        class GreetingResponse(BaseModel):
+            message: str
+
+        @openapi(
+            summary="Greet user",
+            description="Returns a greeting using the name.",
+            request_model=GreetingRequest,
+            response_model=GreetingResponse,
+            tags=["Example"]
+        )
+        def my_func(req: func.HttpRequest) -> func.HttpResponse:
+            ...
+
+    Parameters:
+        summary: Short summary of the endpoint.
+        description: Detailed description (Markdown supported).
+        response: Manual response schema (dictionary of status codes).
+        parameters: List of parameters (query/path/header).
+        request_body: Manual requestBody schema.
+        request_model: Pydantic model for request body.
+        response_model: Pydantic model for response body.
+        route: Optional override for HTTP route path.
+        method: Optional override for HTTP method.
+        operation_id: Custom OpenAPI operationId.
+        tags: List of tags to group the endpoint.
+
+    Returns:
+        Callable function with metadata registered.
     """
 
     def decorator(func: F) -> F:
@@ -59,8 +83,9 @@ def openapi(
 
 def get_openapi_registry() -> Dict[str, Dict[str, Any]]:
     """
-    Retrieve the current OpenAPI metadata registry.
+    Retrieve OpenAPI metadata for all registered functions.
 
-    :return: Dictionary containing metadata for all registered functions
+    Returns:
+        A dictionary where each key is a function name and value is its OpenAPI metadata.
     """
     return _openapi_registry

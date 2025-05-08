@@ -6,11 +6,14 @@ import yaml
 
 def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[str, Any]:
     """
-    Generate OpenAPI 3.0 specification from the registered metadata.
+    Generate OpenAPI 3.0 specification from all registered function metadata.
 
-    :param title: API title
-    :param version: API version
-    :return: Dictionary representing OpenAPI spec
+    Parameters:
+        title: The title of the API.
+        version: The API version string.
+
+    Returns:
+        A dictionary representing the full OpenAPI specification.
     """
     registry = get_openapi_registry()
     paths: Dict[str, Any] = {}
@@ -88,7 +91,10 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
 
 def get_openapi_json() -> str:
     """
-    Return the OpenAPI JSON string for HTTP response.
+    Generate and return the OpenAPI specification in JSON format.
+
+    Returns:
+        A JSON string of the OpenAPI spec.
     """
     spec = generate_openapi_spec()
     return json.dumps(spec, indent=2)
@@ -96,7 +102,10 @@ def get_openapi_json() -> str:
 
 def get_openapi_yaml() -> str:
     """
-    Return the OpenAPI YAML string for HTTP response.
+    Generate and return the OpenAPI specification in YAML format.
+
+    Returns:
+        A YAML string of the OpenAPI spec.
     """
     spec = generate_openapi_spec()
     return yaml.dump(spec, sort_keys=False, allow_unicode=True)
