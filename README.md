@@ -55,32 +55,13 @@ Visit:
 - [http://localhost:7071/swagger](http://localhost:7071/swagger) for Swagger UI
 - [http://localhost:7071/openapi.json](http://localhost:7071/openapi.json) for OpenAPI spec
 
-## Project Structure
-
-```
-azure-functions-openapi/
-├── src/
-├── tests/
-├── examples/
-├── docs/
-└── README.md
-```
-
 ## Development
 
-```bash
-make setup       # Install dependencies
-make format      # Run black
-make lint        # Run ruff
-make typecheck   # Run mypy
-make test        # Run pytest
-```
+See [docs/development.md](docs/development.md) for environment setup, testing, linting, and pre-commit configuration.
 
 ## Contributing
 
 Contributions are welcome! See [docs/contributing.md](docs/contributing.md) for guidelines.
-
----
 
 ## License
 
