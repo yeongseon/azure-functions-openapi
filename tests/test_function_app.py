@@ -1,7 +1,7 @@
 # tests/test_function_app.py
 
 import azure.functions as func
-from examples.openapi_json import function_app
+from examples.hello_openapi import function_app
 
 
 def test_http_trigger_query() -> None:

@@ -8,7 +8,7 @@ app = func.FunctionApp()
 
 
 @app.route(route="http_trigger", auth_level=func.AuthLevel.ANONYMOUS)
-@openapi(
+@openapi(  # type: ignore[misc]
     route="/api/http_trigger",
     summary="HTTP Trigger with name parameter",
     description="""
