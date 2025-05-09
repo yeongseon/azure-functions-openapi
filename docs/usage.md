@@ -1,18 +1,18 @@
 # Usage Guide: azure-functions-openapi
 
-This guide walks you through using the `azure-functions-openapi` library to document your Azure Functions using OpenAPI (Swagger) specifications.
+This guide walks you through documenting your Python Azure Functions with **OpenAPI (Swagger)** using `azure-functions-openapi`.
 
 ---
 
 ## 1. Getting Started
 
-### Install the package
+### Install
 
 ```bash
 pip install azure-functions-openapi
 ```
 
-For development version:
+For the development version:
 
 ```bash
 git clone https://github.com/yeongseon/azure-functions-openapi.git
@@ -20,40 +20,43 @@ cd azure-functions-openapi
 pip install -e .
 ```
 
-### Folder Structure
+### Folder Snapshot
 
 ```
 azure-functions-openapi/
 ├── src/
 ├── tests/
 ├── examples/
-├── docs/
+└── docs/
 ```
 
 ---
 
 ## 2. `@openapi` Decorator
 
-Use `@openapi` to annotate your Azure Function.
+Annotate each function with `@openapi` and the library will register metadata for the spec builder.
 
-### Supported Arguments:
+### Supported Arguments
 
-| Argument       | Type               | Description |
-|----------------|--------------------|-------------|
-| `summary`      | `str`              | One-line summary |
-| `description`  | `str`              | Supports **Markdown** |
-| `response`     | `dict`             | HTTP status code to response spec |
-| `parameters`   | `list`             | Query, path, header, or cookie params |
-| `request_model`| `BaseModel`        | Auto-generate request body schema |
-| `response_model`| `BaseModel`       | Auto-generate response schema |
-| `tags`         | `list[str]`        | Group endpoints |
-| `operation_id` | `str`              | Custom unique identifier |
-| `route`        | `str`              | Override the default path |
-| `method`       | `str`              | GET/POST/PUT/... |
+| Argument         | Type        | Description                                                       |
+|------------------|-------------|-------------------------------------------------------------------|
+| `summary`        | `str`       | One‑line summary                                                  |
+| `description`    | `str`       | Markdown description                                              |
+| `tags`           | `list[str]` | Tag list to group the endpoint                                    |
+| `operation_id`   | `str`       | Custom unique identifier                                          |
+| `route`          | `str`       | Override default path (e.g. `/users/{id}`)                        |
+| `method`         | `str`       | HTTP verb (`GET`, `POST`, `PUT`, …)                               |
+| `parameters`     | `list`      | Query, path, header or cookie parameters                          |
+| `request_model`  | `BaseModel` | Pydantic model → requestBody schema                               |
+| `request_body`   | `dict`      | Manual requestBody schema (use when not relying on a model)       |
+| `response_model` | `BaseModel` | Pydantic model → 200‑response schema                              |
+| `response`       | `dict`      | Manual responses keyed by HTTP status code                        |
 
 ---
 
-## 3. Models with Pydantic
+## 3. Models with Pydantic (v2 only)
+
+> **Note**  `azure-functions-openapi` targets **Pydantic v2**. Older v1 models are not supported.
 
 ```python
 from pydantic import BaseModel
@@ -66,61 +69,59 @@ class ResponseModel(BaseModel):
     message: str
 ```
 
-These models generate accurate schema definitions in the OpenAPI spec.
+These classes are converted into JSON‑schema and injected under `components/schemas`.
 
 ---
 
-## 4. Parameters (query/path/header/cookie)
+## 4. Parameters (query / path / header / cookie)
 
 ```python
-parameters=[
+parameters = [
     {
         "name": "q",
-        "in": "query",  # or path, header, cookie
+        "in": "query",  # path, header, or cookie also allowed
         "required": False,
         "schema": {"type": "string"},
-        "description": "Search query string"
+        "description": "Search query string",
     }
 ]
 ```
 
-All types except `cookie` are fully supported. `cookie` support is in progress.
+All types except **`cookie`** are fully supported today (cookie support is on the roadmap).
 
 ---
 
-## 5. OpenAPI 3.0 vs 3.1
+## 5. OpenAPI 3.0 vs 3.1
 
-- Currently: **OpenAPI 3.0**
-- Planned:
-  - Nullable types
-  - `oneOf`, `anyOf`, `const` improvements
-  - JSON Schema 2020-12 support
+| Status     | Notes                                                        |
+|------------|--------------------------------------------------------------|
+| **3.0** ✔  | Current output                                              |
+| **3.1** ⏳ | Planned: nullable, `oneOf`/`anyOf`/`const`, JSON Schema 2020‑12 |
 
 ---
 
-## 6. Swagger UI Customization
+## 6. Docs (Swagger UI) Customization
 
-You can override the `swagger_ui()` function and add:
+Override `swagger_ui()` in your project to inject custom assets:
 
 ```html
-<link rel="stylesheet" href="https://your-domain/custom.css">
-<script src="https://your-domain/custom.js"></script>
+<link rel="stylesheet" href="https://example.com/custom.css">
+<script src="https://example.com/custom.js"></script>
 ```
 
-Customize `SwaggerUIBundle({...})` as needed.
+Inside the HTML you can tweak the `SwaggerUIBundle({ ... })` options.
 
 ---
 
-## 7. JSON and YAML output
+## 7. JSON & YAML Endpoints
 
-- `/openapi.json` – Default JSON spec
-- `/openapi.yaml` – Human-readable YAML (requires `PyYAML`)
+| Endpoint        | Purpose                         |
+|-----------------|---------------------------------|
+| `/docs`         | Interactive Swagger UI          |
+| `/openapi.json` | Raw spec (JSON)                 |
+| `/openapi.yaml` | Raw spec (YAML, requires PyYAML) |
 
-These can be imported into:
-
-- Postman
-- SwaggerHub
-- Azure API Management
+These outputs import directly into Postman, SwaggerHub, Azure API Management, etc.
 
 ---
 
@@ -130,11 +131,15 @@ These can be imported into:
 @app.route(route="http_trigger", auth_level=func.AuthLevel.ANONYMOUS)
 @openapi(
     summary="Greet user",
-    description="Returns a greeting.\n\n### Usage\nPass `name` in query or body.",
+    description="""Returns a greeting.
+
+### Usage
+
+Pass `name` in query or body.""",
     request_model=RequestModel,
     response_model=ResponseModel,
     tags=["Example"],
-    operation_id="greetUser"
+    operation_id="greetUser",
 )
 def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
     ...
@@ -142,10 +147,4 @@ def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
 
 ---
 
-## Docs Endpoints
-
-| Endpoint         | Description                |
-|------------------|----------------------------|
-| `/swagger`       | Swagger UI                 |
-| `/openapi.json`  | OpenAPI in JSON            |
-| `/openapi.yaml`  | OpenAPI in YAML (if enabled) |
+Happy documenting! 🚀
