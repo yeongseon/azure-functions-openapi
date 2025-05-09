@@ -1,3 +1,4 @@
+# src/azure_functions_openapi/openapi.py
 from typing import Dict, Any
 from azure_functions_openapi.decorator import get_openapi_registry
 import json

@@ -9,6 +9,7 @@ app = func.FunctionApp()
 
 @app.route(route="http_trigger", auth_level=func.AuthLevel.ANONYMOUS)
 @openapi(
+    route="/api/http_trigger",
     summary="HTTP Trigger with name parameter",
     description="""
 Returns a greeting using the **name** from query or body.
@@ -25,6 +26,15 @@ You can pass the name:
 """,
     operation_id="greetUser",
     tags=["Example"],
+    parameters=[
+        {
+            "name": "name",
+            "in": "query",
+            "required": True,
+            "schema": {"type": "string"},
+            "description": "Name to greet",
+        }
+    ],
     response={
         200: {
             "description": "Successful response with greeting",
@@ -41,7 +51,7 @@ You can pass the name:
         },
         400: {"description": "Invalid request"},
     },
-)  # type: ignore[misc]
+)
 def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
     """
     HTTP trigger function that returns a greeting message.
@@ -52,10 +62,10 @@ def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
     """
     logging.info("Python HTTP trigger processed a request.")
 
-    # 1️⃣  Try query-string first
+    # 1 Try query-string first
     name = req.params.get("name")
 
-    # 2️⃣  Fall back to JSON body
+    # 2️. Fall back to JSON body
     if not name:
         try:
             body = req.get_json()
