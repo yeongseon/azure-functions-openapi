@@ -1,0 +1,3 @@
+# .coveragerc
+[run]
+relative_files = True

@@ -43,3 +43,4 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: yeongseon/azure-functions-openapi
           files: ./coverage.xml
+          verbose: true              # debug output
