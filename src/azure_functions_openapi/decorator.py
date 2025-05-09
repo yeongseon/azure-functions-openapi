@@ -28,26 +28,56 @@ def openapi(
     """
     Decorator that attaches OpenAPI metadata to an Azure Functions handler.
 
-    Example
-    -------
-        from pydantic import BaseModel
-        from azure_functions_openapi.decorator import openapi
+    Examples
+    --------
+    ### 1 · Minimal “Hello World”
 
-        class GreetingRequest(BaseModel):
-            name: str
+    ```python
+    @app.route(route="hello")
+    @openapi(summary="Hello", description="Returns plain text.")
+    def hello(req: func.HttpRequest) -> func.HttpResponse:
+        return func.HttpResponse("Hello, world!", status_code=200)
+    ```
 
-        class GreetingResponse(BaseModel):
-            message: str
+    ### 2 · Pydantic-powered JSON API
 
-        @openapi(
-            summary="Greet user",
-            description="Returns a greeting using the name.",
-            request_model=GreetingRequest,
-            response_model=GreetingResponse,
-            tags=["Example"],
+    ```python
+    from pydantic import BaseModel
+
+    class TodoRequest(BaseModel):
+        title: str
+        done: bool = False
+
+    class TodoResponse(BaseModel):
+        id: int
+        title: str
+        done: bool
+
+    @app.route(route="todos/{id}", method="put")
+    @openapi(
+        summary="Update a todo item",
+        description=\"""Update a todo and return the updated document.\""",
+        tags=["Todo"],
+        parameters=[{"name": "id", "in": "path", "required": True, "schema": {"type": "integer"}}],
+        request_model=TodoRequest,
+        response_model=TodoResponse,
+        operation_id="updateTodo",
+    )
+    def update_todo(req: func.HttpRequest) -> func.HttpResponse:
+        # ... business logic ...
+        body = TodoRequest.model_validate_json(req.get_body())
+        todo = TodoResponse(id=1, **body.model_dump())
+        return func.HttpResponse(
+            todo.model_dump_json(),
+            status_code=200,
+            mimetype="application/json",
         )
-        def my_func(req: func.HttpRequest) -> func.HttpResponse:
-            ...
+    ```
+
+    After starting the Function App you get:
+
+    * **Swagger UI** → `http://localhost:7071/api/docs`
+    * **Raw JSON spec** → `http://localhost:7071/api/openapi.json`
 
     Parameters
     ----------
