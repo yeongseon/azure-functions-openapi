@@ -163,7 +163,7 @@ def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
     ...
 ```
 
-Pydantic v1 **or** v2 are both supported; the library will detect the version at runtime.
+This library targets **Pydantic v2**. v1 is **not supported**.
 
 ---
 
