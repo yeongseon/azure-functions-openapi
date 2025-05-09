@@ -1,114 +1,111 @@
 # src/azure_functions_openapi/openapi.py
-from typing import Dict, Any
-from azure_functions_openapi.decorator import get_openapi_registry
+from typing import Any, Dict, List, cast
 import json
 import yaml
+
+from azure_functions_openapi.decorator import get_openapi_registry
+
+
+def _model_to_schema(model_cls: Any) -> Dict[str, Any]:
+    """Return JSON-schema from a Pydantic v2 model class.
+    Parameters:
+        model_cls: Pydantic model class.
+    Returns:
+        Dict[str, Any]: JSON schema representation of the model.
+    """
+    return cast(Dict[str, Any], model_cls.model_json_schema())
 
 
 def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[str, Any]:
     """
-    Generate OpenAPI 3.0 specification from all registered function metadata.
-
-    Parameters:
-        title: The title of the API.
-        version: The API version string.
-
-    Returns:
-        A dictionary representing the full OpenAPI specification.
+    Compile an OpenAPI-3 specification from the registry.
+    No base-path is added; `route=` is used exactly as provided.
     """
     registry = get_openapi_registry()
-    paths: Dict[str, Any] = {}
+    paths: Dict[str, Dict[str, Any]] = {}
 
-    for func_name, metadata in registry.items():
-        # Ensure path is not None
-        path = metadata.get("route") or f"/{func_name}"
-        method = (metadata.get("method") or "get").lower()
+    for func_name, meta in registry.items():
+        # route & method --------------------------------------------------
+        path = meta.get("route") or f"/{func_name}"
+        method = (meta.get("method") or "get").lower()
 
-        # Build responses
+        # responses -------------------------------------------------------
         responses: Dict[str, Any] = {}
-        for code, response_detail in metadata.get("response", {}).items():
-            resp_obj: Dict[str, Any] = {
-                "description": response_detail.get("description", "")
-            }
-            if "content" in response_detail:
-                resp_obj["content"] = response_detail["content"]
-            responses[str(code)] = resp_obj
+        for status, detail in meta.get("response", {}).items():
+            resp = {"description": detail.get("description", "")}
+            if "content" in detail:
+                resp["content"] = detail["content"]
+            responses[str(status)] = resp
 
-        if metadata.get("response_model"):
-            schema = metadata["response_model"].model_json_schema()
+        if meta.get("response_model"):
             responses["200"] = {
                 "description": "Successful Response",
-                "content": {"application/json": {"schema": schema}},
+                "content": {
+                    "application/json": {
+                        "schema": _model_to_schema(meta["response_model"])
+                    }
+                },
             }
 
-        # Auto-generate operationId if not provided
-        operation_id = metadata.get("operation_id")
-        if not operation_id:
-            normalized_path = (
-                path.strip("/").replace("/", "_").replace("{", "").replace("}", "")
-            )
-            operation_id = f"{method}_{normalized_path or 'root'}"
-
-        tags = metadata.get("tags") or ["default"]
-
-        operation: Dict[str, Any] = {
-            "summary": metadata.get("summary", ""),
-            "description": metadata.get("description", ""),
-            "operationId": operation_id,
-            "tags": tags,
+        # operation object ------------------------------------------------
+        op: Dict[str, Any] = {
+            "summary": meta.get("summary", ""),
+            "description": meta.get("description", ""),
+            "operationId": meta.get("operation_id") or f"{method}_{func_name}",
+            "tags": meta.get("tags") or ["default"],
             "responses": responses,
         }
 
-        # Add query parameters (e.g., ?name=Azure)
-        parameters = metadata.get("parameters", [])
-        if method == "get":
-            if "name" not in [param.get("name") for param in parameters]:
-                parameters.append(
-                    {
-                        "name": "name",
-                        "in": "query",
-                        "required": True,
-                        "schema": {"type": "string"},
-                        "description": "Name to greet",
-                    }
-                )
+        # parameters ------------------------------------------------------
+        parameters: List[Dict[str, Any]] = meta.get("parameters", [])
         if parameters:
-            operation["parameters"] = parameters
+            op["parameters"] = parameters
 
-        # Only include requestBody for methods that allow it
+        # requestBody (POST/PUT/PATCH) ------------------------------------
         if method in {"post", "put", "patch"}:
-            if metadata.get("request_body"):
-                operation["requestBody"] = {
+            if meta.get("request_body"):
+                op["requestBody"] = {
+                    "required": True,
+                    "content": {"application/json": {"schema": meta["request_body"]}},
+                }
+            elif meta.get("request_model"):
+                op["requestBody"] = {
                     "required": True,
                     "content": {
-                        "application/json": {"schema": metadata["request_body"]}
+                        "application/json": {
+                            "schema": _model_to_schema(meta["request_model"])
+                        }
                     },
                 }
-            elif metadata.get("request_model"):
-                schema = metadata["request_model"].model_json_schema()
-                operation["requestBody"] = {
-                    "required": True,
-                    "content": {"application/json": {"schema": schema}},
-                }
 
-        paths[path] = {method: operation}
+        # merge into paths (support multiple methods per route) ----------
+        paths.setdefault(path, {})[method] = op
 
     return {
         "openapi": "3.0.0",
         "info": {
             "title": title,
             "version": version,
-            "description": "Auto-generated OpenAPI documentation.\nSupports Markdown in descriptions (CommonMark).",
+            "description": (
+                "Auto-generated OpenAPI documentation. "
+                "Markdown supported in descriptions (CommonMark)."
+            ),
         },
         "paths": paths,
     }
 
 
 def get_openapi_json() -> str:
-    spec = generate_openapi_spec()
-    return json.dumps(spec, indent=2)
+    """Return the spec as pretty-printed JSON (UTF-8).
+    Returns:
+        str: OpenAPI spec in JSON format.
+    """
+    return json.dumps(generate_openapi_spec(), indent=2, ensure_ascii=False)
 
 
 def get_openapi_yaml() -> str:
-    spec = generate_openapi_spec()
-    return yaml.dump(spec, sort_keys=False, allow_unicode=True)
+    """Return the spec as YAML.
+    Returns:
+        str: OpenAPI spec in YAML format.
+    """
+    return yaml.safe_dump(generate_openapi_spec(), sort_keys=False, allow_unicode=True)
