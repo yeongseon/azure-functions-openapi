@@ -1,0 +1,14 @@
+# codecov.yml  (repo root)
+codecov:
+  require_ci_to_pass: true
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 2%
+
+parsers:
+  python:
+    build_root: .
