@@ -37,7 +37,9 @@ jobs:
       - name: Verify coverage output
         run: ls -lh coverage.xml
 
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: yeongseon/azure-functions-openapi
           files: ./coverage.xml
