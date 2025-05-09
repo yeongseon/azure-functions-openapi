@@ -14,7 +14,7 @@ repos:
     hooks:
       - id: mypy
         language: system
-        args: ["--install-types", "--non-interactive"]
+        args: ["--config-file=pyproject.toml", "--install-types", "--non-interactive"]
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.7 # python 3.8+
