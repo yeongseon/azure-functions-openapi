@@ -10,23 +10,26 @@ _openapi_registry: Dict[str, Dict[str, Any]] = {}
 
 
 def openapi(
+    # ── basic metadata ───────────────────────────────────────────
     summary: str = "",
     description: str = "",
-    response: Optional[Dict[int, Dict[str, Any]]] = None,
-    parameters: Optional[List[Dict[str, Any]]] = None,
-    request_body: Optional[Dict[str, Any]] = None,
-    request_model: Optional[Type[BaseModel]] = None,
-    response_model: Optional[Type[BaseModel]] = None,
+    tags: Optional[List[str]] = None,
+    operation_id: Optional[str] = None,
+    # ── routing information ─────────────────────────────────────
     route: Optional[str] = None,
     method: Optional[str] = None,
-    operation_id: Optional[str] = None,
-    tags: Optional[List[str]] = None,
+    parameters: Optional[List[Dict[str, Any]]] = None,
+    # ── request / response schema ───────────────────────────────
+    request_model: Optional[Type[BaseModel]] = None,
+    request_body: Optional[Dict[str, Any]] = None,
+    response_model: Optional[Type[BaseModel]] = None,
+    response: Optional[Dict[int, Dict[str, Any]]] = None,
 ) -> Callable[[F], F]:
     """
-    Decorator to attach OpenAPI metadata to a function.
+    Decorator that attaches OpenAPI metadata to an Azure Functions handler.
 
-    Example usage:
-
+    Example
+    -------
         from pydantic import BaseModel
         from azure_functions_openapi.decorator import openapi
 
@@ -41,41 +44,58 @@ def openapi(
             description="Returns a greeting using the name.",
             request_model=GreetingRequest,
             response_model=GreetingResponse,
-            tags=["Example"]
+            tags=["Example"],
         )
         def my_func(req: func.HttpRequest) -> func.HttpResponse:
             ...
 
-    Parameters:
-        summary: Short summary of the endpoint.
-        description: Detailed description (Markdown supported).
-        response: Manual response schema (dictionary of status codes).
-        parameters: List of parameters (query/path/header).
-        request_body: Manual requestBody schema.
-        request_model: Pydantic model for request body.
-        response_model: Pydantic model for response body.
-        route: Optional override for HTTP route path.
-        method: Optional override for HTTP method.
-        operation_id: Custom OpenAPI operationId.
-        tags: List of tags to group the endpoint.
+    Parameters
+    ----------
+    summary:
+        Short description shown in Swagger UI.
+    description:
+        Longer Markdown-enabled description.
+    tags:
+        List of group tags.
+    operation_id:
+        Custom operationId (defaults to function name).
+    route:
+        Override for the HTTP route path (e.g. "/items/{id}").
+    method:
+        Explicit HTTP method if not inferrable.
+    parameters:
+        List of param objects (query/path/header/cookie).
+    request_model:
+        Pydantic model used to derive requestBody schema.
+    request_body:
+        Raw requestBody schema (if you don’t use Pydantic).
+    response_model:
+        Pydantic model used to derive 200-response schema.
+    response:
+        Manual responses dict keyed by status code.
 
-    Returns:
-        Callable function with metadata registered.
+    Returns
+    -------
+    Callable
+        The original function, with its name stored in `_openapi_registry`.
     """
 
     def decorator(func: F) -> F:
         _openapi_registry[func.__name__] = {
+            # ── basic metadata ────────────────────────────────
             "summary": summary,
             "description": description,
-            "response": response or {},
-            "parameters": parameters or [],
-            "request_body": request_body,
-            "request_model": request_model,
-            "response_model": response_model,
+            "tags": tags or ["default"],
+            "operation_id": operation_id,
+            # ── routing info ─────────────────────────────────
             "route": route,
             "method": method,
-            "operation_id": operation_id,
-            "tags": tags or ["default"],
+            "parameters": parameters or [],
+            # ── request / response schema ────────────────────
+            "request_model": request_model,
+            "request_body": request_body,
+            "response_model": response_model,
+            "response": response or {},
         }
         return func
 
