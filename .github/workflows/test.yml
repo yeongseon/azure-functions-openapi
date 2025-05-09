@@ -18,18 +18,23 @@ jobs:
         with:
           python-version: "3.8"
 
-      - name: Install dependencies
+      # Create an isolated virtual environment so Makefile paths work
+      - name: Create virtualenv and install dev dependencies
         run: |
+          python -m venv .venv
+          . .venv/bin/activate
           pip install --upgrade pip
           pip install .[dev]
 
-      - name: List workspace contents
+      - name: Show workspace contents (debug)
         run: ls -R
 
       - name: Run tests with coverage (Makefile)
-        run: make coverage
+        run: |
+          . .venv/bin/activate
+          make coverage
 
-      - name: Check if coverage.xml exists
+      - name: Verify coverage output
         run: ls -lh coverage.xml
 
       - name: Upload to Codecov
