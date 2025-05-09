@@ -57,3 +57,10 @@ exclude = ["tests"]
 [tool.pytest.ini_options]
 addopts = "--cov=src/azure_functions_openapi --cov-report=xml -ra -q"
 testpaths = ["tests"]
+
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
