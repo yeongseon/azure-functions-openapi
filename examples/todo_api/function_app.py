@@ -43,6 +43,14 @@ TODOS: List[dict[str, object]] = []
 def create_todo(req: func.HttpRequest) -> func.HttpResponse:
     """
     Create a new todo item.
+
+    Parameters:
+        req: The HTTP request object containing the todo data.
+    Returns:
+        A JSON response with the created todo item.
+    Raises:
+        ValueError: If the request data is invalid.
+        ValidationError: If the request data does not match the expected schema.
     """
     logging.info("Creating a new todo")
     try:
@@ -76,6 +84,14 @@ def create_todo(req: func.HttpRequest) -> func.HttpResponse:
 def list_todos(req: func.HttpRequest) -> func.HttpResponse:
     """
     Get all todo items.
+
+    Parameters:
+        req: The HTTP request object.
+    Returns:
+        A JSON response containing the list of todos.
+    Raises:
+        ValueError: If the request data is invalid.
+        ValidationError: If the request data does not match the expected schema.
     """
     todos_response = TodoListResponse(
         todos=[
@@ -95,6 +111,13 @@ def list_todos(req: func.HttpRequest) -> func.HttpResponse:
 @app.route(route="openapi.json", auth_level=func.AuthLevel.ANONYMOUS)
 @app.function_name(name="openapi_spec")
 def openapi_spec(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Generate OpenAPI specification in JSON format.
+    Parameters:
+        req: The HTTP request object.
+    Returns:
+        A JSON response containing the OpenAPI specification.
+    """
     return func.HttpResponse(
         get_openapi_json(), mimetype="application/json", status_code=200
     )
@@ -103,6 +126,13 @@ def openapi_spec(req: func.HttpRequest) -> func.HttpResponse:
 @app.route(route="openapi.yaml", auth_level=func.AuthLevel.ANONYMOUS)
 @app.function_name(name="openapi_yaml_spec")
 def openapi_yaml_spec(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Generate OpenAPI specification in YAML format.
+    Parameters:
+        req: The HTTP request object.
+    Returns:
+        A YAML response containing the OpenAPI specification.
+    """
     return func.HttpResponse(
         get_openapi_yaml(), mimetype="application/x-yaml", status_code=200
     )
@@ -111,6 +141,13 @@ def openapi_yaml_spec(req: func.HttpRequest) -> func.HttpResponse:
 @app.route(route="docs", auth_level=func.AuthLevel.ANONYMOUS)
 @app.function_name(name="swagger_ui")
 def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Serve the Swagger UI for the API documentation.
+    Parameters:
+        req: The HTTP request object.
+    Returns:
+        An HTML response containing the Swagger UI.
+    """
     html = """
     <!DOCTYPE html>
     <html>
