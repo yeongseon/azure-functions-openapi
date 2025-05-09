@@ -44,6 +44,8 @@ exclude_dirs = ["tests"]
 [tool.mypy]
 strict = true
 ignore_missing_imports = true
+exclude = "examples/"
+
 
 [tool.black]
 line-length = 88
