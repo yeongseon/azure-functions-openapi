@@ -33,7 +33,6 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                 resp_obj["content"] = response_detail["content"]
             responses[str(code)] = resp_obj
 
-        # If response_model is specified, override or enrich the 200 response
         if metadata.get("response_model"):
             schema = metadata["response_model"].model_json_schema()
             responses["200"] = {
@@ -49,10 +48,8 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
             )
             operation_id = f"{method}_{normalized_path or 'root'}"
 
-        # Use provided tags or default
         tags = metadata.get("tags") or ["default"]
 
-        # NOTE: Swagger UI will render 'description' using CommonMark (supports Markdown)
         operation: Dict[str, Any] = {
             "summary": metadata.get("summary", ""),
             "description": metadata.get("description", ""),
@@ -61,20 +58,37 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
             "responses": responses,
         }
 
-        if metadata.get("parameters"):
-            operation["parameters"] = metadata["parameters"]
+        # Add query parameters (e.g., ?name=Azure)
+        parameters = metadata.get("parameters", [])
+        if method == "get":
+            if "name" not in [param.get("name") for param in parameters]:
+                parameters.append(
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": True,
+                        "schema": {"type": "string"},
+                        "description": "Name to greet",
+                    }
+                )
+        if parameters:
+            operation["parameters"] = parameters
 
-        if metadata.get("request_body"):
-            operation["requestBody"] = {
-                "required": True,
-                "content": {"application/json": {"schema": metadata["request_body"]}},
-            }
-        elif metadata.get("request_model"):
-            schema = metadata["request_model"].model_json_schema()
-            operation["requestBody"] = {
-                "required": True,
-                "content": {"application/json": {"schema": schema}},
-            }
+        # Only include requestBody for methods that allow it
+        if method in {"post", "put", "patch"}:
+            if metadata.get("request_body"):
+                operation["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {"schema": metadata["request_body"]}
+                    },
+                }
+            elif metadata.get("request_model"):
+                schema = metadata["request_model"].model_json_schema()
+                operation["requestBody"] = {
+                    "required": True,
+                    "content": {"application/json": {"schema": schema}},
+                }
 
         paths[path] = {method: operation}
 
@@ -90,22 +104,10 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
 
 
 def get_openapi_json() -> str:
-    """
-    Generate and return the OpenAPI specification in JSON format.
-
-    Returns:
-        A JSON string of the OpenAPI spec.
-    """
     spec = generate_openapi_spec()
     return json.dumps(spec, indent=2)
 
 
 def get_openapi_yaml() -> str:
-    """
-    Generate and return the OpenAPI specification in YAML format.
-
-    Returns:
-        A YAML string of the OpenAPI spec.
-    """
     spec = generate_openapi_spec()
     return yaml.dump(spec, sort_keys=False, allow_unicode=True)
