@@ -50,7 +50,7 @@ You can pass the name:
             },
         }
     },
-)
+)  # type: ignore[misc]
 def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("Python HTTP trigger function processed a request.")
 
@@ -88,6 +88,7 @@ def openapi_yaml_spec(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="docs", auth_level=func.AuthLevel.ANONYMOUS)
+@app.function_name(name="swagger_ui")
 def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
     html = """
     <!DOCTYPE html>
@@ -102,7 +103,7 @@ def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
       <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
       <script>
         SwaggerUIBundle({
-          url: "/openapi.json",
+          url: window.location.origin + "/api/openapi.json",
           dom_id: '#swagger-ui'
         });
       </script>
