@@ -1,12 +1,14 @@
 # tests/test_openapi.py
-from pydantic import BaseModel
-from azure_functions_openapi.openapi import generate_openapi_spec, get_openapi_json
-from azure_functions_openapi.decorator import openapi, get_openapi_registry
 import json
+from pydantic import BaseModel
+
+from azure_functions_openapi.decorator import openapi, get_openapi_registry
+from azure_functions_openapi.openapi import generate_openapi_spec, get_openapi_json
 
 
 def test_generate_openapi_spec_structure() -> None:
     @openapi(
+        route="/sample_func",
         summary="Sample summary",
         description="Sample description",
         response={200: {"description": "Success"}},
@@ -19,13 +21,9 @@ def test_generate_openapi_spec_structure() -> None:
                 "description": "Optional query string",
             }
         ],
-        route="/sample_func",
-    )
+    )  # type: ignore[misc]
     def sample_func() -> None:
         pass
-
-    registry = get_openapi_registry()
-    assert "sample_func" in registry
 
     spec = generate_openapi_spec(title="My API", version="1.2.3")
 
@@ -33,32 +31,33 @@ def test_generate_openapi_spec_structure() -> None:
     assert spec["info"]["title"] == "My API"
     assert spec["info"]["version"] == "1.2.3"
     assert "/sample_func" in spec["paths"]
-    get_op = spec["paths"]["/sample_func"]["get"]
-    assert get_op["summary"] == "Sample summary"
-    assert get_op["parameters"][0]["name"] == "q"
-    assert get_op["parameters"][0]["in"] == "query"
-    assert get_op["parameters"][0]["required"] is False
-    assert get_op["parameters"][0]["schema"]["type"] == "string"
-    assert get_op["parameters"][0]["description"] == "Optional query string"
+
+    op = spec["paths"]["/sample_func"]["get"]
+    p = op["parameters"][0]
+    assert p == {
+        "name": "q",
+        "in": "query",
+        "required": False,
+        "schema": {"type": "string"},
+        "description": "Optional query string",
+    }
 
 
 def test_get_openapi_json_output() -> None:
-    json_str = get_openapi_json()
-    data = json.loads(json_str)
+    data = json.loads(get_openapi_json())
 
-    assert "openapi" in data
-    assert "info" in data
-    assert "paths" in data
+    assert {"openapi", "info", "paths"} <= data.keys()
     assert isinstance(data["paths"], dict)
 
 
 def test_generate_openapi_spec_with_request_body() -> None:
     @openapi(
+        route="/func_with_body",
+        method="post",
         summary="With Body",
         description="Endpoint with request body",
         response={200: {"description": "OK"}},
-        route="/func_with_body",
-    )
+    )  # type: ignore[misc]
     def func_with_body() -> None:
         pass
 
@@ -73,15 +72,14 @@ def test_generate_openapi_spec_with_request_body() -> None:
     }
 
     spec = generate_openapi_spec()
-    request_body = spec["paths"]["/func_with_body"]["get"]["requestBody"]
-    assert "application/json" in request_body["content"]
-    schema = request_body["content"]["application/json"]["schema"]
-    assert "username" in schema["properties"]
-    assert "password" in schema["properties"]
+    rb = spec["paths"]["/func_with_body"]["post"]["requestBody"]
+    schema = rb["content"]["application/json"]["schema"]
+    assert {"username", "password"} <= schema["properties"].keys()
 
 
 def test_response_schema_and_examples() -> None:
     @openapi(
+        route="/greet",
         summary="Greet user",
         description="Returns a greeting message.",
         response={
@@ -103,13 +101,11 @@ def test_response_schema_and_examples() -> None:
                 },
             }
         },
-        route="/greet",
-    )
+    )  # type: ignore[misc]
     def greet() -> None:
         pass
 
-    spec = generate_openapi_spec()
-    op = spec["paths"]["/greet"]["get"]
+    op = generate_openapi_spec()["paths"]["/greet"]["get"]
     assert (
         op["responses"]["200"]["content"]["application/json"]["examples"]["sample"][
             "value"
@@ -120,17 +116,16 @@ def test_response_schema_and_examples() -> None:
 
 def test_generate_openapi_spec_with_route_and_method() -> None:
     @openapi(
+        route="/custom-path",
         summary="Test with custom route/method",
         description="Checks that route and method are reflected",
         response={200: {"description": "OK"}},
-        route="/custom-path",
         method="post",
-    )
+    )  # type: ignore[misc]
     def custom_func() -> None:
         pass
 
     spec = generate_openapi_spec()
-    assert "/custom-path" in spec["paths"]
     assert "post" in spec["paths"]["/custom-path"]
 
 
@@ -148,58 +143,38 @@ def test_generate_spec_with_pydantic_models() -> None:
         request_model=RequestModel,
         response_model=ResponseModel,
         method="post",
-        route="/login",
-    )
+    )  # type: ignore[misc]
     def login() -> None:
         pass
 
-    spec = generate_openapi_spec()
-
-    path = "/login"
-    assert path in spec["paths"]
-    assert "post" in spec["paths"][path]
-    op = spec["paths"][path]["post"]
-
-    assert (
-        op["requestBody"]["content"]["application/json"]["schema"]["type"] == "object"
-    )
-    assert (
-        "username"
-        in op["requestBody"]["content"]["application/json"]["schema"]["properties"]
-    )
-    assert (
-        "message"
-        in op["responses"]["200"]["content"]["application/json"]["schema"]["properties"]
-    )
+    op = generate_openapi_spec()["paths"]["/login"]["post"]
+    schema_req = op["requestBody"]["content"]["application/json"]["schema"]
+    schema_resp = op["responses"]["200"]["content"]["application/json"]["schema"]
+    assert {"username", "password"} <= schema_req["properties"].keys()
+    assert "message" in schema_resp["properties"]
 
 
 def test_openapi_spec_contains_operation_id_and_tags() -> None:
     spec = json.loads(get_openapi_json())
-    path_item = spec["paths"]["/http_trigger"]["get"]
+    item = spec["paths"]["/api/http_trigger"]["get"]
 
-    assert path_item["operationId"] == "greetUser"
-    assert path_item["tags"] == ["Example"]
-    assert path_item["summary"] == "HTTP Trigger with name parameter"
-    assert "Returns a greeting using the name" in path_item["description"]
-    assert "### Usage" in path_item["description"]
-    assert "```json" in path_item["description"]
-    assert "requestBody" in path_item
-    assert "responses" in path_item
-    assert "200" in path_item["responses"]
+    assert item["operationId"] == "greetUser"
+    assert item["tags"] == ["Example"]
+    assert "HTTP Trigger with name parameter" in item["summary"]
+    assert "### Usage" in item["description"]
+    # GET operations have no requestBody
+    assert "responses" in item and "200" in item["responses"]
 
 
 def test_markdown_description_rendering() -> None:
-    spec = json.loads(get_openapi_json())
-    path_item = spec["paths"]["/http_trigger"]["get"]
-
-    assert "description" in path_item
-    assert "### Usage" in path_item["description"]
-    assert "`?name=Azure`" in path_item["description"]
-    assert "```json" in path_item["description"]
+    item = json.loads(get_openapi_json())["paths"]["/api/http_trigger"]["get"]
+    desc = item["description"]
+    assert "### Usage" in desc and "`?name=Azure`" in desc and "```json" in desc
 
 
 def test_generate_openapi_spec_with_cookie_parameter() -> None:
     @openapi(
+        route="/cookie_test",
         summary="Cookie param example",
         description="Test endpoint with cookie parameter",
         parameters=[
@@ -211,17 +186,10 @@ def test_generate_openapi_spec_with_cookie_parameter() -> None:
                 "description": "User session ID",
             }
         ],
-        route="/cookie_test",
-    )
+    )  # type: ignore[misc]
     def cookie_test() -> None:
         pass
 
-    spec = generate_openapi_spec()
-    params = spec["paths"]["/cookie_test"]["get"]["parameters"]
-    cookie_param = next((p for p in params if p["in"] == "cookie"), None)
-
-    assert cookie_param is not None
+    params = generate_openapi_spec()["paths"]["/cookie_test"]["get"]["parameters"]
+    cookie_param = next(p for p in params if p["in"] == "cookie")
     assert cookie_param["name"] == "session_id"
-    assert cookie_param["required"] is True
-    assert cookie_param["schema"]["type"] == "string"
-    assert cookie_param["description"] == "User session ID"

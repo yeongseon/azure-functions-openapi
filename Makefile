@@ -34,7 +34,7 @@ typecheck: ## Static type checking using mypy
 	$(VENV_DIR)/bin/mypy src/
 
 test: ## Run tests using pytest
-	PYTHONPATH=$(PWD) $(VENV_DIR)/bin/pytest tests/
+	PYTHONPATH=$(PWD) $(VENV_DIR)/bin/pytest -v tests/
 
 check: format lint typecheck coverage ## Run all quality checks including test coverage
 
