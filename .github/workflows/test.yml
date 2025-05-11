@@ -41,6 +41,5 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           slug: yeongseon/azure-functions-openapi
-          files: ./coverage.xml
           verbose: true
 
