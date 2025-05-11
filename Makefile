@@ -94,9 +94,15 @@ changelog: ## Generate CHANGELOG.md from git tags
 # ------------------------
 # Test coverage
 # ------------------------
-coverage: ## Run tests with coverage report (text and XML)
-	PYTHONPATH=$(PWD) $(VENV_DIR)/bin/pytest --cov=src/azure_functions_openapi --cov-report=term-missing --cov-report=xml
+# ------------------------
+# Test coverage
+# ------------------------
+coverage: ## Run tests with coverage report (text and XML + JUnit)
+	PYTHONPATH=$(PWD) $(VENV_DIR)/bin/pytest \
+		--cov=src/azure_functions_openapi \
+		--cov-report=term-missing \
+		--cov-report=xml \
+		--junitxml=junit.xml -o junit_family=legacy
 
 coverage-html: ## Run tests with coverage and generate HTML report
 	PYTHONPATH=$(PWD) $(VENV_DIR)/bin/pytest --cov=src/azure_functions_openapi --cov-report=html
-
