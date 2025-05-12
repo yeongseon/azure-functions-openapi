@@ -4,7 +4,7 @@ description = "OpenAPI (Swagger) integration for Python-based Azure Functions"
 authors = [{ name = "Yeongseon Choe", email = "yeongseon.choe@gmail.com" }]
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9,<3.13"
 dynamic = ["version"]
 
 dependencies = [
@@ -49,11 +49,11 @@ exclude = "examples/"
 
 [tool.black]
 line-length = 88
-target-version = ["py38"]
+target-version = ["py39", "py310", "py311", "py312"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py38"
+target-version = "py39"
 exclude = ["tests"]
 
 [tool.pytest.ini_options]

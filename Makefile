@@ -1,7 +1,7 @@
 # ------------------------
 # Path variables
 # ------------------------
-PYTHON     = python3.10
+PYTHON     ?= python3.9
 VENV_DIR   = .venv
 UV         = $(VENV_DIR)/bin/uv
 PIP        = $(VENV_DIR)/bin/pip
@@ -90,10 +90,6 @@ precommit-run: ## Run all pre-commit hooks on all files
 changelog: ## Generate CHANGELOG.md from git tags
 	$(VENV_DIR)/bin/git-changelog --output CHANGELOG.md --template keepachangelog
 
-
-# ------------------------
-# Test coverage
-# ------------------------
 # ------------------------
 # Test coverage
 # ------------------------
