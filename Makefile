@@ -36,7 +36,7 @@ typecheck: ## Static type checking using mypy
 test: ## Run tests using pytest
 	PYTHONPATH=$(PWD) $(VENV_DIR)/bin/pytest -v tests/
 
-check: format lint typecheck coverage ## Run all quality checks including test coverage
+check: format lint typecheck coverage precommit-run ## Run all quality checks including test coverage
 
 # ------------------------
 # Cleaning
