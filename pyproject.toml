@@ -59,7 +59,7 @@ exclude = ["tests"]
 [tool.ruff.lint]
 select = ["E", "F", "I"]  # E: pycodestyle, F: pyflakes, I: isort
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["azure_functions_openapi"]
 force-sort-within-sections = true
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
