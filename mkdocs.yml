@@ -20,7 +20,7 @@ nav:
   - API Reference: api.md
   - Examples:
       - Hello OpenAPI: examples/hello_openapi.md
-      - Todo API: examples/todo_api.md
+      - Todo API: examples/todo_crud_api.md
   - Contributing: contributing.md
   - Changelog: changelog.md
 

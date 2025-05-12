@@ -1,6 +1,6 @@
 # Todo API Example
 
-The `todo_api` example shows how to build a basic Todo API using:
+The `todo_crud_api` example shows how to build a basic Todo API using:
 
 - Azure Functions (v2 model)
 - `@openapi` decorators
@@ -13,6 +13,6 @@ The `todo_api` example shows how to build a basic Todo API using:
 
 ### Directory
 
-- `examples/todo_api/function_app.py`
-- `examples/todo_api/host.json`
-- `examples/todo_api/local.settings.json`
+- `examples/todo_crud_api/function_app.py`
+- `examples/todo_crud_api/host.json`
+- `examples/todo_crud_api/local.settings.json`
