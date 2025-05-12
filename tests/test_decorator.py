@@ -1,6 +1,6 @@
 # tests/test_decorator.py
 
-from azure_functions_openapi.decorator import openapi, get_openapi_registry
+from azure_functions_openapi.decorator import get_openapi_registry, openapi
 
 
 def test_openapi_registers_metadata() -> None:

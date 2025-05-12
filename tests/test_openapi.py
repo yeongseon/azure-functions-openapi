@@ -1,8 +1,9 @@
 # tests/test_openapi.py
 import json
+
 from pydantic import BaseModel
 
-from azure_functions_openapi.decorator import openapi, get_openapi_registry
+from azure_functions_openapi.decorator import get_openapi_registry, openapi
 from azure_functions_openapi.openapi import generate_openapi_spec, get_openapi_json
 
 
@@ -21,7 +22,7 @@ def test_generate_openapi_spec_structure() -> None:
                 "description": "Optional query string",
             }
         ],
-    )  # type: ignore[misc]
+    )
     def sample_func() -> None:
         pass
 
@@ -57,7 +58,7 @@ def test_generate_openapi_spec_with_request_body() -> None:
         summary="With Body",
         description="Endpoint with request body",
         response={200: {"description": "OK"}},
-    )  # type: ignore[misc]
+    )
     def func_with_body() -> None:
         pass
 
@@ -101,15 +102,15 @@ def test_response_schema_and_examples() -> None:
                 },
             }
         },
-    )  # type: ignore[misc]
+    )
     def greet() -> None:
         pass
 
     op = generate_openapi_spec()["paths"]["/greet"]["get"]
     assert (
-        op["responses"]["200"]["content"]["application/json"]["examples"]["sample"][
-            "value"
-        ]["message"]
+        op["responses"]["200"]["content"]["application/json"]["examples"]["sample"]["value"][
+            "message"
+        ]
         == "Hello, Azure!"
     )
 
@@ -121,7 +122,7 @@ def test_generate_openapi_spec_with_route_and_method() -> None:
         description="Checks that route and method are reflected",
         response={200: {"description": "OK"}},
         method="post",
-    )  # type: ignore[misc]
+    )
     def custom_func() -> None:
         pass
 
@@ -143,7 +144,7 @@ def test_generate_spec_with_pydantic_models() -> None:
         request_model=RequestModel,
         response_model=ResponseModel,
         method="post",
-    )  # type: ignore[misc]
+    )
     def login() -> None:
         pass
 
@@ -186,7 +187,7 @@ def test_generate_openapi_spec_with_cookie_parameter() -> None:
                 "description": "User session ID",
             }
         ],
-    )  # type: ignore[misc]
+    )
     def cookie_test() -> None:
         pass
 

@@ -1,9 +1,11 @@
-import azure.functions as func
 import logging
+from typing import Any, Dict, List, cast
+
+import azure.functions as func
 from pydantic import BaseModel, ValidationError
+
 from azure_functions_openapi.decorator import openapi
 from azure_functions_openapi.openapi import get_openapi_json, get_openapi_yaml
-from typing import List, Dict, Any, cast
 
 # Define the Azure Function App instance
 app = func.FunctionApp()
@@ -38,7 +40,7 @@ TODOS: List[Dict[str, Any]] = []
 
 
 @app.route(route="create_todo", auth_level=func.AuthLevel.ANONYMOUS, methods=["POST"])
-@openapi(  # type: ignore[misc]
+@openapi(
     summary="Create a new todo",
     description="Add a new todo item with a title.",
     tags=["Todos"],
@@ -80,7 +82,7 @@ def create_todo(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="list_todos", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
-@openapi(  # type: ignore[misc]
+@openapi(
     summary="List all todos",
     description="Retrieve the full list of todos.",
     tags=["Todos"],
@@ -120,7 +122,7 @@ def list_todos(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="get_todo", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
-@openapi(  # type: ignore[misc]
+@openapi(
     summary="Get a todo by ID",
     description="Retrieve a specific todo by its ID.",
     tags=["Todos"],
@@ -174,7 +176,7 @@ def get_todo(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="update_todo", auth_level=func.AuthLevel.ANONYMOUS, methods=["PUT"])
-@openapi(  # type: ignore[misc]
+@openapi(
     summary="Update a todo",
     description="Update the title and done status of a todo.",
     tags=["Todos"],
@@ -222,7 +224,7 @@ def update_todo(req: func.HttpRequest) -> func.HttpResponse:
 
 
 @app.route(route="delete_todo", auth_level=func.AuthLevel.ANONYMOUS, methods=["DELETE"])
-@openapi(  # type: ignore[misc]
+@openapi(
     summary="Delete a todo",
     description="Delete a todo item by its ID.",
     tags=["Todos"],
@@ -283,9 +285,7 @@ def openapi_spec(req: func.HttpRequest) -> func.HttpResponse:
         A JSON response containing the OpenAPI specification.
     """
     logging.info("Generating OpenAPI spec")
-    return func.HttpResponse(
-        get_openapi_json(), mimetype="application/json", status_code=200
-    )
+    return func.HttpResponse(get_openapi_json(), mimetype="application/json", status_code=200)
 
 
 @app.route(route="openapi.yaml", auth_level=func.AuthLevel.ANONYMOUS)
@@ -300,9 +300,7 @@ def openapi_yaml_spec(req: func.HttpRequest) -> func.HttpResponse:
         A YAML response containing the OpenAPI specification.
     """
     logging.info("Generating OpenAPI YAML spec")
-    return func.HttpResponse(
-        get_openapi_yaml(), mimetype="application/x-yaml", status_code=200
-    )
+    return func.HttpResponse(get_openapi_yaml(), mimetype="application/x-yaml", status_code=200)
 
 
 @app.route(route="docs", auth_level=func.AuthLevel.ANONYMOUS)

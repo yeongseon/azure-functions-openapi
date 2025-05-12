@@ -1,6 +1,8 @@
-import azure.functions as func
 import json
 import logging
+
+import azure.functions as func
+
 from azure_functions_openapi.decorator import openapi
 from azure_functions_openapi.openapi import get_openapi_json, get_openapi_yaml
 
@@ -8,7 +10,7 @@ app = func.FunctionApp()
 
 
 @app.route(route="http_trigger", auth_level=func.AuthLevel.ANONYMOUS)
-@openapi(  # type: ignore[misc]
+@openapi(
     route="/api/http_trigger",
     summary="HTTP Trigger with name parameter",
     description="""
@@ -76,9 +78,7 @@ def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
             name = body.get("name")
 
     if not name:
-        return func.HttpResponse(
-            "Invalid request – `name` is required", status_code=400
-        )
+        return func.HttpResponse("Invalid request – `name` is required", status_code=400)
 
     message = f"Hello, {name}!"
     return func.HttpResponse(

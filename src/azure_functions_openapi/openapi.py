@@ -1,6 +1,7 @@
 # src/azure_functions_openapi/openapi.py
-from typing import Any, Dict, List, cast
 import json
+from typing import Any, Dict, List, cast
+
 import yaml
 
 from azure_functions_openapi.decorator import get_openapi_registry
@@ -41,9 +42,7 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
             responses["200"] = {
                 "description": "Successful Response",
                 "content": {
-                    "application/json": {
-                        "schema": _model_to_schema(meta["response_model"])
-                    }
+                    "application/json": {"schema": _model_to_schema(meta["response_model"])}
                 },
             }
 
@@ -72,9 +71,7 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                 op["requestBody"] = {
                     "required": True,
                     "content": {
-                        "application/json": {
-                            "schema": _model_to_schema(meta["request_model"])
-                        }
+                        "application/json": {"schema": _model_to_schema(meta["request_model"])}
                     },
                 }
 

@@ -1,5 +1,6 @@
 # src/azure_functions_openapi/decorator.py
-from typing import Callable, Dict, Any, Optional, Type, List, TypeVar
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
+
 from pydantic import BaseModel
 
 # Define a generic type variable for functions

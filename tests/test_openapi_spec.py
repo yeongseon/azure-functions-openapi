@@ -1,5 +1,6 @@
 # tests/test_openapi_spec.py
 import json
+
 from azure_functions_openapi.openapi import get_openapi_json
 
 
