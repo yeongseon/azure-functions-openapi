@@ -144,7 +144,7 @@ class ResponseModel(BaseModel):
 )
 def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
     ...
-
+```
 
 >  Supports both Pydantic v1 and v2.
 Schema inference will work automatically with either version.
