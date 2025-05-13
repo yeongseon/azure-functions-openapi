@@ -1,4 +1,4 @@
-# tests/test_function_app.py
+# tests/test_hello_openapi_function_app.py
 
 import azure.functions as func
 

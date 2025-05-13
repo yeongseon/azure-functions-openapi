@@ -5,6 +5,7 @@ import azure.functions as func
 
 from azure_functions_openapi.decorator import openapi
 from azure_functions_openapi.openapi import get_openapi_json, get_openapi_yaml
+from azure_functions_openapi.swagger_ui import render_swagger_ui
 
 app = func.FunctionApp()
 
@@ -128,24 +129,5 @@ def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
         An HTML response containing the Swagger UI.
     """
     logging.info("Serving Swagger UI for OpenAPI documentation.")
-    html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Swagger UI</title>
-      <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
-    </head>
-    <body>
-      <div id="swagger-ui"></div>
-      <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
-      <script>
-        SwaggerUIBundle({
-          url: window.location.origin + "/api/openapi.json",
-          dom_id: '#swagger-ui'
-        });
-      </script>
-    </body>
-    </html>
-    """
-    return func.HttpResponse(html, mimetype="text/html")
+    # Render the Swagger UI using the helper function
+    return render_swagger_ui()
