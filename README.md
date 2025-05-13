@@ -41,9 +41,6 @@ pip install -e .[dev]
 
 > Create a minimal HTTP-triggered Azure Function with auto Swagger documentation.
 
-<details>
-<summary>Click to expand quickstart steps</summary>
-
 1. Set up environment
 ```bash
 python -m venv .venv
@@ -117,10 +114,9 @@ Swagger UI available at: http://localhost:7071/api/docs
 ```bash
 func azure functionapp publish <FUNCTION-APP-NAME> --python
 ```
-**OpenAPI JSON →** `https://<FUNCTION-APP-NAME>.azurewebsites.net/api/openapi.json`
-**Swagger UI →** `https://<FUNCTION-APP-NAME>.azurewebsites.net/api/docs`
+OpenAPI JSON available at: https://<FUNCTION-APP-NAME>.azurewebsites.net/api/openapi.json`
+Swagger UI available at: `https://<FUNCTION-APP-NAME>.azurewebsites.net/api/docs`
 
-</details>
 
 ---
 
@@ -138,6 +134,7 @@ class ResponseModel(BaseModel):
 
 @openapi(
     summary="Greet user (Pydantic)",
+    route="/api/http_trigger",
     request_model=RequestModel,
     response_model=ResponseModel,
     tags=["Example"]
