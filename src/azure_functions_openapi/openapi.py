@@ -1,20 +1,11 @@
 # src/azure_functions_openapi/openapi.py
 import json
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List
 
 import yaml
 
 from azure_functions_openapi.decorator import get_openapi_registry
-
-
-def _model_to_schema(model_cls: Any) -> Dict[str, Any]:
-    """Return JSON-schema from a Pydantic v2 model class.
-    Parameters:
-        model_cls: Pydantic model class.
-    Returns:
-        Dict[str, Any]: JSON schema representation of the model.
-    """
-    return cast(Dict[str, Any], model_cls.model_json_schema())
+from azure_functions_openapi.utils import model_to_schema
 
 
 def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[str, Any]:
@@ -42,7 +33,7 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
             responses["200"] = {
                 "description": "Successful Response",
                 "content": {
-                    "application/json": {"schema": _model_to_schema(meta["response_model"])}
+                    "application/json": {"schema": model_to_schema(meta["response_model"])}
                 },
             }
 
@@ -71,7 +62,7 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                 op["requestBody"] = {
                     "required": True,
                     "content": {
-                        "application/json": {"schema": _model_to_schema(meta["request_model"])}
+                        "application/json": {"schema": model_to_schema(meta["request_model"])}
                     },
                 }
 

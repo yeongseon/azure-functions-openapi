@@ -17,9 +17,8 @@
 - `@openapi` decorator — annotate once, generate full spec
 - Serves `/openapi.json`, `/openapi.yaml`, and `/docs` (Swagger UI)
 - Supports query/path/header parameters, requestBody, responses, tags
-- Optional Pydantic integration for request/response schema inference
-- Zero hard dependency on Pydantic (works with or without)
-
+- Optional Pydantic integration (supports both v1 and v2) for request/response schema inference
+- Zero hard dependency on Pydantic  (works with or without)
 ---
 
 ## 🚀 Installation
@@ -83,8 +82,11 @@ func azure functionapp publish <FUNCTION-APP-NAME> --python
 from pydantic import BaseModel
 from azure_functions_openapi.decorator import openapi
 
-class RequestModel(BaseModel):  name: str
-class ResponseModel(BaseModel): message: str
+class RequestModel(BaseModel):
+    name: str
+
+class ResponseModel(BaseModel):
+    message: str
 
 @openapi(
     summary="Greet user (Pydantic)",
@@ -94,9 +96,10 @@ class ResponseModel(BaseModel): message: str
 )
 def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
     ...
-```
 
-> Requires **Pydantic v2**.
+
+>  Supports both Pydantic v1 and v2.
+Schema inference will work automatically with either version.
 
 ---
 

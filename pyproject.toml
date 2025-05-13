@@ -10,7 +10,7 @@ dynamic = ["version"]
 dependencies = [
     "azure-functions",
     "PyYAML",
-    "pydantic"
+    "pydantic>=1.10,<3.0",
 ]
 
 [project.optional-dependencies]
