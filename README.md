@@ -38,9 +38,6 @@ pip install -e .[dev]
 
 ---
 
-
----
-
 ## Quick Start
 
 > Create a minimal HTTP-triggered Azure Function with auto Swagger documentation.
