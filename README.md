@@ -8,7 +8,7 @@
 [![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-openapi/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> Effortless OpenAPI ( Swagger ) documentation & Swagger‑UI for **Python Azure Functions**.
+> Effortless OpenAPI (Swagger) documentation & Swagger‑UI for **Python Azure Functions**.
 
 ---
 
@@ -17,8 +17,9 @@
 - `@openapi` decorator — annotate once, generate full spec
 - Serves `/openapi.json`, `/openapi.yaml`, and `/docs` (Swagger UI)
 - Supports query/path/header parameters, requestBody, responses, tags
-- Optional Pydantic integration (supports both v1 and v2) for request/response schema inference
-- Zero hard dependency on Pydantic  (works with or without)
+- Optional Pydantic integration (supports both v1 and v2)
+- Zero hard dependency on Pydantic
+
 ---
 
 ## Installation
@@ -34,6 +35,9 @@ git clone https://github.com/yeongseon/azure-functions-openapi.git
 cd azure-functions-openapi
 pip install -e .[dev]
 ```
+
+---
+
 
 ---
 
@@ -101,22 +105,76 @@ def openapi_yaml(req: func.HttpRequest) -> func.HttpResponse:
 def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
     return render_swagger_ui()
 ```
->  Swagger UI (/docs) is now supported via render_swagger_ui() helper.
+>  Swagger UI (`/docs`) is now supported via `render_swagger_ui()` helper.
 
 4. Run locally:
 ```bash
 func start
 ```
-OpenAPI JSON available at: http://localhost:7071/api/openapi.json
-Swagger UI available at: http://localhost:7071/api/docs
+
+- OpenAPI JSON: http://localhost:7071/api/openapi.json
+- Swagger UI: http://localhost:7071/api/docs
 
 5. Deploy:
 ```bash
 func azure functionapp publish <FUNCTION-APP-NAME> --python
 ```
-OpenAPI JSON available at: https://<FUNCTION-APP-NAME>.azurewebsites.net/api/openapi.json`
-Swagger UI available at: `https://<FUNCTION-APP-NAME>.azurewebsites.net/api/docs`
 
+- OpenAPI JSON: https://<FUNCTION-APP-NAME>.azurewebsites.net/api/openapi.json
+
+A partial example of the generated `/api/openapi.json`:
+
+```json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API",
+    "version": "1.0.0",
+    "description": "Auto-generated OpenAPI documentation. Markdown supported in descriptions (CommonMark)."
+  },
+  "paths": {
+    "/api/http_trigger": {
+      "get": {
+        "summary": "HTTP Trigger with name parameter",
+        "description": "Returns a greeting using the **name** from query or body.",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Name to greet"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with greeting",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "sample": {
+                    "summary": "Example greeting",
+                    "value": {
+                      "message": "Hello, Azure!"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid request" }
+        }
+      }
+    }
+  }
+}
+```
+
+- Swagger UI: https://<FUNCTION-APP-NAME>.azurewebsites.net/api/docs
+
+Swagger UI will look once you set up the routes:
+
+![Swagger UI Example](./docs/assets/hello_openapi_swagger_ui_preview.png)
 
 ---
 
