@@ -12,7 +12,7 @@
 
 ---
 
-## ✨ Features
+## Features
 
 - `@openapi` decorator — annotate once, generate full spec
 - Serves `/openapi.json`, `/openapi.yaml`, and `/docs` (Swagger UI)
@@ -21,7 +21,7 @@
 - Zero hard dependency on Pydantic  (works with or without)
 ---
 
-## 🚀 Installation
+## Installation
 
 ```bash
 pip install azure-functions-openapi
@@ -37,7 +37,7 @@ pip install -e .[dev]
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 > Create a minimal HTTP-triggered Azure Function with auto Swagger documentation.
 
@@ -57,26 +57,74 @@ func init hello_openapi --python
 cd hello_openapi
 ```
 
-3. Add `function_app.py`
-<sup>(sample in full doc below)</sup>
+3. Add `function_app.py` with OpenAPI-decorated function and endpoints:
+```python
+# hello_openapi/function_app.py
+
+import json
+import azure.functions as func
+from azure_functions_openapi.decorator import openapi
+from azure_functions_openapi.openapi import get_openapi_json, get_openapi_yaml
+from azure_functions_openapi.swagger_ui import render_swagger_ui
+
+app = func.FunctionApp()
+
+@openapi(
+    summary="Greet user",
+    route="/api/http_trigger",
+    request_model={"name": "string"},
+    response_model={"message": "string"},
+    tags=["Example"]
+)
+@app.function_name(name="http_trigger")
+@app.route(route="/api/http_trigger", auth_level=func.AuthLevel.ANONYMOUS, methods=["POST"])
+def main(req: func.HttpRequest) -> func.HttpResponse:
+    try:
+        data = req.get_json()
+        name = data.get("name", "world")
+        return func.HttpResponse(
+            json.dumps({"message": f"Hello, {name}!"}),
+            mimetype="application/json"
+        )
+    except Exception as e:
+        return func.HttpResponse(f"Error: {str(e)}", status_code=400)
+
+@app.function_name(name="openapi_json")
+@app.route(route="/api/openapi.json", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
+def openapi_json(req: func.HttpRequest) -> func.HttpResponse:
+    return get_openapi_json()
+
+@app.function_name(name="openapi_yaml")
+@app.route(route="/api/openapi.yaml", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
+def openapi_yaml(req: func.HttpRequest) -> func.HttpResponse:
+    return get_openapi_yaml()
+
+@app.function_name(name="swagger_ui")
+@app.route(route="/api/docs", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
+def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
+    return render_swagger_ui()
+```
+>  Swagger UI (/docs) is now supported via render_swagger_ui() helper.
 
 4. Run locally:
 ```bash
 func start
 ```
+OpenAPI JSON available at: http://localhost:7071/api/openapi.json
+Swagger UI available at: http://localhost:7071/api/docs
 
 5. Deploy:
 ```bash
 func azure functionapp publish <FUNCTION-APP-NAME> --python
 ```
-
-**🔗 Swagger UI →** `https://<FUNCTION-APP-NAME>.azurewebsites.net/api/docs`
+**OpenAPI JSON →** `https://<FUNCTION-APP-NAME>.azurewebsites.net/api/openapi.json`
+**Swagger UI →** `https://<FUNCTION-APP-NAME>.azurewebsites.net/api/docs`
 
 </details>
 
 ---
 
-## 🧪 Example with Pydantic
+## Example with Pydantic
 
 ```python
 from pydantic import BaseModel
@@ -103,7 +151,7 @@ Schema inference will work automatically with either version.
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 - Full docs: [yeongseon.github.io/azure-functions-openapi](https://yeongseon.github.io/azure-functions-openapi/)
 - [Quickstart](docs/usage.md)
@@ -112,6 +160,6 @@ Schema inference will work automatically with either version.
 
 ---
 
-## 🪪 License
+## License
 
 MIT © 2025 Yeongseon Choe
