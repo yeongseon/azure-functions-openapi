@@ -1,11 +1,19 @@
 # ------------------------
-# Path variables
+# Python and Venv Config
 # ------------------------
-PYTHON     ?= python3.9
-VENV_DIR   = .venv
-UV         = $(VENV_DIR)/bin/uv
-PIP        = $(VENV_DIR)/bin/pip
-PYTHON_BIN = $(VENV_DIR)/bin/python
+PYTHON ?= $(shell command -v python3.12 || command -v python3.11 || command -v python3.10 || command -v python3.9 || command -v python3)
+
+VENV_DIR = .venv
+
+ifeq ($(OS),Windows_NT)
+  VENV_BIN := $(VENV_DIR)/Scripts
+else
+  VENV_BIN := $(VENV_DIR)/bin
+endif
+
+UV         = $(VENV_BIN)/uv
+PIP        = $(VENV_BIN)/pip
+PYTHON_BIN = $(VENV_BIN)/python
 
 # ------------------------
 # Help
@@ -17,6 +25,11 @@ help: ## Show this help.
 # Setup
 # ------------------------
 install: ## Set up the virtual environment and install development dependencies
+	@PY_VERSION=`$(PYTHON) -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"`; \
+	REQ_VERSION=3.9; \
+	awk 'BEGIN { if (ARGV[1] + 0 < ARGV[2] + 0) { exit 1 } }' "$$PY_VERSION" "$$REQ_VERSION" || \
+		{ echo "❌ Python >= 3.9 is required. Found $$PY_VERSION at $(PYTHON)."; exit 1; }
+	@echo "✅ Using Python $$PY_VERSION at $(PYTHON)"
 	$(PYTHON) -m venv $(VENV_DIR)
 	$(PIP) install uv
 	$(UV) pip install --link-mode=copy -e ".[dev]"
@@ -25,16 +38,16 @@ install: ## Set up the virtual environment and install development dependencies
 # Quality Checks
 # ------------------------
 format: ## Format code using black
-	$(VENV_DIR)/bin/black src/ tests/
+	$(VENV_BIN)/black src/ tests/
 
 lint: ## Lint using ruff
-	$(VENV_DIR)/bin/ruff check src/ tests/
+	$(VENV_BIN)/ruff check src/ tests/
 
 typecheck: ## Static type checking using mypy
-	$(VENV_DIR)/bin/mypy src/
+	$(VENV_BIN)/mypy src/
 
 test: ## Run tests using pytest
-	PYTHONPATH=$(PWD) $(VENV_DIR)/bin/pytest -v tests/
+	PYTHONPATH=$(PWD) $(VENV_BIN)/pytest -v tests/
 
 check: format lint typecheck coverage precommit-run ## Run all quality checks including test coverage
 
@@ -48,19 +61,19 @@ clean: ## Remove caches and build artifacts
 # Build
 # ------------------------
 dist: ## Build source and wheel distributions
-	$(VENV_DIR)/bin/hatch build
+	$(VENV_BIN)/hatch build
 
 # ------------------------
 # Versioning
 # ------------------------
 version-patch: ## Bump patch version
-	$(VENV_DIR)/bin/hatch version patch
+	$(VENV_BIN)/hatch version patch
 
 version-minor: ## Bump minor version
-	$(VENV_DIR)/bin/hatch version minor
+	$(VENV_BIN)/hatch version minor
 
 version-major: ## Bump major version
-	$(VENV_DIR)/bin/hatch version major
+	$(VENV_BIN)/hatch version major
 
 # ------------------------
 # Release automation
@@ -79,26 +92,38 @@ git-release: ## Commit, tag, and push the release
 # Pre-commit
 # ------------------------
 precommit-install: ## Install pre-commit hooks
-	$(VENV_DIR)/bin/pre-commit install
+	$(VENV_BIN)/pre-commit install
 
 precommit-run: ## Run all pre-commit hooks on all files
-	$(VENV_DIR)/bin/pre-commit run --all-files
+	$(VENV_BIN)/pre-commit run --all-files
 
 # ------------------------
 # Changelog
 # ------------------------
 changelog: ## Generate CHANGELOG.md from git tags
-	$(VENV_DIR)/bin/git-changelog --output CHANGELOG.md --template keepachangelog
+	$(VENV_BIN)/git-changelog --output CHANGELOG.md --template keepachangelog
 
 # ------------------------
 # Test coverage
 # ------------------------
 coverage: ## Run tests with coverage report (text and XML + JUnit)
-	PYTHONPATH=$(PWD) $(VENV_DIR)/bin/pytest \
+	PYTHONPATH=$(PWD) $(VENV_BIN)/pytest \
 		--cov=src/azure_functions_openapi \
 		--cov-report=term-missing \
 		--cov-report=xml \
 		--junitxml=junit.xml -o junit_family=legacy
 
 coverage-html: ## Run tests with coverage and generate HTML report
-	PYTHONPATH=$(PWD) $(VENV_DIR)/bin/pytest --cov=src/azure_functions_openapi --cov-report=html
+	PYTHONPATH=$(PWD) $(VENV_BIN)/pytest --cov=src/azure_functions_openapi --cov-report=html
+
+# ------------------------
+# Meta
+# ------------------------
+show-python: ## Show which Python interpreter will be used
+	@echo "Python executable: $(PYTHON)"
+
+.PHONY: help install format lint typecheck test check clean dist \
+        version-patch version-minor version-major \
+        release-patch release-minor release-major git-release \
+        precommit-install precommit-run changelog coverage coverage-html \
+        show-python
