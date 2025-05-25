@@ -25,11 +25,9 @@ help: ## Show this help.
 # Setup
 # ------------------------
 install: ## Set up the virtual environment and install development dependencies
-	@PY_VERSION=`$(PYTHON) -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"`; \
-	REQ_VERSION=3.9; \
-	awk 'BEGIN { if (ARGV[1] + 0 < ARGV[2] + 0) { exit 1 } }' "$$PY_VERSION" "$$REQ_VERSION" || \
-		{ echo "❌ Python >= 3.9 is required. Found $$PY_VERSION at $(PYTHON)."; exit 1; }
-	@echo "✅ Using Python $$PY_VERSION at $(PYTHON)"
+	@$(PYTHON) -c 'import sys; exit(not (sys.version_info >= (3, 9)))' || \
+		{ echo "❌ Python >= 3.9 is required. Found $$($(PYTHON) -V)"; exit 1; }
+	@echo "✅ Using Python $$($(PYTHON) -V)"
 	$(PYTHON) -m venv $(VENV_DIR)
 	$(PIP) install uv
 	$(UV) pip install --link-mode=copy -e ".[dev]"
