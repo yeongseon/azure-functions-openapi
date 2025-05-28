@@ -1,31 +1,35 @@
 repos:
-  # Format code using Black (PEP8-compliant, compatible with Python 3.9+)
+  # Format code using Black (PEP8-compliant, compatible with Python 3.9)
   - repo: https://github.com/psf/black
-    rev: 23.11.0
+    rev: 23.11.0  # Stable release supporting Python 3.9
     hooks:
       - id: black
 
   # Lint and auto-fix style using Ruff (Python 3.9 compatible)
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.4  # Latest stable release, compatible with Python 3.9
+    rev: v0.4.4  # Stable version tested with Python 3.9
     hooks:
       - id: ruff
-        args: [--fix]
+        args: ["--fix"]
 
-  # Perform static type checking with mypy using Python 3.9 environment
+  # Static type checking using mypy (ensure Python 3.9 environment is activated)
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0
+    rev: v1.15.0  # Compatible with Python 3.9
     hooks:
       - id: mypy
-        language: system  # Ensure it uses Python 3.9 (activate venv or set PATH)
+        language: python
         args:
           [
             "--config-file=pyproject.toml",
             "--install-types",
             "--non-interactive"
           ]
+        additional_dependencies:
+          - types-requests
+          - typer
+          - requests
 
-  # Run security checks using Bandit, focused on src/ directory (exclude tests/)
+  # Run static security checks using Bandit (scan src/, exclude tests/)
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.7  # Compatible with Python 3.9+
     hooks:
@@ -33,4 +37,4 @@ repos:
         language: python
         name: bandit-src-only
         entry: bandit -r src/ -x tests/
-        pass_filenames: false  # Don't pass file names individually (analyze whole dir)
+        pass_filenames: false  # Analyze entire directory, not individual files

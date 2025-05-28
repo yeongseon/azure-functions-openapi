@@ -1,3 +1,6 @@
+# ---------------------------------------------
+# 📦 Project Metadata
+# ---------------------------------------------
 [project]
 name = "azure-functions-openapi"
 description = "OpenAPI (Swagger) integration for Python-based Azure Functions"
@@ -10,67 +13,119 @@ dynamic = ["version"]
 dependencies = [
     "azure-functions",
     "PyYAML",
-    "pydantic>=1.10,<3.0",
+    "pydantic>=1.10,<3.0"
 ]
 
 [project.optional-dependencies]
 dev = [
-    "bandit",
-    "black",
-    "git-changelog",
+    "black==23.11.0",        # Matches pre-commit rev
+    "build",
+    "coverage",
     "hatch",
-    "mypy",
+    "mypy==1.15.0",          # Matches pre-commit rev
     "pre-commit",
     "pytest",
-    "ruff",
+    "ruff==0.4.4",           # Matches pre-commit rev
     "types-PyYAML",
-    "pytest-cov"
+    "pytest-cov",
+    "git-changelog",
+    "bandit==1.7.7"          # Explicit version matching pre-commit rev
 ]
 docs = [
     "mkdocs",
     "mkdocs-material"
 ]
 
+# ---------------------------------------------
+# 🛠️ Build System Configuration
+# ---------------------------------------------
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+# ---------------------------------------------
+# 🐍 Hatch Configuration
+# ---------------------------------------------
 [tool.hatch.version]
 path = "src/azure_functions_openapi/__init__.py"
 
-[tool.bandit]
-exclude_dirs = ["tests"]
+[tool.hatch.envs.default]
+python = "3.9"
+features = ["dev", "docs"]
 
-[tool.mypy]
-strict = true
-ignore_missing_imports = true
-exclude = "examples/"
+[tool.hatch.envs.default.scripts]
+format = "ruff format src tests && black src tests"
+style = "ruff check src tests"
+typecheck = "mypy src tests"
+lint = "hatch run style && hatch run typecheck"
+test = "PYTHONPATH=. pytest -v tests"
+cov = "coverage run -m pytest && coverage report && coverage html"
+docs = "mkdocs serve"
+precommit = "pre-commit run --all-files"
+precommit-install = "pre-commit install"
 
+# ---------------------------------------------
+# 🖥️ CLI Entrypoint (Optional)
+# ---------------------------------------------
+# [project.scripts]
+# azure-functions-openapi = "azure_functions_openapi.cli:app"
 
+# ---------------------------------------------
+# 🎨 Code Formatting - Black
+# ---------------------------------------------
 [tool.black]
 line-length = 100
 target-version = ["py39", "py310", "py311", "py312"]
 
+# ---------------------------------------------
+# 🔍 Linting - Ruff
+# ---------------------------------------------
 [tool.ruff]
 line-length = 100
 target-version = "py39"
 exclude = ["tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I"]  # E: pycodestyle, F: pyflakes, I: isort
+select = ["E", "F", "I"]
+fixable = ["ALL"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["azure_functions_openapi"]
 force-sort-within-sections = true
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
 
+# ---------------------------------------------
+# 🧪 Type Checking - Mypy
+# ---------------------------------------------
+[tool.mypy]
+python_version = "3.9"
+strict = true
+ignore_missing_imports = true
+exclude = "examples/"
+show_error_codes = true
+pretty = true
+
+# ---------------------------------------------
+# 🧪 Testing - Pytest
+# ---------------------------------------------
 [tool.pytest.ini_options]
 addopts = "--cov=src/azure_functions_openapi --cov-report=xml -ra -q"
 testpaths = ["tests"]
+pythonpath = ["src", "examples"]
 
+# ---------------------------------------------
+# 📊 Coverage Reporting
+# ---------------------------------------------
+[tool.coverage.run]
+branch = true
+source = ["src/azure_functions_openapi", "examples"]
 
-[tool.setuptools]
-package-dir = {"" = "src"}
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
 
-[tool.setuptools.packages.find]
-where = ["src"]
+# ---------------------------------------------
+# 🔐 Security - Bandit
+# ---------------------------------------------
+[tool.bandit]
+exclude_dirs = ["tests"]

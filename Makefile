@@ -1,127 +1,152 @@
-# ------------------------
-# Python and Venv Config
-# ------------------------
-PYTHON ?= $(shell command -v python3.12 || command -v python3.11 || command -v python3.10 || command -v python3.9 || command -v python3)
+# ------------------------------
+# 🧰 Hatch Environment Management
+# ------------------------------
 
-VENV_DIR = .venv
+.PHONY: install
+install:
+	@hatch env create
+	@make precommit-install
 
-ifeq ($(OS),Windows_NT)
-  VENV_BIN := $(VENV_DIR)/Scripts
-else
-  VENV_BIN := $(VENV_DIR)/bin
+.PHONY: shell
+shell:
+	@hatch shell
+
+.PHONY: reset
+reset: clean-all install
+	@echo "🔁 Project reset complete."
+
+.PHONY: hatch-clean
+hatch-clean:
+	@hatch env remove || echo "⚠️ No hatch environment to remove"
+
+# ------------------------------
+# 🧹 Code Quality
+# ------------------------------
+
+.PHONY: format
+format:
+	@hatch run format
+
+.PHONY: style
+style:
+	@hatch run style
+
+.PHONY: typecheck
+typecheck:
+	@hatch run typecheck
+
+.PHONY: lint
+lint:
+	@hatch run lint
+
+.PHONY: check
+check:
+	@make lint
+	@make typecheck
+	@echo "✅ Lint & type check passed!"
+
+.PHONY: check-all
+check-all:
+	@make check
+	@make test
+	@echo "✅ All checks passed including tests!"
+
+.PHONY: precommit
+precommit:
+	@hatch run precommit
+
+.PHONY: precommit-install
+precommit-install:
+	@hatch run precommit-install
+
+# ------------------------------
+# 🧪 Testing & Coverage
+# ------------------------------
+
+.PHONY: test
+test:
+	@echo "🔬 Running tests..."
+	@hatch run test
+
+.PHONY: cov
+cov:
+	@hatch run cov
+	@echo "📂 Open htmlcov/index.html in your browser to view the coverage report"
+
+# ------------------------------
+# 📦 Build & Release
+# ------------------------------
+
+.PHONY: build
+build:
+	@hatch build
+
+.PHONY: release
+release:
+ifndef VERSION
+	$(error VERSION is not set. Usage: make release VERSION=0.1.0)
 endif
+	@git tag -a v$(VERSION) -m "Release v$(VERSION)"
+	@git push origin v$(VERSION)
 
-UV         = $(VENV_BIN)/uv
-PIP        = $(VENV_BIN)/pip
-PYTHON_BIN = $(VENV_BIN)/python
+.PHONY: release-patch
+release-patch:
+	@hatch version patch
+	@make release VERSION=$(shell hatch version)
 
-# ------------------------
-# Help
-# ------------------------
-help: ## Show this help.
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+.PHONY: release-minor
+release-minor:
+	@hatch version minor
+	@make release VERSION=$(shell hatch version)
 
-# ------------------------
-# Setup
-# ------------------------
-install: ## Set up the virtual environment and install development dependencies
-	@$(PYTHON) -c 'import sys; exit(not (sys.version_info >= (3, 9)))' || \
-		{ echo "❌ Python >= 3.9 is required. Found $$($(PYTHON) -V)"; exit 1; }
-	@echo "✅ Using Python $$($(PYTHON) -V)"
-	$(PYTHON) -m venv $(VENV_DIR)
-	$(PIP) install uv
-	$(UV) pip install --link-mode=copy -e ".[dev]"
+.PHONY: release-major
+release-major:
+	@hatch version major
+	@make release VERSION=$(shell hatch version)
 
-# ------------------------
-# Quality Checks
-# ------------------------
-format: ## Format code using black
-	$(VENV_BIN)/black src/ tests/
+.PHONY: publish
+publish:
+	@hatch publish
 
-lint: ## Lint using ruff
-	$(VENV_BIN)/ruff check src/ tests/
+# ------------------------------
+# 📚 Documentation
+# ------------------------------
 
-typecheck: ## Static type checking using mypy
-	$(VENV_BIN)/mypy src/
+.PHONY: docs
+docs:
+	@hatch run docs
 
-test: ## Run tests using pytest
-	PYTHONPATH=$(PWD) $(VENV_BIN)/pytest -v tests/
+# ------------------------------
+# 🩺 Diagnostic
+# ------------------------------
 
-check: format lint typecheck coverage precommit-run ## Run all quality checks including test coverage
+.PHONY: doctor
+doctor:
+	@echo "🔍 Python version:" && python --version
+	@echo "🔍 Installed packages:" && hatch env run pip list || echo "⚠️ No hatch env found"
+	@echo "🔍 Azure Function Core Tools version:" && func --version || echo "⚠️ func not found. Install with: npm i -g azure-functions-core-tools@4"
+	@echo "🔍 Pre-commit hook installed:"
+	@if [ -f .git/hooks/pre-commit ]; then echo ✅ Yes; else echo ❌ No; fi
 
-# ------------------------
-# Cleaning
-# ------------------------
-clean: ## Remove caches and build artifacts
-	rm -rf __pycache__/ *.egg-info .mypy_cache .pytest_cache dist build
+# ------------------------------
+# 🧹 Clean
+# ------------------------------
 
-# ------------------------
-# Build
-# ------------------------
-dist: ## Build source and wheel distributions
-	$(VENV_BIN)/hatch build
+.PHONY: clean
+clean:
+	@rm -rf *.egg-info dist build __pycache__ .pytest_cache
 
-# ------------------------
-# Versioning
-# ------------------------
-version-patch: ## Bump patch version
-	$(VENV_BIN)/hatch version patch
+.PHONY: clean-all
+clean-all: clean
+	@find . -type d -name "__pycache__" -exec rm -rf {} +
+	@find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
+	@rm -rf .mypy_cache .ruff_cache .pytest_cache .coverage coverage.xml .DS_Store
 
-version-minor: ## Bump minor version
-	$(VENV_BIN)/hatch version minor
+# ------------------------------
+# 🆘 Help
+# ------------------------------
 
-version-major: ## Bump major version
-	$(VENV_BIN)/hatch version major
-
-# ------------------------
-# Release automation
-# ------------------------
-release-patch: version-patch git-release ## Patch version bump and release (commit + tag + push)
-release-minor: version-minor git-release ## Minor version bump and release
-release-major: version-major git-release ## Major version bump and release
-
-git-release: ## Commit, tag, and push the release
-	git add .
-	git commit -m "chore: release v$(shell grep -oP '__version__ = \"\K[^\"]+' src/azure_functions_openapi/__init__.py)"
-	git tag v$(shell grep -oP '__version__ = \"\K[^\"]+' src/azure_functions_openapi/__init__.py)
-	git push origin main --tags
-
-# ------------------------
-# Pre-commit
-# ------------------------
-precommit-install: ## Install pre-commit hooks
-	$(VENV_BIN)/pre-commit install
-
-precommit-run: ## Run all pre-commit hooks on all files
-	$(VENV_BIN)/pre-commit run --all-files
-
-# ------------------------
-# Changelog
-# ------------------------
-changelog: ## Generate CHANGELOG.md from git tags
-	$(VENV_BIN)/git-changelog --output CHANGELOG.md --template keepachangelog
-
-# ------------------------
-# Test coverage
-# ------------------------
-coverage: ## Run tests with coverage report (text and XML + JUnit)
-	PYTHONPATH=$(PWD) $(VENV_BIN)/pytest \
-		--cov=src/azure_functions_openapi \
-		--cov-report=term-missing \
-		--cov-report=xml \
-		--junitxml=junit.xml -o junit_family=legacy
-
-coverage-html: ## Run tests with coverage and generate HTML report
-	PYTHONPATH=$(PWD) $(VENV_BIN)/pytest --cov=src/azure_functions_openapi --cov-report=html
-
-# ------------------------
-# Meta
-# ------------------------
-show-python: ## Show which Python interpreter will be used
-	@echo "Python executable: $(PYTHON)"
-
-.PHONY: help install format lint typecheck test check clean dist \
-        version-patch version-minor version-major \
-        release-patch release-minor release-major git-release \
-        precommit-install precommit-run changelog coverage coverage-html \
-        show-python
+.PHONY: help
+help:
+	@echo "📖 Available commands:" && \
+	grep -E '^\.PHONY: ' Makefile | cut -d ':' -f2 | xargs -n1 echo "  - make"

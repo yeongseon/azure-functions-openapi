@@ -1,4 +1,0 @@
-# .coveragerc
-[run]
-relative_files = True
-source = src/azure_functions_openapi
