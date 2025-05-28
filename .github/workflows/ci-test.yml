@@ -21,17 +21,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Create virtualenv and install dev dependencies
+      - name: Install Hatch and dependencies via Makefile
         run: |
-          make install PYTHON=python
+          pip install hatch
+          make install
 
-      - name: Show workspace contents (debug)
-        run: ls -R
-
-      - name: Run tests with coverage (Makefile)
-        run: |
-          . .venv/bin/activate
-          make coverage
+      - name: Run full quality checks (lint, typecheck, test, coverage)
+        run: make check-all
 
       - name: Verify coverage output
         run: ls -lh coverage.xml
