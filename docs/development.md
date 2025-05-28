@@ -5,35 +5,39 @@ This document provides guidance for setting up the development environment for t
 ## Python Version
 
 - This project supports Python 3.9+.
-- All development and formatting tools are configured accordingly.
+- All development and formatting tools are configured accordingly via [Hatch](https://hatch.pypa.io/).
 
 ## Local Setup
 
-Clone and install the project in editable mode:
+Clone and set up the project:
 
 ```bash
 git clone https://github.com/yeongseon/azure-functions-openapi.git
 cd azure-functions-openapi
-pip install -e .[dev]
+
+# Install Hatch (if not installed)
+pip install hatch
+
+# Create environment and install dev dependencies
+make install
 ```
 
 Install pre-commit hooks:
 
 ```bash
-make setup
-pre-commit install
+make precommit-install
 ```
 
 ## Pre-commit Hooks Overview
 
 This project uses pre-commit to ensure consistent code quality across formatting, linting, typing, and security.
 
-| Tool   | Version   | Purpose                   |
-|--------|-----------|---------------------------|
-| black  | 23.11.0   | Auto-code formatter       |
-| ruff   | v0.4.4    | Linter + auto-fix         |
-| mypy   | v1.15.0   | Static type checker       |
-| bandit | 1.7.7     | Security checker on `src/` only |
+| Tool   | Version   | Purpose                          |
+|--------|-----------|----------------------------------|
+| black  | 23.11.0   | Auto-code formatter              |
+| ruff   | v0.4.4    | Linter + import sorter + fixer  |
+| mypy   | v1.15.0   | Static type checker              |
+| bandit | 1.7.7     | Security checker on `src/` only  |
 
 ### Bandit Configuration
 
@@ -44,8 +48,8 @@ This project uses pre-commit to ensure consistent code quality across formatting
 ### Run Hooks Manually
 
 ```bash
-pre-commit run --all-files   # Run on all files
-pre-commit clean             # Reset environments
+make precommit
+pre-commit clean
 ```
 
 ## Development Commands
@@ -53,18 +57,19 @@ pre-commit clean             # Reset environments
 Makefile provides shortcuts for common development tasks:
 
 ```bash
-make install          # Set up venv and install dev dependencies
-make format           # Format code using black
-make lint             # Run ruff linter
-make typecheck        # Static type checking with mypy
-make test             # Run pytest
-make check            # Run format, lint, typecheck, test, and coverage
-make coverage         # Run tests with coverage reporting
-make coverage-html    # Generate HTML coverage report
-make dist             # Build source and wheel distributions
-make changelog        # Generate CHANGELOG.md from git tags
-make precommit-run    # Run all pre-commit hooks
-make release-patch    # Automate patch release (commit + tag + push)
+make install           # Set up Hatch environment and dev dependencies
+make format            # Format code (ruff + black)
+make lint              # Run linter (ruff + mypy)
+make typecheck         # Run mypy type checking
+make test              # Run pytest
+make cov               # Run tests with coverage
+make check             # Run lint + typecheck
+make check-all         # Run lint + typecheck + test + coverage
+make docs              # Start MkDocs dev server
+make build             # Build package
+make release-patch     # Version bump + tag + push (patch)
+make precommit         # Run all pre-commit hooks
+make precommit-install # Install pre-commit hooks
 ```
 
 ## Project Structure
@@ -76,13 +81,16 @@ azure-functions-openapi/
 ├── examples/
 ├── docs/
 │   └── development.md
+├── .github/
+│   └── workflows/
 ├── .pre-commit-config.yaml
 ├── Makefile
-└── pyproject.toml
+├── pyproject.toml
+└── README.md
 ```
 
 ## Tips
 
 - Ensure you're using Python 3.9+.
-- Use `make check` to quickly validate your changes.
-- Prefer `make` over manually running commands to ensure consistency.
+- Use `make check-all` before committing to validate your changes.
+- Prefer `make` commands to ensure consistent dev experience across platforms.
