@@ -19,14 +19,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.8"
+          python-version: "3.9"
 
-      - name: Install dependencies
+      - name: Install Hatch and docs dependencies
         run: |
-          pip install mkdocs mkdocs-material
+          pip install hatch
+          hatch env create docs
 
-      - name: Build docs to verify build before deploy
-        run: mkdocs build --strict
+      - name: Build docs (verify build before deploy)
+        run: hatch run --env docs mkdocs build --strict
 
       - name: Deploy to GitHub Pages
-        run: mkdocs gh-deploy --force
+        run: hatch run --env docs mkdocs gh-deploy --force
