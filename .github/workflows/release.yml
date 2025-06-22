@@ -1,0 +1,49 @@
+name: Publish to PyPI
+
+on:
+  push:
+    # Trigger the workflow on tag pushes matching v* (e.g., v1.0.0)
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Check if tag matches __version__
+        run: |
+          VERSION_FROM_FILE=$(grep -Po '(?<=__version__ = ")[^"]*' src/azure_functions_doctor/__init__.py)
+          TAG_VERSION=${GITHUB_REF_NAME#v}
+          echo "Version from file: $VERSION_FROM_FILE"
+          echo "Version from tag: $TAG_VERSION"
+          if [ "$VERSION_FROM_FILE" != "$TAG_VERSION" ]; then
+            echo "::error ::Version in __init__.py ($VERSION_FROM_FILE) does not match git tag ($TAG_VERSION)"
+            exit 1
+          fi
+
+      - name: Build distribution packages
+        run: python -m build
+
+      - name: Upload to PyPI
+        env:
+          TWINE_USERNAME: "__token__"
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          python -m twine upload --skip-existing dist/*
