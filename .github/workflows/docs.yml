@@ -27,7 +27,7 @@ jobs:
           make install
 
       - name: Build docs (verify build before deploy)
-        run: hatch run --env docs mkdocs build --strict
+        run: hatch run mkdocs build --strict
 
       - name: Deploy to GitHub Pages
-        run: hatch run --env docs mkdocs gh-deploy --force
+        run: hatch run mkdocs gh-deploy --force
