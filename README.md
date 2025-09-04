@@ -14,11 +14,30 @@
 
 ## Features
 
+### Core Features
 - `@openapi` decorator — annotate once, generate full spec
 - Serves `/openapi.json`, `/openapi.yaml`, and `/docs` (Swagger UI)
 - Supports query/path/header parameters, requestBody, responses, tags
 - Optional Pydantic integration (supports both v1 and v2)
 - Zero hard dependency on Pydantic
+
+### Security & Performance
+- **Enhanced Security**: CSP headers, input validation, XSS protection
+- **Performance Caching**: In-memory caching with TTL and LRU eviction
+- **Error Handling**: Standardized error responses with detailed logging
+- **Input Sanitization**: Automatic sanitization of routes, operation IDs, and parameters
+
+### Monitoring & Operations
+- **Health Checks**: Built-in health monitoring for all components
+- **Performance Metrics**: Response time tracking, throughput monitoring
+- **Request Logging**: Detailed request/response logging with statistics
+- **Server Information**: Comprehensive server info and runtime details
+
+### Developer Experience
+- **CLI Tool**: Command-line interface for spec generation, validation, and monitoring
+- **Comprehensive Testing**: 97% test coverage with extensive test suites
+- **Documentation**: Detailed guides for security, performance, and CLI usage
+- **Type Safety**: Full type hints and validation throughout
 
 ---
 
@@ -203,12 +222,38 @@ Schema inference will work automatically with either version.
 
 ---
 
+## CLI Tool
+
+The package includes a powerful CLI tool for various operations:
+
+```bash
+# Generate OpenAPI specification
+azure-functions-openapi generate --title "My API" --version "1.0.0"
+
+# Get server information
+azure-functions-openapi info
+
+# Check health status
+azure-functions-openapi health
+
+# Get performance metrics
+azure-functions-openapi metrics
+
+# Validate OpenAPI specification
+azure-functions-openapi validate openapi.json
+```
+
+See [CLI Guide](docs/CLI.md) for complete documentation.
+
 ## Documentation
 
 - Full docs: [yeongseon.github.io/azure-functions-openapi](https://yeongseon.github.io/azure-functions-openapi/)
 - [Quickstart](docs/usage.md)
 - [Development Guide](docs/development.md)
 - [Contribution Guide](docs/contributing.md)
+- [Security Guide](docs/SECURITY.md)
+- [Performance Guide](docs/PERFORMANCE.md)
+- [CLI Guide](docs/CLI.md)
 
 ---
 

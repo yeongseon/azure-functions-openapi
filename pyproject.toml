@@ -88,10 +88,10 @@ precommit = "pre-commit run --all-files"
 precommit-install = "pre-commit install"
 
 # ---------------------------------------------
-# 🖥️ CLI Entrypoint (Optional)
+# 🖥️ CLI Entrypoint
 # ---------------------------------------------
-# [project.scripts]
-# azure-functions-openapi = "azure_functions_openapi.cli:app"
+[project.scripts]
+azure-functions-openapi = "azure_functions_openapi.cli:main"
 
 # ---------------------------------------------
 # 🎨 Code Formatting - Black
