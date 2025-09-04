@@ -1,9 +1,45 @@
 # API Reference
 
-## `@openapi` Decorator
+This document provides comprehensive API reference for the azure-functions-openapi library.
+
+## Core Components
+
+### `@openapi` Decorator
 
 The `@openapi` decorator attaches OpenAPI metadata to an Azure Function route.
 This metadata is collected to generate the OpenAPI spec using `get_openapi_json()` and `get_openapi_yaml()`.
+
+### Error Handling
+
+The library provides comprehensive error handling with standardized error responses:
+
+```python
+from azure_functions_openapi.errors import (
+    APIError, ValidationError, NotFoundError, OpenAPIError,
+    create_error_response, handle_exception
+)
+```
+
+### Caching System
+
+High-performance caching with TTL and LRU eviction:
+
+```python
+from azure_functions_openapi.cache import (
+    cached, get_cache_manager, invalidate_cache, clear_all_cache
+)
+```
+
+### Monitoring & Health Checks
+
+Built-in monitoring and health check capabilities:
+
+```python
+from azure_functions_openapi.monitoring import (
+    monitor_performance, log_request, run_health_check
+)
+from azure_functions_openapi.server_info import get_server_info_dict
+```
 
 ---
 
