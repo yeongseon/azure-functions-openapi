@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚀 Features
+
+- Add comprehensive error handling system
+- Add high-performance caching system
+- Enhance Swagger UI security and input validation
+- Add server info, monitoring, and CLI tools
+- Enhance OpenAPI generation with caching and error handling
+
 ### 🐛 Bug Fixes
 
 - *(makefile)* Correct Python version check to support 3.9+
@@ -13,10 +21,13 @@ All notable changes to this project will be documented in this file.
 - *(makefile)* Add Hatch-based automation for test, build, release
 - *(pyproject)* Configure hatch build and publish targets
 - Bump version to 0.4.1
+- Bump version to 0.5.0
 
 ### 📚 Documentation
 
 - Update development guide to reflect Hatch and Makefile integration
+- Update changelog
+- Add comprehensive documentation and update configuration
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -27,6 +38,8 @@ All notable changes to this project will be documented in this file.
 - *(docs)* Rename deploy-docs.yml to docs.yml for clearer workflow separation
 - *(docs)* Reuse Makefile install step in docs workflow
 - Add GitHub Actions release workflow
+- Fix version check path in release workflow
+- *(docs)* Fix hatch run by removing nonexistent docs env
 
 ## [0.4.0] - 2025-05-13
 
