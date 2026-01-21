@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🐛 Bug Fixes
+
+- Normalize pydantic schemas into components
+
+### 💼 Other
+
+- Bump version to 0.5.1
+
+### 📚 Documentation
+
+- Enhance documentation with comprehensive guides
+
+## [0.5.0] - 2025-09-04
+
 ### 🚀 Features
 
 - Add comprehensive error handling system
@@ -11,6 +25,23 @@ All notable changes to this project will be documented in this file.
 - Enhance Swagger UI security and input validation
 - Add server info, monitoring, and CLI tools
 - Enhance OpenAPI generation with caching and error handling
+
+### 💼 Other
+
+- Bump version to 0.5.0
+
+### 📚 Documentation
+
+- Update changelog
+- Add comprehensive documentation and update configuration
+- Update changelog
+
+### ⚙️ Miscellaneous Tasks
+
+- Fix version check path in release workflow
+- *(docs)* Fix hatch run by removing nonexistent docs env
+
+## [0.4.1] - 2025-06-22
 
 ### 🐛 Bug Fixes
 
@@ -21,25 +52,19 @@ All notable changes to this project will be documented in this file.
 - *(makefile)* Add Hatch-based automation for test, build, release
 - *(pyproject)* Configure hatch build and publish targets
 - Bump version to 0.4.1
-- Bump version to 0.5.0
 
 ### 📚 Documentation
 
 - Update development guide to reflect Hatch and Makefile integration
-- Update changelog
-- Add comprehensive documentation and update configuration
 
 ### ⚙️ Miscellaneous Tasks
 
-- Release v0.4.0
 - Improve Makefile with Python 3.9+ check, .PHONY, and cross-platform venv support
 - *(build)* Clean up config and align with Hatch-based Makefile execution
 - *(ci)* Replace test.yml with ci-test.yml for clarity and maintainability
 - *(docs)* Rename deploy-docs.yml to docs.yml for clearer workflow separation
 - *(docs)* Reuse Makefile install step in docs workflow
 - Add GitHub Actions release workflow
-- Fix version check path in release workflow
-- *(docs)* Fix hatch run by removing nonexistent docs env
 
 ## [0.4.0] - 2025-05-13
 
@@ -128,6 +153,7 @@ All notable changes to this project will be documented in this file.
 - Add pre-commit run to check command in Makefile
 - Update pre-commit config to include black, ruff, mypy, and bandit
 - Add junit.xml to .gitignore
+- Release v0.4.0
 - Release v0.4.0
 
 ## [0.3.0] - 2025-05-07
