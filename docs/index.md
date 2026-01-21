@@ -17,7 +17,7 @@ Welcome to **azure-functions-openapi** — a comprehensive library that provides
 - **Pydantic v1 and v2 support** with automatic schema generation
 - **Type-safe schema generation** with full type hints
 - **Zero-configuration integration** - works out of the box
-- **Compatible with Python 3.9+**
+- **Compatible with Python 3.10+**
 
 ### 🔒 Security & Performance
 - **Enhanced Security**: CSP headers, input validation, XSS protection

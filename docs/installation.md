@@ -6,7 +6,7 @@ This project supports Python-based Azure Functions using the **Programming Model
 
 ## Requirements
 
-- Python **3.9+** (3.9–3.12 tested)
+- Python **3.10+** (3.10–3.12 tested)
 - [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
 - Azure Functions Python Programming Model **v2**
 

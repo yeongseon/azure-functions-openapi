@@ -4,7 +4,7 @@ This document provides guidance for setting up the development environment for t
 
 ## Python Version
 
-- This project supports Python 3.9+.
+- This project supports Python 3.10+.
 - All development and formatting tools are configured accordingly via [Hatch](https://hatch.pypa.io/).
 
 ## Local Setup
@@ -91,6 +91,6 @@ azure-functions-openapi/
 
 ## Tips
 
-- Ensure you're using Python 3.9+.
+- Ensure you're using Python 3.10+.
 - Use `make check-all` before committing to validate your changes.
 - Prefer `make` commands to ensure consistent dev experience across platforms.
