@@ -7,7 +7,7 @@ description = "OpenAPI (Swagger) integration for Python-based Azure Functions"
 authors = [{ name = "Yeongseon Choe", email = "yeongseon.choe@gmail.com" }]
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.10,<3.13"
 dynamic = ["version"]
 
 dependencies = [
@@ -73,7 +73,7 @@ url = "https://test.pypi.org/legacy/"
 # ----------------------------------------
 
 [tool.hatch.envs.default]
-python = "3.9"
+python = "3.10"
 features = ["dev", "docs"]
 
 [tool.hatch.envs.default.scripts]
@@ -98,14 +98,14 @@ azure-functions-openapi = "azure_functions_openapi.cli:main"
 # ---------------------------------------------
 [tool.black]
 line-length = 100
-target-version = ["py39", "py310", "py311", "py312"]
+target-version = ["py310", "py311", "py312"]
 
 # ---------------------------------------------
 # 🔍 Linting - Ruff
 # ---------------------------------------------
 [tool.ruff]
 line-length = 100
-target-version = "py39"
+target-version = "py310"
 exclude = ["tests"]
 
 [tool.ruff.lint]
@@ -121,7 +121,7 @@ section-order = ["future", "standard-library", "third-party", "first-party", "lo
 # 🧪 Type Checking - Mypy
 # ---------------------------------------------
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 strict = true
 ignore_missing_imports = true
 exclude = "examples/"

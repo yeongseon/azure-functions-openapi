@@ -204,7 +204,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: 3.10
       - name: Install dependencies
         run: |
           pip install azure-functions-openapi
@@ -311,7 +311,7 @@ azure-functions-openapi generate --format json | \
 Use the CLI tool in Docker containers:
 
 ```dockerfile
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 # Install the package
 RUN pip install azure-functions-openapi

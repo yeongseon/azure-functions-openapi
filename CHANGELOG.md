@@ -51,6 +51,7 @@ All notable changes to this project will be documented in this file.
 
 - *(makefile)* Add Hatch-based automation for test, build, release
 - *(pyproject)* Configure hatch build and publish targets
+- Drop Python 3.9 support; require Python 3.10+
 - Bump version to 0.4.1
 
 ### 📚 Documentation
