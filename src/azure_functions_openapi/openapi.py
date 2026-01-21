@@ -21,6 +21,7 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
     try:
         registry = get_openapi_registry()
         paths: Dict[str, Dict[str, Any]] = {}
+        components: Dict[str, Any] = {"schemas": {}}
 
         for func_name, meta in registry.items():
             try:
@@ -41,7 +42,9 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                         responses["200"] = {
                             "description": "Successful Response",
                             "content": {
-                                "application/json": {"schema": model_to_schema(meta["response_model"])}
+                                "application/json": {
+                                    "schema": model_to_schema(meta["response_model"], components)
+                                }
                             },
                         }
                     except Exception as e:
@@ -77,7 +80,9 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                             op["requestBody"] = {
                                 "required": True,
                                 "content": {
-                                    "application/json": {"schema": model_to_schema(meta["request_model"])}
+                                    "application/json": {
+                                        "schema": model_to_schema(meta["request_model"], components)
+                                    }
                                 },
                             }
                         except Exception as e:
@@ -95,7 +100,7 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                 # Continue processing other functions
                 continue
 
-        spec = {
+        spec: Dict[str, Any] = {
             "openapi": "3.0.0",
             "info": {
                 "title": title,
@@ -107,6 +112,8 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
             },
             "paths": paths,
         }
+        if components.get("schemas"):
+            spec["components"] = components
         
         logger.info(f"Generated OpenAPI spec with {len(paths)} paths for {len(registry)} functions")
         return spec

@@ -35,10 +35,15 @@ else:
 @pytest.mark.parametrize("model_cls", ModelVariants)
 def test_model_to_schema(model_cls: Type[BaseModel]) -> None:
     """Verify that the model_to_schema function returns a valid schema for the given model class."""
-    schema: Dict[str, Any] = model_to_schema(model_cls)
+    components: Dict[str, Any] = {"schemas": {}}
+    schema: Dict[str, Any] = model_to_schema(model_cls, components)
 
     # Common schema assertions
-    assert isinstance(schema, dict)
-    assert "title" in schema or "properties" in schema
-    assert "done" in schema.get("properties", {})
-    assert "title" in schema.get("properties", {})
+    assert schema == {"$ref": f"#/components/schemas/{model_cls.__name__}"}
+    assert model_cls.__name__ in components["schemas"]
+
+    registered = components["schemas"][model_cls.__name__]
+    assert "title" in registered or "properties" in registered
+    assert "done" in registered.get("properties", {})
+    assert "title" in registered.get("properties", {})
+    assert "$defs" not in registered

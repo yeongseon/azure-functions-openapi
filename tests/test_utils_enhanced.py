@@ -1,7 +1,9 @@
 # tests/test_utils_enhanced.py
 
-import pytest
+from typing import Any, cast
 from unittest.mock import patch
+
+import pytest
 from pydantic import BaseModel, Field
 
 from azure_functions_openapi.utils import (
@@ -9,6 +11,9 @@ from azure_functions_openapi.utils import (
     validate_route_path,
     sanitize_operation_id
 )
+
+validate_route_path_any = cast(Any, validate_route_path)
+sanitize_operation_id_any = cast(Any, sanitize_operation_id)
 
 
 class SampleModel(BaseModel):
@@ -24,28 +29,83 @@ class TestModelToSchema:
     def test_model_to_schema_pydantic_v2(self):
         """Test model_to_schema with Pydantic v2."""
         with patch('azure_functions_openapi.utils.PYDANTIC_V2', True):
-            schema = model_to_schema(SampleModel)
-            
-            assert isinstance(schema, dict)
-            assert "properties" in schema
-            assert "name" in schema["properties"]
-            assert "age" in schema["properties"]
-            assert "email" in schema["properties"]
-            assert "required" in schema
-            assert "name" in schema["required"]
-            assert "email" in schema["required"]
-            assert "age" not in schema["required"]  # Has default value
+            components = {"schemas": {}}
+            schema = model_to_schema(SampleModel, components)
+
+            assert schema == {"$ref": "#/components/schemas/SampleModel"}
+            registered = components["schemas"]["SampleModel"]
+            assert "properties" in registered
+            assert "name" in registered["properties"]
+            assert "age" in registered["properties"]
+            assert "email" in registered["properties"]
+            assert "required" in registered
+            assert "name" in registered["required"]
+            assert "email" in registered["required"]
+            assert "age" not in registered["required"]  # Has default value
     
     def test_model_to_schema_pydantic_v1(self):
         """Test model_to_schema with Pydantic v1."""
         with patch('azure_functions_openapi.utils.PYDANTIC_V2', False):
             with patch.object(SampleModel, 'schema') as mock_schema:
                 mock_schema.return_value = {"type": "object", "properties": {"name": {"type": "string"}}}
-                
-                schema = model_to_schema(SampleModel)
-                
-                assert schema == {"type": "object", "properties": {"name": {"type": "string"}}}
+
+                components = {"schemas": {}}
+                schema = model_to_schema(SampleModel, components)
+
+                assert schema == {"$ref": "#/components/schemas/SampleModel"}
+                assert components["schemas"]["SampleModel"] == {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
                 mock_schema.assert_called_once()
+
+    def test_model_to_schema_rewrites_defs_v2(self):
+        """Test that $defs and refs are rewritten for OpenAPI."""
+        with patch('azure_functions_openapi.utils.PYDANTIC_V2', True):
+            with patch.object(SampleModel, 'model_json_schema') as mock_schema:
+                mock_schema.return_value = {
+                    "type": "array",
+                    "items": {"$ref": "#/$defs/Item"},
+                    "$defs": {
+                        "Item": {
+                            "type": "object",
+                            "properties": {"id": {"type": "integer"}},
+                        }
+                    },
+                }
+
+                components = {"schemas": {}}
+                schema = model_to_schema(SampleModel, components)
+
+                assert schema == {"$ref": "#/components/schemas/SampleModel"}
+                registered = components["schemas"]["SampleModel"]
+                assert "$defs" not in registered
+                assert registered["items"]["$ref"] == "#/components/schemas/Item"
+                assert "Item" in components["schemas"]
+
+    def test_model_to_schema_rewrites_definitions_v1(self):
+        """Test that v1 definitions are rewritten for OpenAPI."""
+        with patch('azure_functions_openapi.utils.PYDANTIC_V2', False):
+            with patch.object(SampleModel, 'schema') as mock_schema:
+                mock_schema.return_value = {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/Item"},
+                    "definitions": {
+                        "Item": {
+                            "type": "object",
+                            "properties": {"id": {"type": "integer"}},
+                        }
+                    },
+                }
+
+                components = {"schemas": {}}
+                schema = model_to_schema(SampleModel, components)
+
+                assert schema == {"$ref": "#/components/schemas/SampleModel"}
+                registered = components["schemas"]["SampleModel"]
+                assert "definitions" not in registered
+                assert registered["items"]["$ref"] == "#/components/schemas/Item"
+                assert "Item" in components["schemas"]
 
 
 class TestValidateRoutePath:
@@ -64,11 +124,11 @@ class TestValidateRoutePath:
         ]
         
         for route in valid_routes:
-            assert validate_route_path(route) is True, f"Route '{route}' should be valid"
+            assert validate_route_path_any(route) is True, f"Route '{route}' should be valid"
     
     def test_validate_route_path_invalid_routes(self):
         """Test validation of invalid route paths."""
-        invalid_routes = [
+        invalid_routes: list[Any] = [
             None,
             "",
             "not_starting_with_slash",
@@ -81,24 +141,24 @@ class TestValidateRoutePath:
         ]
         
         for route in invalid_routes:
-            assert validate_route_path(route) is False, f"Route '{route}' should be invalid"
+            assert validate_route_path_any(route) is False, f"Route '{route}' should be invalid"
     
     def test_validate_route_path_edge_cases(self):
         """Test validation of edge cases."""
         # Empty string
-        assert validate_route_path("") is False
+        assert validate_route_path_any("") is False
         
         # Non-string input
-        assert validate_route_path(123) is False
-        assert validate_route_path([]) is False
-        assert validate_route_path({}) is False
+        non_string_routes: list[Any] = [123, [], {}]
+        for route in non_string_routes:
+            assert validate_route_path_any(route) is False
         
         # Very long route
         long_route = "/" + "a" * 1000
-        assert validate_route_path(long_route) is True
+        assert validate_route_path_any(long_route) is True
         
         # Route with special characters (should be invalid)
-        assert validate_route_path("/api/test@#$%") is False
+        assert validate_route_path_any("/api/test@#$%") is False
     
     def test_validate_route_path_case_sensitivity(self):
         """Test that validation is case sensitive for dangerous patterns."""
@@ -112,7 +172,7 @@ class TestValidateRoutePath:
         ]
         
         for route in dangerous_routes:
-            assert validate_route_path(route) is False, f"Route '{route}' should be invalid"
+            assert validate_route_path_any(route) is False, f"Route '{route}' should be invalid"
 
 
 class TestSanitizeOperationId:
@@ -132,7 +192,7 @@ class TestSanitizeOperationId:
         ]
         
         for op_id in valid_ids:
-            result = sanitize_operation_id(op_id)
+            result = sanitize_operation_id_any(op_id)
             assert result == op_id, f"Operation ID '{op_id}' should remain unchanged"
     
     def test_sanitize_operation_id_invalid_ids(self):
@@ -168,7 +228,7 @@ class TestSanitizeOperationId:
         ]
         
         for input_id, expected in test_cases:
-            result = sanitize_operation_id(input_id)
+            result = sanitize_operation_id_any(input_id)
             assert result == expected, f"Operation ID '{input_id}' should be sanitized to '{expected}'"
     
     def test_sanitize_operation_id_starts_with_number(self):
@@ -180,30 +240,26 @@ class TestSanitizeOperationId:
         ]
         
         for input_id, expected in test_cases:
-            result = sanitize_operation_id(input_id)
+            result = sanitize_operation_id_any(input_id)
             assert result == expected, f"Operation ID '{input_id}' should be prefixed with 'op_'"
     
     def test_sanitize_operation_id_edge_cases(self):
         """Test sanitization of edge cases."""
         # Empty string
-        assert sanitize_operation_id("") == ""
+        assert sanitize_operation_id_any("") == ""
         
-        # None input
-        assert sanitize_operation_id(None) == ""
-        
-        # Non-string input
-        assert sanitize_operation_id(123) == ""
-        assert sanitize_operation_id([]) == ""
-        assert sanitize_operation_id({}) == ""
+        invalid_ids: list[Any] = [None, 123, [], {}]
+        for op_id in invalid_ids:
+            assert sanitize_operation_id_any(op_id) == ""
         
         # Only special characters
-        assert sanitize_operation_id("!@#$%^&*()") == ""
+        assert sanitize_operation_id_any("!@#$%^&*()") == ""
         
         # Only numbers
-        assert sanitize_operation_id("123456") == "op_123456"
+        assert sanitize_operation_id_any("123456") == "op_123456"
         
         # Mixed case with special characters
-        result = sanitize_operation_id("Get-User@123")
+        result = sanitize_operation_id_any("Get-User@123")
         assert result == "GetUser123"
     
     def test_sanitize_operation_id_preserves_case(self):
@@ -217,19 +273,19 @@ class TestSanitizeOperationId:
         ]
         
         for input_id, expected in test_cases:
-            result = sanitize_operation_id(input_id)
+            result = sanitize_operation_id_any(input_id)
             assert result == expected, f"Operation ID '{input_id}' should preserve case as '{expected}'"
     
     def test_sanitize_operation_id_unicode(self):
         """Test sanitization with Unicode characters."""
         # Unicode characters should be removed
-        result = sanitize_operation_id("get用户")
+        result = sanitize_operation_id_any("get用户")
         assert result == "get"
         
         # Mixed ASCII and Unicode
-        result = sanitize_operation_id("get用户123")
+        result = sanitize_operation_id_any("get用户123")
         assert result == "get123"
         
         # Only Unicode
-        result = sanitize_operation_id("用户")
+        result = sanitize_operation_id_any("用户")
         assert result == ""
