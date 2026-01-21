@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 💼 Other
+
+- Bump version to 0.6.0
+
+### 🎨 Styling
+
+- Format code with ruff and black
+- Resolve lint issues
+
+### ⚙️ Miscellaneous Tasks
+
+- Fix mypy strict type checks
+- Drop python 3.9 support
+
+## [0.5.1] - 2026-01-21
+
 ### 🐛 Bug Fixes
 
 - Normalize pydantic schemas into components
@@ -15,6 +31,7 @@ All notable changes to this project will be documented in this file.
 ### 📚 Documentation
 
 - Enhance documentation with comprehensive guides
+- Update changelog
 
 ## [0.5.0] - 2025-09-04
 
@@ -51,7 +68,6 @@ All notable changes to this project will be documented in this file.
 
 - *(makefile)* Add Hatch-based automation for test, build, release
 - *(pyproject)* Configure hatch build and publish targets
-- Drop Python 3.9 support; require Python 3.10+
 - Bump version to 0.4.1
 
 ### 📚 Documentation
