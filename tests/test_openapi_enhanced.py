@@ -1,5 +1,6 @@
 # tests/test_openapi_enhanced.py
 
+from typing import Any, Dict
 from unittest.mock import patch
 
 from pydantic import BaseModel, Field
@@ -31,10 +32,10 @@ class SampleResponseModel(BaseModel):
 class TestGenerateOpenAPISpecEnhanced:
     """Test enhanced generate_openapi_spec function."""
 
-    def test_generate_openapi_spec_with_error_handling(self):
+    def test_generate_openapi_spec_with_error_handling(self) -> None:
         """Test OpenAPI spec generation with error handling."""
         # Mock registry with problematic function
-        mock_registry = {
+        mock_registry: Dict[str, Any] = {
             "test_func": {
                 "summary": "Test function",
                 "description": "A test function",
@@ -61,9 +62,9 @@ class TestGenerateOpenAPISpecEnhanced:
             assert "/test" in spec["paths"]
             assert "get" in spec["paths"]["/test"]
 
-    def test_generate_openapi_spec_with_model_errors(self):
+    def test_generate_openapi_spec_with_model_errors(self) -> None:
         """Test OpenAPI spec generation when model schema generation fails."""
-        mock_registry = {
+        mock_registry: Dict[str, Any] = {
             "test_func": {
                 "summary": "Test function",
                 "description": "A test function",
@@ -98,9 +99,9 @@ class TestGenerateOpenAPISpecEnhanced:
                 assert "responses" in post_op
                 assert "200" in post_op["responses"]
 
-    def test_generate_openapi_spec_with_function_processing_error(self):
+    def test_generate_openapi_spec_with_function_processing_error(self) -> None:
         """Test OpenAPI spec generation when individual function processing fails."""
-        mock_registry = {
+        mock_registry: Dict[str, Any] = {
             "good_func": {
                 "summary": "Good function",
                 "description": "A good function",
@@ -141,7 +142,7 @@ class TestGenerateOpenAPISpecEnhanced:
                 assert "/good" in original_spec["paths"]
                 # bad_func might be excluded due to processing error
 
-    def test_generate_openapi_spec_general_error(self):
+    def test_generate_openapi_spec_general_error(self) -> None:
         """Test OpenAPI spec generation with general error."""
         with patch("azure_functions_openapi.openapi.get_openapi_registry") as mock_registry:
             mock_registry.side_effect = Exception("Registry error")
@@ -152,9 +153,9 @@ class TestGenerateOpenAPISpecEnhanced:
             assert "Failed to generate OpenAPI specification" in str(exc_info.value)
             assert exc_info.value.details["error"] == "Registry error"
 
-    def test_generate_openapi_spec_logging(self):
+    def test_generate_openapi_spec_logging(self) -> None:
         """Test that OpenAPI spec generation logs correctly."""
-        mock_registry = {
+        mock_registry: Dict[str, Any] = {
             "func1": {"summary": "Function 1", "route": "/func1", "method": "get"},
             "func2": {"summary": "Function 2", "route": "/func2", "method": "post"},
         }
@@ -176,7 +177,7 @@ class TestGenerateOpenAPISpecEnhanced:
 class TestGetOpenAPIJSONEnhanced:
     """Test enhanced get_openapi_json function."""
 
-    def test_get_openapi_json_success(self):
+    def test_get_openapi_json_success(self) -> None:
         """Test successful JSON generation."""
         with patch("azure_functions_openapi.openapi.cached_openapi_spec") as mock_cached:
             mock_cached.return_value = {"openapi": "3.0.0", "info": {"title": "Test API"}}
@@ -188,7 +189,7 @@ class TestGetOpenAPIJSONEnhanced:
             )
             mock_cached.assert_called_once_with("Test API", "1.0.0")
 
-    def test_get_openapi_json_error(self):
+    def test_get_openapi_json_error(self) -> None:
         """Test JSON generation with error."""
         with patch("azure_functions_openapi.openapi.cached_openapi_spec") as mock_cached:
             mock_cached.side_effect = Exception("Cache error")
@@ -199,7 +200,7 @@ class TestGetOpenAPIJSONEnhanced:
             assert "Failed to generate OpenAPI JSON" in str(exc_info.value)
             assert exc_info.value.details["error"] == "Cache error"
 
-    def test_get_openapi_json_logging(self):
+    def test_get_openapi_json_logging(self) -> None:
         """Test that JSON generation logs errors."""
         with patch("azure_functions_openapi.openapi.cached_openapi_spec") as mock_cached:
             mock_cached.side_effect = Exception("Cache error")
@@ -216,7 +217,7 @@ class TestGetOpenAPIJSONEnhanced:
 class TestGetOpenAPIYAMLEnhanced:
     """Test enhanced get_openapi_yaml function."""
 
-    def test_get_openapi_yaml_success(self):
+    def test_get_openapi_yaml_success(self) -> None:
         """Test successful YAML generation."""
         with patch("azure_functions_openapi.openapi.cached_openapi_spec") as mock_cached:
             mock_cached.return_value = {"openapi": "3.0.0", "info": {"title": "Test API"}}
@@ -227,7 +228,7 @@ class TestGetOpenAPIYAMLEnhanced:
             assert "title: Test API" in result
             mock_cached.assert_called_once_with("Test API", "1.0.0")
 
-    def test_get_openapi_yaml_error(self):
+    def test_get_openapi_yaml_error(self) -> None:
         """Test YAML generation with error."""
         with patch("azure_functions_openapi.openapi.cached_openapi_spec") as mock_cached:
             mock_cached.side_effect = Exception("Cache error")
@@ -238,7 +239,7 @@ class TestGetOpenAPIYAMLEnhanced:
             assert "Failed to generate OpenAPI YAML" in str(exc_info.value)
             assert exc_info.value.details["error"] == "Cache error"
 
-    def test_get_openapi_yaml_logging(self):
+    def test_get_openapi_yaml_logging(self) -> None:
         """Test that YAML generation logs errors."""
         with patch("azure_functions_openapi.openapi.cached_openapi_spec") as mock_cached:
             mock_cached.side_effect = Exception("Cache error")
@@ -255,9 +256,9 @@ class TestGetOpenAPIYAMLEnhanced:
 class TestOpenAPISpecComplexScenarios:
     """Test complex OpenAPI spec generation scenarios."""
 
-    def test_generate_openapi_spec_with_all_components(self):
+    def test_generate_openapi_spec_with_all_components(self) -> None:
         """Test OpenAPI spec generation with all components."""
-        mock_registry = {
+        mock_registry: Dict[str, Any] = {
             "complex_func": {
                 "summary": "Complex function",
                 "description": "A complex function with all features",
@@ -326,9 +327,9 @@ class TestOpenAPISpecComplexScenarios:
                 assert "404" in put_op["responses"]
                 assert "500" in put_op["responses"]
 
-    def test_generate_openapi_spec_multiple_methods_same_route(self):
+    def test_generate_openapi_spec_multiple_methods_same_route(self) -> None:
         """Test OpenAPI spec generation with multiple methods on same route."""
-        mock_registry = {
+        mock_registry: Dict[str, Any] = {
             "get_user": {
                 "summary": "Get user",
                 "route": "/users/{id}",

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from functools import wraps
 import logging
 import time
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from azure_functions_openapi.server_info import increment_error_count, increment_request_count
 
@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 class PerformanceMonitor:
     """Performance monitoring and metrics collection."""
 
-    def __init__(self):
-        self._response_times: list = []
+    def __init__(self) -> None:
+        self._response_times: List[float] = []
         self._max_response_times = 1000  # Keep last 1000 response times
         self._start_time = time.time()
 
@@ -76,11 +76,11 @@ def get_performance_monitor() -> PerformanceMonitor:
     return _performance_monitor
 
 
-def monitor_performance(func: Callable) -> Callable:
+def monitor_performance(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator to monitor function performance."""
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         start_time = time.time()
         increment_request_count()
 
@@ -104,8 +104,8 @@ def monitor_performance(func: Callable) -> Callable:
 class RequestLogger:
     """Request logging and monitoring."""
 
-    def __init__(self):
-        self._request_log: list = []
+    def __init__(self) -> None:
+        self._request_log: List[Dict[str, Any]] = []
         self._max_log_entries = 100  # Keep last 100 requests
 
     def log_request(
@@ -137,7 +137,7 @@ class RequestLogger:
         # Log to application logger
         logger.info(f"{method} {path} {status_code} {response_time:.3f}s", extra=log_entry)
 
-    def get_recent_requests(self, limit: int = 10) -> list:
+    def get_recent_requests(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get recent request log entries."""
         return self._request_log[-limit:] if self._request_log else []
 
@@ -153,9 +153,9 @@ class RequestLogger:
             }
 
         total_requests = len(self._request_log)
-        status_codes = {}
-        methods = {}
-        response_times = []
+        status_codes: Dict[int, int] = {}
+        methods: Dict[str, int] = {}
+        response_times: List[float] = []
         error_count = 0
 
         for entry in self._request_log:
@@ -207,7 +207,7 @@ def log_request(
 class HealthChecker:
     """Health check functionality."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._checks: Dict[str, Callable[[], bool]] = {}
         self._last_check_times: Dict[str, float] = {}
         self._check_intervals: Dict[str, float] = {}
@@ -249,7 +249,7 @@ class HealthChecker:
 
     def run_all_checks(self) -> Dict[str, Any]:
         """Run all health checks."""
-        results = {}
+        results: Dict[str, Dict[str, Any]] = {}
         overall_status = "healthy"
 
         for name in self._checks:

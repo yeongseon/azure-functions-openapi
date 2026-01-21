@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 import sys
+from typing import Any, Dict, List
 
 from azure_functions_openapi.openapi import (
     get_openapi_json,
@@ -120,7 +121,7 @@ Examples:
         return 1
 
 
-def handle_generate(args) -> int:
+def handle_generate(args: argparse.Namespace) -> int:
     """Handle generate command."""
     try:
         if args.format == "json":
@@ -141,7 +142,7 @@ def handle_generate(args) -> int:
         return 1
 
 
-def handle_info(args) -> int:
+def handle_info(args: argparse.Namespace) -> int:
     """Handle info command."""
     try:
         info = get_server_info_dict()
@@ -166,7 +167,7 @@ def handle_info(args) -> int:
         return 1
 
 
-def handle_health(args) -> int:
+def handle_health(args: argparse.Namespace) -> int:
     """Handle health command."""
     try:
         health = get_health_status()
@@ -195,7 +196,7 @@ def handle_health(args) -> int:
         return 1
 
 
-def handle_metrics(args) -> int:
+def handle_metrics(args: argparse.Namespace) -> int:
     """Handle metrics command."""
     try:
         metrics = get_metrics()
@@ -220,7 +221,7 @@ def handle_metrics(args) -> int:
         return 1
 
 
-def handle_validate(args) -> int:
+def handle_validate(args: argparse.Namespace) -> int:
     """Handle validate command."""
     try:
         file_path = Path(args.file)
@@ -269,9 +270,9 @@ def handle_validate(args) -> int:
         return 1
 
 
-def validate_openapi_spec(spec: dict) -> list:
+def validate_openapi_spec(spec: Dict[str, Any]) -> List[str]:
     """Validate OpenAPI specification."""
-    errors = []
+    errors: List[str] = []
 
     # Check required fields
     if "openapi" not in spec:

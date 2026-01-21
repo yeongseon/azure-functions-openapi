@@ -13,7 +13,7 @@ from azure_functions_openapi.errors import OpenAPIError
 class ServerInfo:
     """Server information and health monitoring."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._start_time = time.time()
         self._request_count = 0
         self._error_count = 0

@@ -122,7 +122,7 @@ def create_error_response(error: APIError, include_stack_trace: bool = False) ->
     Returns:
         HttpResponse with error details
     """
-    error_response = {
+    error_response: Dict[str, Any] = {
         "error": {
             "code": error.error_code.value,
             "message": error.message,
@@ -135,7 +135,7 @@ def create_error_response(error: APIError, include_stack_trace: bool = False) ->
 
     # Include stack trace in development/debugging mode
     if include_stack_trace and error.cause:
-        error_response["error"]["stack_trace"] = str(error.cause)  # type: ignore
+        error_response["error"]["stack_trace"] = str(error.cause)
 
     # Log the error
     logger.error(
