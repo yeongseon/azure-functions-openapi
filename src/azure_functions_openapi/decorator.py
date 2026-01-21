@@ -121,13 +121,15 @@ def openapi(
         try:
             # Enhanced input validation and sanitization
             validated_route = _validate_and_sanitize_route(route, func.__name__)
-            sanitized_operation_id = _validate_and_sanitize_operation_id(operation_id, func.__name__)
+            sanitized_operation_id = _validate_and_sanitize_operation_id(
+                operation_id, func.__name__
+            )
             validated_parameters = _validate_parameters(parameters, func.__name__)
             validated_tags = _validate_tags(tags, func.__name__)
-            
+
             # Validate request/response models
             _validate_models(request_model, response_model, func.__name__)
-            
+
             _openapi_registry[func.__name__] = {
                 # ── basic metadata ────────────────────────────────
                 "summary": summary,
@@ -144,16 +146,18 @@ def openapi(
                 "response_model": response_model,
                 "response": response or {},
             }
-            
+
             logger.debug(f"Registered OpenAPI metadata for function '{func.__name__}'")
             return func
-            
+
         except Exception as e:
-            logger.error(f"Failed to register OpenAPI metadata for function '{func.__name__}': {str(e)}")
+            logger.error(
+                f"Failed to register OpenAPI metadata for function '{func.__name__}': {str(e)}"
+            )
             raise OpenAPIError(
                 message=f"Failed to register OpenAPI metadata for function '{func.__name__}'",
                 details={"function_name": func.__name__, "error": str(e)},
-                cause=e
+                cause=e,
             )
 
     return decorator
@@ -173,63 +177,75 @@ def _validate_and_sanitize_route(route: Optional[str], func_name: str) -> Option
     """Validate and sanitize route path."""
     if not route:
         return None
-    
+
     if not validate_route_path(route):
-        logger.warning(f"Invalid route path '{route}' for function '{func_name}'. Using function name as fallback.")
+        logger.warning(
+            f"Invalid route path '{route}' for function '{func_name}'. Using function name as fallback."
+        )
         raise ValidationError(
             message=f"Invalid route path: {route}",
-            details={"route": route, "function_name": func_name}
+            details={"route": route, "function_name": func_name},
         )
-    
+
     return route
 
 
-def _validate_and_sanitize_operation_id(operation_id: Optional[str], func_name: str) -> Optional[str]:
+def _validate_and_sanitize_operation_id(
+    operation_id: Optional[str], func_name: str
+) -> Optional[str]:
     """Validate and sanitize operation ID."""
     if not operation_id:
         return None
-    
+
     sanitized = sanitize_operation_id(operation_id)
     if not sanitized:
-        logger.warning(f"Invalid operation ID '{operation_id}' for function '{func_name}'. Using function name as fallback.")
+        logger.warning(
+            f"Invalid operation ID '{operation_id}' for function '{func_name}'. Using function name as fallback."
+        )
         raise ValidationError(
             message=f"Invalid operation ID: {operation_id}",
-            details={"operation_id": operation_id, "function_name": func_name}
+            details={"operation_id": operation_id, "function_name": func_name},
         )
-    
+
     return sanitized
 
 
-def _validate_parameters(parameters: Optional[List[Dict[str, Any]]], func_name: str) -> List[Dict[str, Any]]:
+def _validate_parameters(
+    parameters: Optional[List[Dict[str, Any]]], func_name: str
+) -> List[Dict[str, Any]]:
     """Validate parameters list."""
     if not parameters:
         return []
-    
+
     if not isinstance(parameters, list):
         raise ValidationError(
             message="Parameters must be a list",
-            details={"parameters": str(parameters), "function_name": func_name}
+            details={"parameters": str(parameters), "function_name": func_name},
         )
-    
+
     validated_params = []
     for i, param in enumerate(parameters):
         if not isinstance(param, dict):
             raise ValidationError(
                 message=f"Parameter at index {i} must be a dictionary",
-                details={"parameter_index": i, "function_name": func_name}
+                details={"parameter_index": i, "function_name": func_name},
             )
-        
+
         # Validate required fields
         required_fields = ["name", "in"]
         for field in required_fields:
             if field not in param:
                 raise ValidationError(
                     message=f"Parameter at index {i} missing required field: {field}",
-                    details={"parameter_index": i, "missing_field": field, "function_name": func_name}
+                    details={
+                        "parameter_index": i,
+                        "missing_field": field,
+                        "function_name": func_name,
+                    },
                 )
-        
+
         validated_params.append(param)
-    
+
     return validated_params
 
 
@@ -237,48 +253,47 @@ def _validate_tags(tags: Optional[List[str]], func_name: str) -> List[str]:
     """Validate tags list."""
     if not tags:
         return ["default"]
-    
+
     if not isinstance(tags, list):
         raise ValidationError(
-            message="Tags must be a list",
-            details={"tags": str(tags), "function_name": func_name}
+            message="Tags must be a list", details={"tags": str(tags), "function_name": func_name}
         )
-    
+
     validated_tags = []
     for i, tag in enumerate(tags):
         if not isinstance(tag, str):
             raise ValidationError(
                 message=f"Tag at index {i} must be a string",
-                details={"tag_index": i, "function_name": func_name}
+                details={"tag_index": i, "function_name": func_name},
             )
-        
+
         # Sanitize tag
         sanitized_tag = tag.strip()
         if not sanitized_tag:
             raise ValidationError(
                 message=f"Tag at index {i} cannot be empty",
-                details={"tag_index": i, "function_name": func_name}
+                details={"tag_index": i, "function_name": func_name},
             )
-        
+
         validated_tags.append(sanitized_tag)
-    
+
     return validated_tags
 
 
 def _validate_models(
-    request_model: Optional[Type[BaseModel]], 
-    response_model: Optional[Type[BaseModel]], 
-    func_name: str
+    request_model: Optional[Type[BaseModel]],
+    response_model: Optional[Type[BaseModel]],
+    func_name: str,
 ) -> None:
     """Validate Pydantic models."""
     if request_model and not issubclass(request_model, BaseModel):
         raise ValidationError(
             message="Request model must be a Pydantic BaseModel subclass",
-            details={"request_model": str(request_model), "function_name": func_name}
+            details={"request_model": str(request_model), "function_name": func_name},
         )
-    
+
     if response_model and not issubclass(response_model, BaseModel):
         raise ValidationError(
             message="Response model must be a Pydantic BaseModel subclass",
-            details={"response_model": str(response_model), "function_name": func_name}
+            details={"response_model": str(response_model), "function_name": func_name},
         )

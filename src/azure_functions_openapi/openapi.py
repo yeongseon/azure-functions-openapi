@@ -7,7 +7,11 @@ import yaml
 
 from azure_functions_openapi.decorator import get_openapi_registry
 from azure_functions_openapi.utils import model_to_schema
-from azure_functions_openapi.cache import cached_openapi_spec, cached_openapi_json, cached_openapi_yaml
+from azure_functions_openapi.cache import (
+    cached_openapi_spec,
+    cached_openapi_json,
+    cached_openapi_yaml,
+)
 from azure_functions_openapi.errors import OpenAPIError
 
 logger = logging.getLogger(__name__)
@@ -48,10 +52,12 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                             },
                         }
                     except Exception as e:
-                        logger.warning(f"Failed to generate response schema for {func_name}: {str(e)}")
+                        logger.warning(
+                            f"Failed to generate response schema for {func_name}: {str(e)}"
+                        )
                         responses["200"] = {
                             "description": "Successful Response",
-                            "content": {"application/json": {"schema": {"type": "object"}}}
+                            "content": {"application/json": {"schema": {"type": "object"}}},
                         }
 
                 # operation object ------------------------------------------------
@@ -86,15 +92,17 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                                 },
                             }
                         except Exception as e:
-                            logger.warning(f"Failed to generate request schema for {func_name}: {str(e)}")
+                            logger.warning(
+                                f"Failed to generate request schema for {func_name}: {str(e)}"
+                            )
                             op["requestBody"] = {
                                 "required": True,
-                                "content": {"application/json": {"schema": {"type": "object"}}}
+                                "content": {"application/json": {"schema": {"type": "object"}}},
                             }
 
                 # merge into paths (support multiple methods per route) ----------
                 paths.setdefault(path, {})[method] = op
-                
+
             except Exception as e:
                 logger.error(f"Failed to process function {func_name}: {str(e)}")
                 # Continue processing other functions
@@ -114,16 +122,14 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
         }
         if components.get("schemas"):
             spec["components"] = components
-        
+
         logger.info(f"Generated OpenAPI spec with {len(paths)} paths for {len(registry)} functions")
         return spec
-        
+
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI specification: {str(e)}")
         raise OpenAPIError(
-            message="Failed to generate OpenAPI specification",
-            details={"error": str(e)},
-            cause=e
+            message="Failed to generate OpenAPI specification", details={"error": str(e)}, cause=e
         )
 
 
@@ -138,9 +144,7 @@ def get_openapi_json(title: str = "API", version: str = "1.0.0") -> str:
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI JSON: {str(e)}")
         raise OpenAPIError(
-            message="Failed to generate OpenAPI JSON",
-            details={"error": str(e)},
-            cause=e
+            message="Failed to generate OpenAPI JSON", details={"error": str(e)}, cause=e
         )
 
 
@@ -155,7 +159,5 @@ def get_openapi_yaml(title: str = "API", version: str = "1.0.0") -> str:
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI YAML: {str(e)}")
         raise OpenAPIError(
-            message="Failed to generate OpenAPI YAML",
-            details={"error": str(e)},
-            cause=e
+            message="Failed to generate OpenAPI YAML", details={"error": str(e)}, cause=e
         )
