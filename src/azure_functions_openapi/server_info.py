@@ -1,23 +1,23 @@
 # src/azure_functions_openapi/server_info.py
 
+from datetime import datetime, timezone
 import os
 import platform
 import sys
 import time
-from typing import Dict, Any, Optional
-from datetime import datetime, timezone
+from typing import Any, Dict
 
 from azure_functions_openapi.errors import OpenAPIError
 
 
 class ServerInfo:
     """Server information and health monitoring."""
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         self._start_time = time.time()
         self._request_count = 0
         self._error_count = 0
-    
+
     def get_server_info(self) -> Dict[str, Any]:
         """Get comprehensive server information."""
         try:
@@ -36,7 +36,9 @@ class ServerInfo:
                     "processor": platform.processor(),
                 },
                 "uptime": {
-                    "start_time": datetime.fromtimestamp(self._start_time, timezone.utc).isoformat(),
+                    "start_time": datetime.fromtimestamp(
+                        self._start_time, timezone.utc
+                    ).isoformat(),
                     "uptime_seconds": int(time.time() - self._start_time),
                     "uptime_human": self._format_uptime(time.time() - self._start_time),
                 },
@@ -59,21 +61,19 @@ class ServerInfo:
                     "caching": True,
                     "monitoring": True,
                     "security_headers": True,
-                }
+                },
             }
         except Exception as e:
             raise OpenAPIError(
-                message="Failed to get server information",
-                details={"error": str(e)},
-                cause=e
+                message="Failed to get server information", details={"error": str(e)}, cause=e
             )
-    
+
     def get_health_status(self) -> Dict[str, Any]:
         """Get health status of the server."""
         try:
             uptime = time.time() - self._start_time
             error_rate = self._calculate_error_rate()
-            
+
             # Determine health status
             if error_rate > 0.1:  # More than 10% error rate
                 status = "unhealthy"
@@ -81,7 +81,7 @@ class ServerInfo:
                 status = "starting"
             else:
                 status = "healthy"
-            
+
             return {
                 "status": status,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -94,7 +94,7 @@ class ServerInfo:
                     "openapi_available": True,
                     "swagger_ui_available": True,
                     "cache_functioning": True,
-                }
+                },
             }
         except Exception as e:
             return {
@@ -106,21 +106,21 @@ class ServerInfo:
                     "openapi_available": False,
                     "swagger_ui_available": False,
                     "cache_functioning": False,
-                }
+                },
             }
-    
+
     def increment_request_count(self) -> None:
         """Increment the request counter."""
         self._request_count += 1
-    
+
     def increment_error_count(self) -> None:
         """Increment the error counter."""
         self._error_count += 1
-    
+
     def get_metrics(self) -> Dict[str, Any]:
         """Get performance metrics."""
         uptime = time.time() - self._start_time
-        
+
         return {
             "requests": {
                 "total": self._request_count,
@@ -140,17 +140,18 @@ class ServerInfo:
             "performance": {
                 "average_response_time": self._estimate_response_time(),
                 "memory_usage": self._get_memory_usage(),
-            }
+            },
         }
-    
+
     def _get_package_version(self) -> str:
         """Get the package version."""
         try:
             from azure_functions_openapi import __version__
+
             return __version__
         except ImportError:
             return "unknown"
-    
+
     def _format_uptime(self, seconds: float) -> str:
         """Format uptime in human-readable format."""
         if seconds < 60:
@@ -167,29 +168,30 @@ class ServerInfo:
             days = int(seconds // 86400)
             hours = int((seconds % 86400) // 3600)
             return f"{days} days {hours} hours"
-    
+
     def _calculate_error_rate(self) -> float:
         """Calculate error rate as a percentage."""
         if self._request_count == 0:
             return 0.0
         return (self._error_count / self._request_count) * 100
-    
+
     def _calculate_requests_per_minute(self) -> float:
         """Calculate requests per minute."""
         uptime_minutes = (time.time() - self._start_time) / 60
         if uptime_minutes == 0:
             return 0.0
         return self._request_count / uptime_minutes
-    
+
     def _estimate_response_time(self) -> float:
         """Estimate average response time (placeholder implementation)."""
         # This is a placeholder - in a real implementation, you'd track actual response times
         return 0.1  # 100ms average
-    
+
     def _get_memory_usage(self) -> Dict[str, Any]:
         """Get memory usage information."""
         try:
             import psutil
+
             process = psutil.Process()
             memory_info = process.memory_info()
             return {
@@ -206,7 +208,7 @@ class ServerInfo:
                 "percent": 0,
                 "available": 0,
                 "total": 0,
-                "note": "psutil not available"
+                "note": "psutil not available",
             }
 
 

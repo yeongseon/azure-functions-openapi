@@ -1,21 +1,20 @@
 # tests/test_cache.py
 
 import time
-import pytest
 from typing import Any
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from azure_functions_openapi.cache import (
     CacheManager,
-    get_cache_manager,
-    generate_cache_key,
     cached,
-    invalidate_cache,
-    clear_all_cache,
-    get_cache_stats,
-    cached_openapi_spec,
     cached_openapi_json,
+    cached_openapi_spec,
     cached_openapi_yaml,
+    clear_all_cache,
+    generate_cache_key,
+    get_cache_manager,
+    get_cache_stats,
+    invalidate_cache,
 )
 
 
