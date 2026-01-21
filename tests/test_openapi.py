@@ -151,8 +151,16 @@ def test_generate_spec_with_pydantic_models() -> None:
     op = generate_openapi_spec()["paths"]["/login"]["post"]
     schema_req = op["requestBody"]["content"]["application/json"]["schema"]
     schema_resp = op["responses"]["200"]["content"]["application/json"]["schema"]
-    assert {"username", "password"} <= schema_req["properties"].keys()
-    assert "message" in schema_resp["properties"]
+    assert schema_req == {"$ref": "#/components/schemas/RequestModel"}
+    assert schema_resp == {"$ref": "#/components/schemas/ResponseModel"}
+
+    spec = generate_openapi_spec()
+    components = spec.get("components", {})
+    schemas = components.get("schemas", {})
+    assert "RequestModel" in schemas
+    assert "ResponseModel" in schemas
+    assert "$defs" not in schemas["RequestModel"]
+    assert "$defs" not in schemas["ResponseModel"]
 
 
 def test_openapi_spec_contains_operation_id_and_tags() -> None:
