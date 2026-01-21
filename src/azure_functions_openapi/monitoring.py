@@ -1,14 +1,12 @@
 # src/azure_functions_openapi/monitoring.py
 
+from datetime import datetime, timezone
+from functools import wraps
 import logging
 import time
-from typing import Dict, Any, Optional, Callable
-from functools import wraps
-from datetime import datetime, timezone
+from typing import Any, Callable, Dict, Optional
 
-from azure_functions_openapi.errors import OpenAPIError
-from azure_functions_openapi.server_info import increment_request_count, increment_error_count
-
+from azure_functions_openapi.server_info import increment_error_count, increment_request_count
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +87,7 @@ def monitor_performance(func: Callable) -> Callable:
         try:
             result = func(*args, **kwargs)
             return result
-        except Exception as e:
+        except Exception:
             increment_error_count()
             raise
         finally:

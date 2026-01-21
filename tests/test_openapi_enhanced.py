@@ -1,15 +1,16 @@
 # tests/test_openapi_enhanced.py
 
-import pytest
-from unittest.mock import patch, MagicMock
-from pydantic import BaseModel, Field
+from unittest.mock import patch
 
+from pydantic import BaseModel, Field
+import pytest
+
+from azure_functions_openapi.errors import OpenAPIError
 from azure_functions_openapi.openapi import (
     generate_openapi_spec,
     get_openapi_json,
     get_openapi_yaml,
 )
-from azure_functions_openapi.errors import OpenAPIError
 
 
 class SampleRequestModel(BaseModel):
@@ -131,7 +132,7 @@ class TestGenerateOpenAPISpecEnhanced:
         with patch(
             "azure_functions_openapi.openapi.get_openapi_registry", return_value=mock_registry
         ):
-            with patch("azure_functions_openapi.openapi.logger") as mock_logger:
+            with patch("azure_functions_openapi.openapi.logger"):
                 # Mock the processing to fail for bad_func
                 original_spec = generate_openapi_spec("Test API", "1.0.0")
 
@@ -162,7 +163,7 @@ class TestGenerateOpenAPISpecEnhanced:
             "azure_functions_openapi.openapi.get_openapi_registry", return_value=mock_registry
         ):
             with patch("azure_functions_openapi.openapi.logger") as mock_logger:
-                spec = generate_openapi_spec("Test API", "1.0.0")
+                generate_openapi_spec("Test API", "1.0.0")
 
                 # Should log successful generation
                 mock_logger.info.assert_called_once()

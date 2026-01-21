@@ -1,19 +1,20 @@
 # tests/test_decorator_enhanced.py
 
-import pytest
 from unittest.mock import patch
+
 from pydantic import BaseModel
+import pytest
 
 from azure_functions_openapi.decorator import (
-    openapi,
-    get_openapi_registry,
-    _validate_and_sanitize_route,
     _validate_and_sanitize_operation_id,
+    _validate_and_sanitize_route,
+    _validate_models,
     _validate_parameters,
     _validate_tags,
-    _validate_models,
+    get_openapi_registry,
+    openapi,
 )
-from azure_functions_openapi.errors import ValidationError, OpenAPIError
+from azure_functions_openapi.errors import OpenAPIError, ValidationError
 
 
 class SampleModel(BaseModel):

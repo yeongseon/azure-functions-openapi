@@ -5,14 +5,12 @@ from typing import Any, Dict, List
 
 import yaml
 
-from azure_functions_openapi.decorator import get_openapi_registry
-from azure_functions_openapi.utils import model_to_schema
 from azure_functions_openapi.cache import (
     cached_openapi_spec,
-    cached_openapi_json,
-    cached_openapi_yaml,
 )
+from azure_functions_openapi.decorator import get_openapi_registry
 from azure_functions_openapi.errors import OpenAPIError
+from azure_functions_openapi.utils import model_to_schema
 
 logger = logging.getLogger(__name__)
 

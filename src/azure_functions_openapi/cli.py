@@ -2,16 +2,14 @@
 
 import argparse
 import json
-import sys
 from pathlib import Path
-from typing import Optional
+import sys
 
 from azure_functions_openapi.openapi import (
-    generate_openapi_spec,
     get_openapi_json,
     get_openapi_yaml,
 )
-from azure_functions_openapi.server_info import get_server_info_dict, get_health_status, get_metrics
+from azure_functions_openapi.server_info import get_health_status, get_metrics, get_server_info_dict
 
 
 def main() -> int:

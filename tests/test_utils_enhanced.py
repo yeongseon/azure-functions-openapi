@@ -3,13 +3,12 @@
 from typing import Any, cast
 from unittest.mock import patch
 
-import pytest
 from pydantic import BaseModel, Field
 
 from azure_functions_openapi.utils import (
     model_to_schema,
-    validate_route_path,
     sanitize_operation_id,
+    validate_route_path,
 )
 
 validate_route_path_any = cast(Any, validate_route_path)

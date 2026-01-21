@@ -4,8 +4,8 @@ from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
 from pydantic import BaseModel
 
+from azure_functions_openapi.errors import OpenAPIError, ValidationError
 from azure_functions_openapi.utils import sanitize_operation_id, validate_route_path
-from azure_functions_openapi.errors import ValidationError, OpenAPIError
 
 # Define a generic type variable for functions
 F = TypeVar("F", bound=Callable[..., Any])
@@ -180,7 +180,9 @@ def _validate_and_sanitize_route(route: Optional[str], func_name: str) -> Option
 
     if not validate_route_path(route):
         logger.warning(
-            f"Invalid route path '{route}' for function '{func_name}'. Using function name as fallback."
+            "Invalid route path '%s' for function '%s'. Using function name as fallback.",
+            route,
+            func_name,
         )
         raise ValidationError(
             message=f"Invalid route path: {route}",
@@ -200,7 +202,9 @@ def _validate_and_sanitize_operation_id(
     sanitized = sanitize_operation_id(operation_id)
     if not sanitized:
         logger.warning(
-            f"Invalid operation ID '{operation_id}' for function '{func_name}'. Using function name as fallback."
+            "Invalid operation ID '%s' for function '%s'. Using function name as fallback.",
+            operation_id,
+            func_name,
         )
         raise ValidationError(
             message=f"Invalid operation ID: {operation_id}",

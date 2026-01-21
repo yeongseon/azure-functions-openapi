@@ -1,14 +1,14 @@
 # tests/test_swagger_ui_enhanced.py
 
-import pytest
 from typing import Any
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
 from azure.functions import HttpResponse
 
 from azure_functions_openapi.swagger_ui import (
-    render_swagger_ui,
     _sanitize_html_content,
     _sanitize_url,
+    render_swagger_ui,
 )
 
 
@@ -109,7 +109,7 @@ class TestRenderSwaggerUI:
     @patch("azure_functions_openapi.swagger_ui.logger")
     def test_render_swagger_ui_logging(self, mock_logger: Any) -> None:
         """Test that render_swagger_ui logs correctly."""
-        response = render_swagger_ui(openapi_url="/test/openapi.json")
+        render_swagger_ui(openapi_url="/test/openapi.json")
 
         mock_logger.info.assert_called_once()
         call_args = mock_logger.info.call_args[0][0]

@@ -1,11 +1,11 @@
 # src/azure_functions_openapi/server_info.py
 
+from datetime import datetime, timezone
 import os
 import platform
 import sys
 import time
-from typing import Dict, Any, Optional
-from datetime import datetime, timezone
+from typing import Any, Dict
 
 from azure_functions_openapi.errors import OpenAPIError
 
