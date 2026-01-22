@@ -29,7 +29,7 @@ dev = [
     "types-PyYAML",
     "pytest-cov",
     "git-changelog",
-    "bandit==1.8.3"          # Matches pre-commit rev
+    "bandit==1.9.3"          # Matches pre-commit rev
 ]
 docs = [
     "mkdocs",
