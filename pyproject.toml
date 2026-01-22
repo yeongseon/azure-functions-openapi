@@ -7,7 +7,7 @@ description = "OpenAPI (Swagger) integration for Python-based Azure Functions"
 authors = [{ name = "Yeongseon Choe", email = "yeongseon.choe@gmail.com" }]
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.15"
 dynamic = ["version"]
 
 dependencies = [
@@ -18,18 +18,18 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "black==23.11.0",        # Matches pre-commit rev
+    "black==25.1.0",         # Matches pre-commit rev
     "build",
     "coverage",
     "hatch",
-    "mypy==1.15.0",          # Matches pre-commit rev
+    "mypy==1.15.0",          # Matches pre-commit rev (latest stable)
     "pre-commit",
     "pytest",
-    "ruff==0.4.4",           # Matches pre-commit rev
+    "ruff==0.11.13",         # Matches pre-commit rev
     "types-PyYAML",
     "pytest-cov",
     "git-changelog",
-    "bandit==1.7.7"          # Explicit version matching pre-commit rev
+    "bandit==1.8.3"          # Matches pre-commit rev
 ]
 docs = [
     "mkdocs",
@@ -82,7 +82,7 @@ style = "ruff check src tests"
 typecheck = "mypy src tests"
 lint = "hatch run style && hatch run typecheck"
 test = "PYTHONPATH=. pytest -v tests"
-cov = "coverage run -m pytest && coverage report && coverage html"
+cov = "PYTHONPATH=. pytest --cov=src/azure_functions_openapi --cov-report=term-missing --cov-report=html --cov-report=xml tests/"
 docs = "mkdocs serve"
 precommit = "pre-commit run --all-files"
 precommit-install = "pre-commit install"
@@ -98,7 +98,7 @@ azure-functions-openapi = "azure_functions_openapi.cli:main"
 # ---------------------------------------------
 [tool.black]
 line-length = 100
-target-version = ["py310", "py311", "py312"]
+target-version = ["py310", "py311", "py312", "py313", "py314"]
 
 # ---------------------------------------------
 # 🔍 Linting - Ruff
@@ -132,7 +132,7 @@ pretty = true
 # 🧪 Testing - Pytest
 # ---------------------------------------------
 [tool.pytest.ini_options]
-addopts = "--cov=src/azure_functions_openapi --cov-report=xml -ra -q"
+addopts = "--cov=src/azure_functions_openapi --cov-report=xml --cov-report=term-missing -ra -q"
 testpaths = ["tests"]
 pythonpath = ["src", "examples"]
 
@@ -141,7 +141,7 @@ pythonpath = ["src", "examples"]
 # ---------------------------------------------
 [tool.coverage.run]
 branch = true
-source = ["src/azure_functions_openapi", "examples"]
+source = ["src/azure_functions_openapi"]
 
 [tool.coverage.report]
 show_missing = true

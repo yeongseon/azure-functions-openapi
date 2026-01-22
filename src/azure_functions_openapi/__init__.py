@@ -2,7 +2,7 @@
 
 from azure_functions_openapi.openapi import OPENAPI_VERSION_3_0, OPENAPI_VERSION_3_1
 
-__version__ = "0.6.1"
+__version__ = "0.7.0"
 
 __all__ = [
     "__version__",

@@ -2,7 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.7.0] - 2026-01-22
+
+### 🚀 Features
+
+- Add Python 3.13 and 3.14 support (#29)
+
+### 🐛 Bug Fixes
+
+- Correct coverage measurement configuration (#19)
+
+### 📚 Documentation
+
+- Add community files: CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md (#24)
+
+### ⚙️ Miscellaneous Tasks
+
+- Align pre-commit hooks with pyproject.toml settings (#20)
+- Add py.typed marker for PEP 561 compliance (#21)
+- Remove obsolete fix_tags.sh script (#22)
+- Add pull request template (#23)
+- Add security scanning with Dependabot and CodeQL (#25)
+- Update dev dependencies to latest versions (#26)
+
+## [0.6.1] - 2026-01-22
 
 ### 💼 Other
 
