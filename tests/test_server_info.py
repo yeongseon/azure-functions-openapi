@@ -3,8 +3,6 @@ from __future__ import annotations
 import time
 from unittest.mock import patch
 
-import pytest
-
 from azure_functions_openapi.server_info import (
     ServerInfo,
     get_health_status,

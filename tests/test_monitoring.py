@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import time
-from typing import Any
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -15,7 +13,6 @@ from azure_functions_openapi.monitoring import (
     get_request_logger,
     log_request,
     monitor_performance,
-    register_health_check,
     run_all_health_checks,
     run_health_check,
 )

@@ -2,13 +2,10 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 import sys
 import tempfile
-from pathlib import Path
-from typing import Any
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from azure_functions_openapi.cli import (
     handle_generate,
