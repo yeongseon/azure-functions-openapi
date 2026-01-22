@@ -6,7 +6,21 @@ All notable changes to this project will be documented in this file.
 
 ### 💼 Other
 
+- Bump version to 0.6.1
+
+### 🚜 Refactor
+
+- Adopt Python 3.10 type hint syntax (PEP 604/585) (#9)
+
+## [0.6.0] - 2026-01-21
+
+### 💼 Other
+
 - Bump version to 0.6.0
+
+### 📚 Documentation
+
+- Update changelog
 
 ### 🎨 Styling
 
