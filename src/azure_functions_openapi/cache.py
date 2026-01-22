@@ -179,11 +179,11 @@ def get_cache_stats() -> dict[str, Any]:
 
 # Convenience functions for common caching scenarios
 @cached(ttl=600, key_prefix="openapi_spec")  # 10 minutes
-def cached_openapi_spec(title: str, version: str) -> dict[str, Any]:
+def cached_openapi_spec(title: str, version: str, openapi_version: str = "3.0.0") -> dict[str, Any]:
     """Cache OpenAPI specification generation."""
     from azure_functions_openapi.openapi import generate_openapi_spec
 
-    return generate_openapi_spec(title, version)
+    return generate_openapi_spec(title, version, openapi_version)
 
 
 @cached(ttl=300, key_prefix="openapi_json")  # 5 minutes

@@ -169,7 +169,7 @@ class TestGenerateOpenAPISpecEnhanced:
                 # Should log successful generation
                 mock_logger.info.assert_called_once()
                 call_args = mock_logger.info.call_args[0][0]
-                assert "Generated OpenAPI spec" in call_args
+                assert "Generated OpenAPI" in call_args
                 assert "2 paths" in call_args
                 assert "2 functions" in call_args
 
@@ -187,7 +187,7 @@ class TestGetOpenAPIJSONEnhanced:
             assert (
                 result == '{\n  "openapi": "3.0.0",\n  "info": {\n    "title": "Test API"\n  }\n}'
             )
-            mock_cached.assert_called_once_with("Test API", "1.0.0")
+            mock_cached.assert_called_once_with("Test API", "1.0.0", "3.0.0")
 
     def test_get_openapi_json_error(self) -> None:
         """Test JSON generation with error."""
@@ -226,7 +226,7 @@ class TestGetOpenAPIYAMLEnhanced:
 
             assert "openapi: 3.0.0" in result
             assert "title: Test API" in result
-            mock_cached.assert_called_once_with("Test API", "1.0.0")
+            mock_cached.assert_called_once_with("Test API", "1.0.0", "3.0.0")
 
     def test_get_openapi_yaml_error(self) -> None:
         """Test YAML generation with error."""
