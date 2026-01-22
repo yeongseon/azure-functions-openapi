@@ -1,11 +1,12 @@
 # src/azure_functions_openapi/server_info.py
+from __future__ import annotations
 
 from datetime import datetime, timezone
 import os
 import platform
 import sys
 import time
-from typing import Any, Dict
+from typing import Any
 
 from azure_functions_openapi.errors import OpenAPIError
 
@@ -18,7 +19,7 @@ class ServerInfo:
         self._request_count = 0
         self._error_count = 0
 
-    def get_server_info(self) -> Dict[str, Any]:
+    def get_server_info(self) -> dict[str, Any]:
         """Get comprehensive server information."""
         try:
             return {
@@ -68,7 +69,7 @@ class ServerInfo:
                 message="Failed to get server information", details={"error": str(e)}, cause=e
             )
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get health status of the server."""
         try:
             uptime = time.time() - self._start_time
@@ -117,7 +118,7 @@ class ServerInfo:
         """Increment the error counter."""
         self._error_count += 1
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get performance metrics."""
         uptime = time.time() - self._start_time
 
@@ -187,7 +188,7 @@ class ServerInfo:
         # This is a placeholder - in a real implementation, you'd track actual response times
         return 0.1  # 100ms average
 
-    def _get_memory_usage(self) -> Dict[str, Any]:
+    def _get_memory_usage(self) -> dict[str, Any]:
         """Get memory usage information."""
         try:
             import psutil
@@ -221,17 +222,17 @@ def get_server_info() -> ServerInfo:
     return _server_info
 
 
-def get_server_info_dict() -> Dict[str, Any]:
+def get_server_info_dict() -> dict[str, Any]:
     """Get server information as a dictionary."""
     return _server_info.get_server_info()
 
 
-def get_health_status() -> Dict[str, Any]:
+def get_health_status() -> dict[str, Any]:
     """Get health status."""
     return _server_info.get_health_status()
 
 
-def get_metrics() -> Dict[str, Any]:
+def get_metrics() -> dict[str, Any]:
     """Get performance metrics."""
     return _server_info.get_metrics()
 

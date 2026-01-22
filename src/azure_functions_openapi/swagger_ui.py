@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import logging
-from typing import Optional
 
 from azure.functions import HttpResponse
 
@@ -9,7 +10,7 @@ logger = logging.getLogger(__name__)
 def render_swagger_ui(
     title: str = "API Documentation",
     openapi_url: str = "/api/openapi.json",
-    custom_csp: Optional[str] = None,
+    custom_csp: str | None = None,
 ) -> HttpResponse:
     """
     Render Swagger UI with enhanced security headers and CSP protection.

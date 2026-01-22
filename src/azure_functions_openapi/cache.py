@@ -1,11 +1,12 @@
 # src/azure_functions_openapi/cache.py
+from __future__ import annotations
 
 from functools import wraps
 import hashlib
 import json
 import logging
 import time
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +15,11 @@ class CacheManager:
     """Simple in-memory cache manager for OpenAPI specifications and related data."""
 
     def __init__(self, default_ttl: int = 300):  # 5 minutes default TTL
-        self._cache: Dict[str, Dict[str, Any]] = {}
+        self._cache: dict[str, dict[str, Any]] = {}
         self.default_ttl = default_ttl
-        self._access_times: Dict[str, float] = {}
+        self._access_times: dict[str, float] = {}
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from cache if not expired."""
         if key not in self._cache:
             return None
@@ -35,7 +36,7 @@ class CacheManager:
         self._access_times[key] = current_time
         return cache_entry["value"]
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
+    def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """Set value in cache with TTL."""
         current_time = time.time()
         expires_at = current_time + (ttl or self.default_ttl)
@@ -76,7 +77,7 @@ class CacheManager:
 
         return len(expired_keys)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         current_time = time.time()
         active_entries = sum(
@@ -111,7 +112,7 @@ def generate_cache_key(*args: Any, **kwargs: Any) -> str:
 
 
 def cached(
-    ttl: Optional[int] = None, key_prefix: str = ""
+    ttl: int | None = None, key_prefix: str = ""
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator to cache function results.
@@ -171,14 +172,14 @@ def clear_all_cache() -> None:
     _cache_manager.clear()
 
 
-def get_cache_stats() -> Dict[str, Any]:
+def get_cache_stats() -> dict[str, Any]:
     """Get cache statistics."""
     return _cache_manager.get_stats()
 
 
 # Convenience functions for common caching scenarios
 @cached(ttl=600, key_prefix="openapi_spec")  # 10 minutes
-def cached_openapi_spec(title: str, version: str) -> Dict[str, Any]:
+def cached_openapi_spec(title: str, version: str) -> dict[str, Any]:
     """Cache OpenAPI specification generation."""
     from azure_functions_openapi.openapi import generate_openapi_spec
 

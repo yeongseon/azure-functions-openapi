@@ -1,8 +1,9 @@
 # src/azure_functions_openapi/errors.py
+from __future__ import annotations
 
 from enum import Enum
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from azure.functions import HttpResponse
 
@@ -46,8 +47,8 @@ class APIError(Exception):
         message: str,
         error_code: ErrorCode,
         status_code: int = 500,
-        details: Optional[Dict[str, Any]] = None,
-        cause: Optional[Exception] = None,
+        details: dict[str, Any] | None = None,
+        cause: Exception | None = None,
     ):
         self.message = message
         self.error_code = error_code
@@ -63,8 +64,8 @@ class ValidationError(APIError):
     def __init__(
         self,
         message: str = "Validation failed",
-        details: Optional[Dict[str, Any]] = None,
-        cause: Optional[Exception] = None,
+        details: dict[str, Any] | None = None,
+        cause: Exception | None = None,
     ):
         super().__init__(
             message=message,
@@ -81,8 +82,8 @@ class NotFoundError(APIError):
     def __init__(
         self,
         message: str = "Resource not found",
-        details: Optional[Dict[str, Any]] = None,
-        cause: Optional[Exception] = None,
+        details: dict[str, Any] | None = None,
+        cause: Exception | None = None,
     ):
         super().__init__(
             message=message,
@@ -99,8 +100,8 @@ class OpenAPIError(APIError):
     def __init__(
         self,
         message: str = "OpenAPI generation failed",
-        details: Optional[Dict[str, Any]] = None,
-        cause: Optional[Exception] = None,
+        details: dict[str, Any] | None = None,
+        cause: Exception | None = None,
     ):
         super().__init__(
             message=message,
@@ -122,7 +123,7 @@ def create_error_response(error: APIError, include_stack_trace: bool = False) ->
     Returns:
         HttpResponse with error details
     """
-    error_response: Dict[str, Any] = {
+    error_response: dict[str, Any] = {
         "error": {
             "code": error.error_code.value,
             "message": error.message,
@@ -186,7 +187,7 @@ def handle_exception(exception: Exception, include_stack_trace: bool = False) ->
     return create_error_response(api_error, include_stack_trace)
 
 
-def _serialize_error_response(error_response: Dict[str, Any]) -> str:
+def _serialize_error_response(error_response: dict[str, Any]) -> str:
     """Serialize error response to JSON string."""
     import json
 
@@ -209,7 +210,7 @@ def _generate_request_id() -> str:
 
 # Convenience functions for common error scenarios
 def validation_error(
-    message: str, field: Optional[str] = None, value: Optional[Any] = None
+    message: str, field: str | None = None, value: Any | None = None
 ) -> ValidationError:
     """Create a validation error with field-specific details."""
     details = {}
@@ -221,7 +222,7 @@ def validation_error(
     return ValidationError(message=message, details=details)
 
 
-def not_found_error(resource_type: str, resource_id: Optional[str] = None) -> NotFoundError:
+def not_found_error(resource_type: str, resource_id: str | None = None) -> NotFoundError:
     """Create a not found error with resource details."""
     details = {"resource_type": resource_type}
     if resource_id:
@@ -235,7 +236,7 @@ def not_found_error(resource_type: str, resource_id: Optional[str] = None) -> No
 
 
 def openapi_error(
-    message: str, operation: Optional[str] = None, cause: Optional[Exception] = None
+    message: str, operation: str | None = None, cause: Exception | None = None
 ) -> OpenAPIError:
     """Create an OpenAPI generation error."""
     details = {}
