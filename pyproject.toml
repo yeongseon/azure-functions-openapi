@@ -22,7 +22,7 @@ dev = [
     "build",
     "coverage",
     "hatch",
-    "mypy==1.15.0",          # Matches pre-commit rev (latest stable)
+    "mypy==1.19.1",          # Matches pre-commit rev (latest stable)
     "pre-commit",
     "pytest",
     "ruff==0.11.13",         # Matches pre-commit rev
