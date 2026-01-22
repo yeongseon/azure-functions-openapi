@@ -8,6 +8,8 @@ import sys
 from typing import Any
 
 from azure_functions_openapi.openapi import (
+    OPENAPI_VERSION_3_0,
+    OPENAPI_VERSION_3_1,
     get_openapi_json,
     get_openapi_yaml,
 )
@@ -53,6 +55,12 @@ Examples:
         help="Output format (default: json)",
     )
     generate_parser.add_argument("--pretty", "-p", action="store_true", help="Pretty print output")
+    generate_parser.add_argument(
+        "--openapi-version",
+        choices=["3.0", "3.1"],
+        default="3.0",
+        help="OpenAPI version (default: 3.0)",
+    )
 
     # Info command
     info_parser = subparsers.add_parser("info", help="Get server information")
@@ -64,6 +72,7 @@ Examples:
         default="json",
         help="Output format (default: json)",
     )
+    info_parser.add_argument("--pretty", "-p", action="store_true", help="Pretty print output")
 
     # Health command
     health_parser = subparsers.add_parser("health", help="Check health status")
@@ -75,6 +84,7 @@ Examples:
         default="json",
         help="Output format (default: json)",
     )
+    health_parser.add_argument("--pretty", "-p", action="store_true", help="Pretty print output")
 
     # Metrics command
     metrics_parser = subparsers.add_parser("metrics", help="Get performance metrics")
@@ -86,6 +96,7 @@ Examples:
         default="json",
         help="Output format (default: json)",
     )
+    metrics_parser.add_argument("--pretty", "-p", action="store_true", help="Pretty print output")
 
     # Validate command
     validate_parser = subparsers.add_parser("validate", help="Validate OpenAPI specification")
@@ -125,10 +136,14 @@ Examples:
 def handle_generate(args: argparse.Namespace) -> int:
     """Handle generate command."""
     try:
+        openapi_version = (
+            OPENAPI_VERSION_3_1 if args.openapi_version == "3.1" else OPENAPI_VERSION_3_0
+        )
+
         if args.format == "json":
-            content = get_openapi_json(args.title, args.version)
-        else:  # yaml
-            content = get_openapi_yaml(args.title, args.version)
+            content = get_openapi_json(args.title, args.version, openapi_version)
+        else:
+            content = get_openapi_yaml(args.title, args.version, openapi_version)
 
         if args.output:
             output_path = Path(args.output)

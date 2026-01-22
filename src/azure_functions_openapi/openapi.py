@@ -7,9 +7,7 @@ from typing import Any
 
 import yaml
 
-from azure_functions_openapi.cache import (
-    cached_openapi_spec,
-)
+from azure_functions_openapi.cache import cached_openapi_spec
 from azure_functions_openapi.decorator import get_openapi_registry
 from azure_functions_openapi.errors import OpenAPIError
 from azure_functions_openapi.utils import model_to_schema
@@ -17,11 +15,85 @@ from azure_functions_openapi.utils import model_to_schema
 logger = logging.getLogger(__name__)
 
 
-def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> dict[str, Any]:
+OPENAPI_VERSION_3_0 = "3.0.0"
+OPENAPI_VERSION_3_1 = "3.1.0"
+
+
+def _convert_nullable_to_type_array(schema: dict[str, Any]) -> dict[str, Any]:
+    """Convert OpenAPI 3.0 nullable to 3.1 type array syntax."""
+    result = schema.copy()
+
+    if result.get("nullable") is True and "type" in result:
+        original_type = result["type"]
+        if isinstance(original_type, str):
+            result["type"] = [original_type, "null"]
+        elif isinstance(original_type, list) and "null" not in original_type:
+            result["type"] = original_type + ["null"]
+        del result["nullable"]
+
+    return result
+
+
+def _convert_schema_to_3_1(schema: dict[str, Any]) -> dict[str, Any]:
+    """Recursively convert a schema from OpenAPI 3.0 to 3.1 format."""
+    if not isinstance(schema, dict):
+        return schema
+
+    result = _convert_nullable_to_type_array(schema)
+
+    if "example" in result and "examples" not in result:
+        result["examples"] = [result.pop("example")]
+
+    if "properties" in result:
+        result["properties"] = {
+            k: _convert_schema_to_3_1(v) for k, v in result["properties"].items()
+        }
+
+    if "items" in result:
+        result["items"] = _convert_schema_to_3_1(result["items"])
+
+    if "allOf" in result:
+        result["allOf"] = [_convert_schema_to_3_1(s) for s in result["allOf"]]
+
+    if "anyOf" in result:
+        result["anyOf"] = [_convert_schema_to_3_1(s) for s in result["anyOf"]]
+
+    if "oneOf" in result:
+        result["oneOf"] = [_convert_schema_to_3_1(s) for s in result["oneOf"]]
+
+    if "additionalProperties" in result and isinstance(result["additionalProperties"], dict):
+        result["additionalProperties"] = _convert_schema_to_3_1(result["additionalProperties"])
+
+    return result
+
+
+def _convert_schemas_to_3_1(schemas: dict[str, Any]) -> dict[str, Any]:
+    """Convert all schemas in components to OpenAPI 3.1 format."""
+    return {name: _convert_schema_to_3_1(schema) for name, schema in schemas.items()}
+
+
+def generate_openapi_spec(
+    title: str = "API",
+    version: str = "1.0.0",
+    openapi_version: str = OPENAPI_VERSION_3_0,
+) -> dict[str, Any]:
     """
-    Compile an OpenAPI-3 specification from the registry.
-    No base-path is added; `route=` is used exactly as provided.
+    Compile an OpenAPI specification from the registry.
+
+    Parameters:
+        title: API title
+        version: API version
+        openapi_version: OpenAPI specification version ("3.0.0" or "3.1.0")
+
+    Returns:
+        OpenAPI specification dictionary
     """
+    if openapi_version not in (OPENAPI_VERSION_3_0, OPENAPI_VERSION_3_1):
+        raise OpenAPIError(
+            message=f"Unsupported OpenAPI version: {openapi_version}",
+            details={"supported_versions": [OPENAPI_VERSION_3_0, OPENAPI_VERSION_3_1]},
+        )
+
     try:
         registry = get_openapi_registry()
         paths: dict[str, dict[str, Any]] = {}
@@ -109,7 +181,7 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> dict[st
                 continue
 
         spec: dict[str, Any] = {
-            "openapi": "3.0.0",
+            "openapi": openapi_version,
             "info": {
                 "title": title,
                 "version": version,
@@ -120,10 +192,19 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> dict[st
             },
             "paths": paths,
         }
+
+        if openapi_version == OPENAPI_VERSION_3_1:
+            spec["info"]["summary"] = title
+
         if components.get("schemas"):
+            if openapi_version == OPENAPI_VERSION_3_1:
+                components["schemas"] = _convert_schemas_to_3_1(components["schemas"])
             spec["components"] = components
 
-        logger.info(f"Generated OpenAPI spec with {len(paths)} paths for {len(registry)} functions")
+        logger.info(
+            f"Generated OpenAPI {openapi_version} spec with {len(paths)} paths "
+            f"for {len(registry)} functions"
+        )
         return spec
 
     except Exception as e:
@@ -133,13 +214,23 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> dict[st
         )
 
 
-def get_openapi_json(title: str = "API", version: str = "1.0.0") -> str:
+def get_openapi_json(
+    title: str = "API",
+    version: str = "1.0.0",
+    openapi_version: str = OPENAPI_VERSION_3_0,
+) -> str:
     """Return the spec as pretty-printed JSON (UTF-8).
+
+    Parameters:
+        title: API title
+        version: API version
+        openapi_version: OpenAPI specification version ("3.0.0" or "3.1.0")
+
     Returns:
-        str: OpenAPI spec in JSON format.
+        OpenAPI spec in JSON format.
     """
     try:
-        spec = cached_openapi_spec(title, version)
+        spec = cached_openapi_spec(title, version, openapi_version)
         return json.dumps(spec, indent=2, ensure_ascii=False)
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI JSON: {str(e)}")
@@ -148,13 +239,23 @@ def get_openapi_json(title: str = "API", version: str = "1.0.0") -> str:
         )
 
 
-def get_openapi_yaml(title: str = "API", version: str = "1.0.0") -> str:
+def get_openapi_yaml(
+    title: str = "API",
+    version: str = "1.0.0",
+    openapi_version: str = OPENAPI_VERSION_3_0,
+) -> str:
     """Return the spec as YAML.
+
+    Parameters:
+        title: API title
+        version: API version
+        openapi_version: OpenAPI specification version ("3.0.0" or "3.1.0")
+
     Returns:
-        str: OpenAPI spec in YAML format.
+        OpenAPI spec in YAML format.
     """
     try:
-        spec = cached_openapi_spec(title, version)
+        spec = cached_openapi_spec(title, version, openapi_version)
         return yaml.safe_dump(spec, sort_keys=False, allow_unicode=True)
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI YAML: {str(e)}")
