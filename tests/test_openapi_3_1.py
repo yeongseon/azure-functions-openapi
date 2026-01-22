@@ -136,8 +136,8 @@ class TestConvertSchemaTo31:
         assert result["additionalProperties"]["type"] == ["string", "null"]
 
     def test_non_dict_passthrough(self) -> None:
-        result = _convert_schema_to_3_1("not a dict")  # type: ignore
-        assert result == "not a dict"
+        result = _convert_schema_to_3_1("not a dict")  # type: ignore[arg-type]
+        assert result == "not a dict"  # type: ignore[comparison-overlap]
 
 
 class TestConvertSchemasTo31:
