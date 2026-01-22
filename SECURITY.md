@@ -2,17 +2,39 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability, please:
+We take security seriously. If you discover a security vulnerability, please report it responsibly:
 
-1. **Do not** create a public issue
-2. Email security concerns to: yeongseon.choe@gmail.com
-3. Include detailed information about the vulnerability
-4. Allow time for the issue to be addressed before disclosure
+### Preferred: GitHub Security Advisory
+
+1. Go to the [Security Advisories page](https://github.com/yeongseon/azure-functions-openapi/security/advisories/new)
+2. Click "Report a vulnerability"
+3. Fill in the details about the vulnerability
+4. Submit - this creates a private discussion with maintainers
+
+### Alternative: Email
+
+If you prefer email, contact: yeongseon.choe@gmail.com
+
+### What to include
+
+- Description of the vulnerability
+- Steps to reproduce
+- Potential impact
+- Suggested fix (if any)
+
+### Response Timeline
+
+- **Initial response**: within 48 hours
+- **Status update**: within 7 days
+- **Fix release**: depends on severity
+
+Please allow time for the issue to be addressed before public disclosure.
 
 ## Supported Versions
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 0.7.x   | :white_check_mark: |
 | 0.6.x   | :white_check_mark: |
 | < 0.6   | :x:                |
 
