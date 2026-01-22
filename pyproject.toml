@@ -18,18 +18,18 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "black==23.11.0",        # Matches pre-commit rev
+    "black==25.1.0",         # Matches pre-commit rev
     "build",
     "coverage",
     "hatch",
-    "mypy==1.15.0",          # Matches pre-commit rev
+    "mypy==1.15.0",          # Matches pre-commit rev (latest stable)
     "pre-commit",
     "pytest",
-    "ruff==0.4.4",           # Matches pre-commit rev
+    "ruff==0.11.13",         # Matches pre-commit rev
     "types-PyYAML",
     "pytest-cov",
     "git-changelog",
-    "bandit==1.7.7"          # Explicit version matching pre-commit rev
+    "bandit==1.8.3"          # Matches pre-commit rev
 ]
 docs = [
     "mkdocs",
