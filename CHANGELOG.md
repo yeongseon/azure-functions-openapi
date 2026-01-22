@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-01-22
+
+### 🚀 Features
+
+- Add optional OpenAPI 3.1 output support (#30)
+  - Add `openapi_version` parameter to `generate_openapi_spec()`, `get_openapi_json()`, `get_openapi_yaml()`
+  - Add `OPENAPI_VERSION_3_0` and `OPENAPI_VERSION_3_1` constants
+  - Add `--openapi-version` CLI flag (choices: 3.0, 3.1)
+  - Implement schema conversion for 3.1 (nullable → type array, example → examples)
+
+### 🧪 Tests
+
+- Fix test file naming conventions (#28)
+- Add comprehensive tests for CLI module (32 tests)
+- Add comprehensive tests for monitoring module
+- Add comprehensive tests for server_info module
+- Add comprehensive tests for OpenAPI 3.1 functionality (27 tests)
+
+### 🐛 Bug Fixes
+
+- Add missing `--pretty` flag to CLI info, health, metrics commands
+
+### 📚 Documentation
+
+- Improve security policy with GitHub Security Advisory as preferred reporting method
+
 ## [0.7.0] - 2026-01-22
 
 ### 🚀 Features
