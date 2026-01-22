@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import Any
-
 import pytest
 
+from azure_functions_openapi.errors import OpenAPIError
 from azure_functions_openapi.openapi import (
     OPENAPI_VERSION_3_0,
     OPENAPI_VERSION_3_1,
@@ -14,7 +13,6 @@ from azure_functions_openapi.openapi import (
     get_openapi_json,
     get_openapi_yaml,
 )
-from azure_functions_openapi.errors import OpenAPIError
 
 
 class TestConvertNullableToTypeArray:
