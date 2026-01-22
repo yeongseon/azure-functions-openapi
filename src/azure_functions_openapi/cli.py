@@ -1,10 +1,11 @@
 # src/azure_functions_openapi/cli.py
+from __future__ import annotations
 
 import argparse
 import json
 from pathlib import Path
 import sys
-from typing import Any, Dict, List
+from typing import Any
 
 from azure_functions_openapi.openapi import (
     get_openapi_json,
@@ -270,9 +271,9 @@ def handle_validate(args: argparse.Namespace) -> int:
         return 1
 
 
-def validate_openapi_spec(spec: Dict[str, Any]) -> List[str]:
+def validate_openapi_spec(spec: dict[str, Any]) -> list[str]:
     """Validate OpenAPI specification."""
-    errors: List[str] = []
+    errors: list[str] = []
 
     # Check required fields
     if "openapi" not in spec:

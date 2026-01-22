@@ -1,10 +1,11 @@
 # src/azure_functions_openapi/monitoring.py
+from __future__ import annotations
 
 from datetime import datetime, timezone
 from functools import wraps
 import logging
 import time
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable
 
 from azure_functions_openapi.server_info import increment_error_count, increment_request_count
 
@@ -15,7 +16,7 @@ class PerformanceMonitor:
     """Performance monitoring and metrics collection."""
 
     def __init__(self) -> None:
-        self._response_times: List[float] = []
+        self._response_times: list[float] = []
         self._max_response_times = 1000  # Keep last 1000 response times
         self._start_time = time.time()
 
@@ -27,7 +28,7 @@ class PerformanceMonitor:
         if len(self._response_times) > self._max_response_times:
             self._response_times = self._response_times[-self._max_response_times :]
 
-    def get_response_time_stats(self) -> Dict[str, float]:
+    def get_response_time_stats(self) -> dict[str, float]:
         """Get response time statistics."""
         if not self._response_times:
             return {
@@ -53,7 +54,7 @@ class PerformanceMonitor:
             "count": count,
         }
 
-    def get_throughput_stats(self) -> Dict[str, float]:
+    def get_throughput_stats(self) -> dict[str, float]:
         """Get throughput statistics."""
         uptime = time.time() - self._start_time
         total_requests = len(self._response_times)
@@ -105,7 +106,7 @@ class RequestLogger:
     """Request logging and monitoring."""
 
     def __init__(self) -> None:
-        self._request_log: List[Dict[str, Any]] = []
+        self._request_log: list[dict[str, Any]] = []
         self._max_log_entries = 100  # Keep last 100 requests
 
     def log_request(
@@ -114,8 +115,8 @@ class RequestLogger:
         path: str,
         status_code: int,
         response_time: float,
-        user_agent: Optional[str] = None,
-        ip_address: Optional[str] = None,
+        user_agent: str | None = None,
+        ip_address: str | None = None,
     ) -> None:
         """Log a request."""
         log_entry = {
@@ -137,11 +138,11 @@ class RequestLogger:
         # Log to application logger
         logger.info(f"{method} {path} {status_code} {response_time:.3f}s", extra=log_entry)
 
-    def get_recent_requests(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_recent_requests(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get recent request log entries."""
         return self._request_log[-limit:] if self._request_log else []
 
-    def get_request_stats(self) -> Dict[str, Any]:
+    def get_request_stats(self) -> dict[str, Any]:
         """Get request statistics."""
         if not self._request_log:
             return {
@@ -153,9 +154,9 @@ class RequestLogger:
             }
 
         total_requests = len(self._request_log)
-        status_codes: Dict[int, int] = {}
-        methods: Dict[str, int] = {}
-        response_times: List[float] = []
+        status_codes: dict[int, int] = {}
+        methods: dict[str, int] = {}
+        response_times: list[float] = []
         error_count = 0
 
         for entry in self._request_log:
@@ -197,8 +198,8 @@ def log_request(
     path: str,
     status_code: int,
     response_time: float,
-    user_agent: Optional[str] = None,
-    ip_address: Optional[str] = None,
+    user_agent: str | None = None,
+    ip_address: str | None = None,
 ) -> None:
     """Log a request."""
     _request_logger.log_request(method, path, status_code, response_time, user_agent, ip_address)
@@ -208,9 +209,9 @@ class HealthChecker:
     """Health check functionality."""
 
     def __init__(self) -> None:
-        self._checks: Dict[str, Callable[[], bool]] = {}
-        self._last_check_times: Dict[str, float] = {}
-        self._check_intervals: Dict[str, float] = {}
+        self._checks: dict[str, Callable[[], bool]] = {}
+        self._last_check_times: dict[str, float] = {}
+        self._check_intervals: dict[str, float] = {}
 
     def register_check(
         self, name: str, check_func: Callable[[], bool], interval: float = 60.0
@@ -220,7 +221,7 @@ class HealthChecker:
         self._check_intervals[name] = interval
         self._last_check_times[name] = 0.0
 
-    def run_check(self, name: str) -> Dict[str, Any]:
+    def run_check(self, name: str) -> dict[str, Any]:
         """Run a specific health check."""
         if name not in self._checks:
             return {"name": name, "status": "unknown", "error": f"Check '{name}' not found"}
@@ -247,9 +248,9 @@ class HealthChecker:
                 "last_check": datetime.fromtimestamp(time.time(), timezone.utc).isoformat(),
             }
 
-    def run_all_checks(self) -> Dict[str, Any]:
+    def run_all_checks(self) -> dict[str, Any]:
         """Run all health checks."""
-        results: Dict[str, Dict[str, Any]] = {}
+        results: dict[str, dict[str, Any]] = {}
         overall_status = "healthy"
 
         for name in self._checks:
@@ -265,7 +266,7 @@ class HealthChecker:
             "checks": results,
         }
 
-    def get_check_status(self, name: str) -> Dict[str, Any]:
+    def get_check_status(self, name: str) -> dict[str, Any]:
         """Get the status of a specific check."""
         if name not in self._checks:
             return {"name": name, "status": "unknown", "error": f"Check '{name}' not found"}
@@ -303,12 +304,12 @@ def register_health_check(
     _health_checker.register_check(name, check_func, interval)
 
 
-def run_health_check(name: str) -> Dict[str, Any]:
+def run_health_check(name: str) -> dict[str, Any]:
     """Run a health check."""
     return _health_checker.run_check(name)
 
 
-def run_all_health_checks() -> Dict[str, Any]:
+def run_all_health_checks() -> dict[str, Any]:
     """Run all health checks."""
     return _health_checker.run_all_checks()
 

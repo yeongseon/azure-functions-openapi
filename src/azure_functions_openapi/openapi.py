@@ -1,7 +1,9 @@
 # src/azure_functions_openapi/openapi.py
+from __future__ import annotations
+
 import json
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 
@@ -15,15 +17,15 @@ from azure_functions_openapi.utils import model_to_schema
 logger = logging.getLogger(__name__)
 
 
-def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[str, Any]:
+def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> dict[str, Any]:
     """
     Compile an OpenAPI-3 specification from the registry.
     No base-path is added; `route=` is used exactly as provided.
     """
     try:
         registry = get_openapi_registry()
-        paths: Dict[str, Dict[str, Any]] = {}
-        components: Dict[str, Any] = {"schemas": {}}
+        paths: dict[str, dict[str, Any]] = {}
+        components: dict[str, Any] = {"schemas": {}}
 
         for func_name, meta in registry.items():
             try:
@@ -32,7 +34,7 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                 method = (meta.get("method") or "get").lower()
 
                 # responses -------------------------------------------------------
-                responses: Dict[str, Any] = {}
+                responses: dict[str, Any] = {}
                 for status, detail in meta.get("response", {}).items():
                     resp = {"description": detail.get("description", "")}
                     if "content" in detail:
@@ -59,7 +61,7 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                         }
 
                 # operation object ------------------------------------------------
-                op: Dict[str, Any] = {
+                op: dict[str, Any] = {
                     "summary": meta.get("summary", ""),
                     "description": meta.get("description", ""),
                     "operationId": meta.get("operation_id") or f"{method}_{func_name}",
@@ -68,7 +70,7 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                 }
 
                 # parameters ------------------------------------------------------
-                parameters: List[Dict[str, Any]] = meta.get("parameters", [])
+                parameters: list[dict[str, Any]] = meta.get("parameters", [])
                 if parameters:
                     op["parameters"] = parameters
 
@@ -106,7 +108,7 @@ def generate_openapi_spec(title: str = "API", version: str = "1.0.0") -> Dict[st
                 # Continue processing other functions
                 continue
 
-        spec: Dict[str, Any] = {
+        spec: dict[str, Any] = {
             "openapi": "3.0.0",
             "info": {
                 "title": title,

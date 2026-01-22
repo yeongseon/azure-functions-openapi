@@ -1,6 +1,8 @@
 # src/azure_functions_openapi/utils.py
+from __future__ import annotations
+
 import re
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, cast
 
 from packaging import version
 import pydantic
@@ -18,7 +20,7 @@ def _rewrite_ref(ref: str) -> str:
 
 def _rewrite_refs(obj: Any) -> Any:
     if isinstance(obj, dict):
-        rewritten: Dict[str, Any] = {}
+        rewritten: dict[str, Any] = {}
         for key, value in obj.items():
             if key == "$ref" and isinstance(value, str):
                 rewritten[key] = _rewrite_ref(value)
@@ -30,8 +32,8 @@ def _rewrite_refs(obj: Any) -> Any:
     return obj
 
 
-def _pop_definitions(schema: Dict[str, Any]) -> Dict[str, Any]:
-    definitions: Dict[str, Any] = {}
+def _pop_definitions(schema: dict[str, Any]) -> dict[str, Any]:
+    definitions: dict[str, Any] = {}
     for key in ("$defs", "definitions"):
         value = schema.pop(key, None)
         if isinstance(value, dict):
@@ -39,17 +41,17 @@ def _pop_definitions(schema: Dict[str, Any]) -> Dict[str, Any]:
     return definitions
 
 
-def _collect_schemas(schema: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Dict[str, Any]]]:
-    normalized = cast(Dict[str, Any], _rewrite_refs(schema))
+def _collect_schemas(schema: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+    normalized = cast(dict[str, Any], _rewrite_refs(schema))
     definitions = _pop_definitions(normalized)
-    collected: Dict[str, Dict[str, Any]] = {}
+    collected: dict[str, dict[str, Any]] = {}
 
-    queue: List[Tuple[str, Any]] = list(definitions.items())
+    queue: list[tuple[str, Any]] = list(definitions.items())
     while queue:
         name, definition = queue.pop(0)
         if not isinstance(definition, dict):
             continue
-        definition = cast(Dict[str, Any], _rewrite_refs(definition))
+        definition = cast(dict[str, Any], _rewrite_refs(definition))
         nested = _pop_definitions(definition)
         if nested:
             queue.extend(list(nested.items()))
@@ -60,8 +62,8 @@ def _collect_schemas(schema: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, 
 
 def _resolve_name_collision(
     name: str,
-    schema: Dict[str, Any],
-    existing: Dict[str, Dict[str, Any]],
+    schema: dict[str, Any],
+    existing: dict[str, dict[str, Any]],
 ) -> str:
     if name not in existing:
         return name
@@ -77,11 +79,11 @@ def _resolve_name_collision(
         index += 1
 
 
-def _rewrite_refs_with_map(obj: Any, name_map: Dict[str, str]) -> Any:
+def _rewrite_refs_with_map(obj: Any, name_map: dict[str, str]) -> Any:
     if not name_map:
         return obj
     if isinstance(obj, dict):
-        rewritten: Dict[str, Any] = {}
+        rewritten: dict[str, Any] = {}
         for key, value in obj.items():
             if key == "$ref" and isinstance(value, str):
                 if value.startswith("#/components/schemas/"):
@@ -98,23 +100,23 @@ def _rewrite_refs_with_map(obj: Any, name_map: Dict[str, str]) -> Any:
     return obj
 
 
-def model_to_schema(model_cls: Any, components: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def model_to_schema(model_cls: Any, components: dict[str, Any] | None = None) -> dict[str, Any]:
     """Return OpenAPI schema from a Pydantic model class.
     Parameters:
         model_cls: Pydantic model class.
         components: OpenAPI components dict to register schemas.
     Returns:
-        Dict[str, Any]: Schema with $ref to components.schemas.
+        dict[str, Any]: Schema with $ref to components.schemas.
     """
 
     if PYDANTIC_V2:
         schema = cast(
-            Dict[str, Any],
+            dict[str, Any],
             model_cls.model_json_schema(ref_template="#/components/schemas/{model}"),
         )
     else:
         schema = cast(
-            Dict[str, Any],
+            dict[str, Any],
             model_cls.schema(ref_template="#/components/schemas/{model}"),
         )
 
@@ -123,20 +125,20 @@ def model_to_schema(model_cls: Any, components: Optional[Dict[str, Any]] = None)
     schemas = components.setdefault("schemas", {})
 
     normalized, definitions = _collect_schemas(schema)
-    local_schemas: Dict[str, Dict[str, Any]] = {model_cls.__name__: normalized}
+    local_schemas: dict[str, dict[str, Any]] = {model_cls.__name__: normalized}
     local_schemas.update(definitions)
 
-    name_map: Dict[str, str] = {}
+    name_map: dict[str, str] = {}
     for name, local_schema in local_schemas.items():
         resolved_name = _resolve_name_collision(name, local_schema, schemas)
         if resolved_name != name:
             name_map[name] = resolved_name
 
     if name_map:
-        updated_local_schemas: Dict[str, Dict[str, Any]] = {}
+        updated_local_schemas: dict[str, dict[str, Any]] = {}
         for name, local_schema in local_schemas.items():
             final_name = name_map.get(name, name)
-            rewritten_schema = cast(Dict[str, Any], _rewrite_refs_with_map(local_schema, name_map))
+            rewritten_schema = cast(dict[str, Any], _rewrite_refs_with_map(local_schema, name_map))
             updated_local_schemas[final_name] = rewritten_schema
         local_schemas = updated_local_schemas
 

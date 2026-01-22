@@ -1,6 +1,8 @@
 # src/azure_functions_openapi/decorator.py
+from __future__ import annotations
+
 import logging
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
+from typing import Any, Callable, TypeVar
 
 from pydantic import BaseModel
 
@@ -11,7 +13,7 @@ from azure_functions_openapi.utils import sanitize_operation_id, validate_route_
 F = TypeVar("F", bound=Callable[..., Any])
 
 # Global registry to hold OpenAPI metadata for each function
-_openapi_registry: Dict[str, Dict[str, Any]] = {}
+_openapi_registry: dict[str, dict[str, Any]] = {}
 
 logger = logging.getLogger(__name__)
 
@@ -20,17 +22,17 @@ def openapi(
     # ── basic metadata ───────────────────────────────────────────
     summary: str = "",
     description: str = "",
-    tags: Optional[List[str]] = None,
-    operation_id: Optional[str] = None,
+    tags: list[str] | None = None,
+    operation_id: str | None = None,
     # ── routing information ─────────────────────────────────────
-    route: Optional[str] = None,
-    method: Optional[str] = None,
-    parameters: Optional[List[Dict[str, Any]]] = None,
+    route: str | None = None,
+    method: str | None = None,
+    parameters: list[dict[str, Any]] | None = None,
     # ── request / response schema ───────────────────────────────
-    request_model: Optional[Type[BaseModel]] = None,
-    request_body: Optional[Dict[str, Any]] = None,
-    response_model: Optional[Type[BaseModel]] = None,
-    response: Optional[Dict[int, Dict[str, Any]]] = None,
+    request_model: type[BaseModel] | None = None,
+    request_body: dict[str, Any] | None = None,
+    response_model: type[BaseModel] | None = None,
+    response: dict[int, dict[str, Any]] | None = None,
 ) -> Callable[[F], F]:
     """
     Decorator that attaches OpenAPI metadata to an Azure Functions handler.
@@ -163,7 +165,7 @@ def openapi(
     return decorator
 
 
-def get_openapi_registry() -> Dict[str, Dict[str, Any]]:
+def get_openapi_registry() -> dict[str, dict[str, Any]]:
     """
     Retrieve OpenAPI metadata for all registered functions.
 
@@ -173,7 +175,7 @@ def get_openapi_registry() -> Dict[str, Dict[str, Any]]:
     return _openapi_registry
 
 
-def _validate_and_sanitize_route(route: Optional[str], func_name: str) -> Optional[str]:
+def _validate_and_sanitize_route(route: str | None, func_name: str) -> str | None:
     """Validate and sanitize route path."""
     if not route:
         return None
@@ -192,9 +194,7 @@ def _validate_and_sanitize_route(route: Optional[str], func_name: str) -> Option
     return route
 
 
-def _validate_and_sanitize_operation_id(
-    operation_id: Optional[str], func_name: str
-) -> Optional[str]:
+def _validate_and_sanitize_operation_id(operation_id: str | None, func_name: str) -> str | None:
     """Validate and sanitize operation ID."""
     if not operation_id:
         return None
@@ -215,8 +215,8 @@ def _validate_and_sanitize_operation_id(
 
 
 def _validate_parameters(
-    parameters: Optional[List[Dict[str, Any]]], func_name: str
-) -> List[Dict[str, Any]]:
+    parameters: list[dict[str, Any]] | None, func_name: str
+) -> list[dict[str, Any]]:
     """Validate parameters list."""
     if not parameters:
         return []
@@ -253,7 +253,7 @@ def _validate_parameters(
     return validated_params
 
 
-def _validate_tags(tags: Optional[List[str]], func_name: str) -> List[str]:
+def _validate_tags(tags: list[str] | None, func_name: str) -> list[str]:
     """Validate tags list."""
     if not tags:
         return ["default"]
@@ -285,8 +285,8 @@ def _validate_tags(tags: Optional[List[str]], func_name: str) -> List[str]:
 
 
 def _validate_models(
-    request_model: Optional[Type[BaseModel]],
-    response_model: Optional[Type[BaseModel]],
+    request_model: type[BaseModel] | None,
+    response_model: type[BaseModel] | None,
     func_name: str,
 ) -> None:
     """Validate Pydantic models."""
