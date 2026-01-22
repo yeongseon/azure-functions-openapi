@@ -82,7 +82,7 @@ style = "ruff check src tests"
 typecheck = "mypy src tests"
 lint = "hatch run style && hatch run typecheck"
 test = "PYTHONPATH=. pytest -v tests"
-cov = "coverage run -m pytest && coverage report && coverage html"
+cov = "PYTHONPATH=. pytest --cov=src/azure_functions_openapi --cov-report=term-missing --cov-report=html --cov-report=xml tests/"
 docs = "mkdocs serve"
 precommit = "pre-commit run --all-files"
 precommit-install = "pre-commit install"
@@ -132,7 +132,7 @@ pretty = true
 # 🧪 Testing - Pytest
 # ---------------------------------------------
 [tool.pytest.ini_options]
-addopts = "--cov=src/azure_functions_openapi --cov-report=xml -ra -q"
+addopts = "--cov=src/azure_functions_openapi --cov-report=xml --cov-report=term-missing -ra -q"
 testpaths = ["tests"]
 pythonpath = ["src", "examples"]
 
@@ -141,7 +141,7 @@ pythonpath = ["src", "examples"]
 # ---------------------------------------------
 [tool.coverage.run]
 branch = true
-source = ["src/azure_functions_openapi", "examples"]
+source = ["src/azure_functions_openapi"]
 
 [tool.coverage.report]
 show_missing = true
