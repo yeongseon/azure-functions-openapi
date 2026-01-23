@@ -18,7 +18,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "black==25.1.0",         # Matches pre-commit rev
+    "black==26.1.0",         # Matches pre-commit rev
     "build",
     "coverage",
     "hatch",
