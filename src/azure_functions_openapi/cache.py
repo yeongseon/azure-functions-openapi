@@ -5,6 +5,7 @@ from functools import wraps
 import hashlib
 import json
 import logging
+import threading
 import time
 from typing import Any, Callable
 
@@ -18,78 +19,94 @@ class CacheManager:
         self._cache: dict[str, dict[str, Any]] = {}
         self.default_ttl = default_ttl
         self._access_times: dict[str, float] = {}
+        self._lock = threading.RLock()
 
     def get(self, key: str) -> Any | None:
         """Get value from cache if not expired."""
-        if key not in self._cache:
-            return None
+        with self._lock:
+            if key not in self._cache:
+                return None
 
-        cache_entry = self._cache[key]
-        current_time = time.time()
+            cache_entry = self._cache[key]
+            current_time = time.time()
 
-        # Check if expired
-        if current_time > cache_entry["expires_at"]:
-            self.delete(key)
-            return None
+            # Check if expired
+            if current_time > cache_entry["expires_at"]:
+                self.delete(key)
+                return None
 
-        # Update access time for LRU
-        self._access_times[key] = current_time
-        return cache_entry["value"]
+            # Update access time for LRU
+            self._access_times[key] = current_time
+            return cache_entry["value"]
 
     def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """Set value in cache with TTL."""
-        current_time = time.time()
-        expires_at = current_time + (ttl or self.default_ttl)
+        with self._lock:
+            current_time = time.time()
+            expires_at = current_time + (ttl or self.default_ttl)
 
-        self._cache[key] = {"value": value, "expires_at": expires_at, "created_at": current_time}
-        self._access_times[key] = current_time
+            self._cache[key] = {
+                "value": value,
+                "expires_at": expires_at,
+                "created_at": current_time,
+            }
+            self._access_times[key] = current_time
 
-        logger.debug(f"Cached value for key: {key} (TTL: {ttl or self.default_ttl}s)")
+            logger.debug(f"Cached value for key: {key} (TTL: {ttl or self.default_ttl}s)")
 
     def delete(self, key: str) -> bool:
         """Delete key from cache."""
-        deleted = key in self._cache
-        if deleted:
-            del self._cache[key]
-            if key in self._access_times:
-                del self._access_times[key]
-            logger.debug(f"Deleted cache entry for key: {key}")
-        return deleted
+        with self._lock:
+            deleted = key in self._cache
+            if deleted:
+                del self._cache[key]
+                if key in self._access_times:
+                    del self._access_times[key]
+                logger.debug(f"Deleted cache entry for key: {key}")
+            return deleted
 
     def clear(self) -> None:
         """Clear all cache entries."""
-        self._cache.clear()
-        self._access_times.clear()
-        logger.info("Cache cleared")
+        with self._lock:
+            self._cache.clear()
+            self._access_times.clear()
+            logger.info("Cache cleared")
 
     def cleanup_expired(self) -> int:
         """Remove expired entries and return count of removed entries."""
-        current_time = time.time()
-        expired_keys = [
-            key for key, entry in self._cache.items() if current_time > entry["expires_at"]
-        ]
+        with self._lock:
+            current_time = time.time()
+            expired_keys = [
+                key for key, entry in self._cache.items() if current_time > entry["expires_at"]
+            ]
 
-        for key in expired_keys:
-            self.delete(key)
+            for key in expired_keys:
+                self.delete(key)
 
-        if expired_keys:
-            logger.info(f"Cleaned up {len(expired_keys)} expired cache entries")
+            if expired_keys:
+                logger.info(f"Cleaned up {len(expired_keys)} expired cache entries")
 
-        return len(expired_keys)
+            return len(expired_keys)
 
     def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
-        current_time = time.time()
-        active_entries = sum(
-            1 for entry in self._cache.values() if current_time <= entry["expires_at"]
-        )
+        with self._lock:
+            current_time = time.time()
+            active_entries = sum(
+                1 for entry in self._cache.values() if current_time <= entry["expires_at"]
+            )
 
-        return {
-            "total_entries": len(self._cache),
-            "active_entries": active_entries,
-            "expired_entries": len(self._cache) - active_entries,
-            "default_ttl": self.default_ttl,
-        }
+            return {
+                "total_entries": len(self._cache),
+                "active_entries": active_entries,
+                "expired_entries": len(self._cache) - active_entries,
+                "default_ttl": self.default_ttl,
+            }
+
+    def list_keys(self) -> list[str]:
+        """Return a snapshot of cache keys."""
+        with self._lock:
+            return list(self._cache.keys())
 
 
 # Global cache instance
@@ -156,7 +173,7 @@ def invalidate_cache(pattern: str) -> int:
     Returns:
         Number of entries invalidated
     """
-    keys_to_delete = [key for key in _cache_manager._cache.keys() if pattern in key]
+    keys_to_delete = [key for key in _cache_manager.list_keys() if pattern in key]
 
     for key in keys_to_delete:
         _cache_manager.delete(key)

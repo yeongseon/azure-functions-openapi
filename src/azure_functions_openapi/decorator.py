@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 from typing import Any, Callable, TypeVar
 
 from pydantic import BaseModel
@@ -14,6 +15,7 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 # Global registry to hold OpenAPI metadata for each function
 _openapi_registry: dict[str, dict[str, Any]] = {}
+_registry_lock = threading.RLock()
 
 logger = logging.getLogger(__name__)
 
@@ -132,22 +134,23 @@ def openapi(
             # Validate request/response models
             _validate_models(request_model, response_model, func.__name__)
 
-            _openapi_registry[func.__name__] = {
-                # ── basic metadata ────────────────────────────────
-                "summary": summary,
-                "description": description,
-                "tags": validated_tags,
-                "operation_id": sanitized_operation_id,
-                # ── routing info ─────────────────────────────────
-                "route": validated_route,
-                "method": method,
-                "parameters": validated_parameters,
-                # ── request / response schema ────────────────────
-                "request_model": request_model,
-                "request_body": request_body,
-                "response_model": response_model,
-                "response": response or {},
-            }
+            with _registry_lock:
+                _openapi_registry[func.__name__] = {
+                    # ── basic metadata ────────────────────────────────
+                    "summary": summary,
+                    "description": description,
+                    "tags": validated_tags,
+                    "operation_id": sanitized_operation_id,
+                    # ── routing info ─────────────────────────────────
+                    "route": validated_route,
+                    "method": method,
+                    "parameters": validated_parameters,
+                    # ── request / response schema ────────────────────
+                    "request_model": request_model,
+                    "request_body": request_body,
+                    "response_model": response_model,
+                    "response": response or {},
+                }
 
             logger.debug(f"Registered OpenAPI metadata for function '{func.__name__}'")
             return func
@@ -172,7 +175,8 @@ def get_openapi_registry() -> dict[str, dict[str, Any]]:
     Returns:
         A dictionary where each key is a function name and value is its OpenAPI metadata.
     """
-    return _openapi_registry
+    with _registry_lock:
+        return {key: value.copy() for key, value in _openapi_registry.items()}
 
 
 def _validate_and_sanitize_route(route: str | None, func_name: str) -> str | None:

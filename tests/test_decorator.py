@@ -43,21 +43,19 @@ def test_openapi_registers_metadata_with_request_body() -> None:
         description="Test endpoint with request body",
         response={201: {"description": "Created"}},
         parameters=[],
+        request_body={
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+                "age": {"type": "integer"},
+            },
+            "required": ["name"],
+        },
     )
     def dummy_with_body() -> None:
         pass
 
-    # Register request body schema
     registry = get_openapi_registry()
-    registry["dummy_with_body"]["request_body"] = {
-        "type": "object",
-        "properties": {
-            "name": {"type": "string"},
-            "age": {"type": "integer"},
-        },
-        "required": ["name"],
-    }
-
     assert "dummy_with_body" in registry
     assert "request_body" in registry["dummy_with_body"]
     schema = registry["dummy_with_body"]["request_body"]
