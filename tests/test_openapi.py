@@ -3,8 +3,29 @@ import json
 
 from pydantic import BaseModel
 
+from azure_functions_openapi.cache import clear_all_cache
 from azure_functions_openapi.decorator import get_openapi_registry, openapi
 from azure_functions_openapi.openapi import generate_openapi_spec, get_openapi_json
+
+
+def _register_http_trigger() -> None:
+    @openapi(
+        route="/api/http_trigger",
+        summary="HTTP Trigger with name parameter",
+        description=(
+            "Returns a greeting using the **name** from query or body.\n\n"
+            "### Usage\n\n"
+            "`?name=Azure`\n\n"
+            "```json\n"
+            '{"name": "Azure"}\n'
+            "```"
+        ),
+        tags=["Example"],
+        operation_id="greetUser",
+        response={200: {"description": "OK"}},
+    )
+    def http_trigger() -> None:
+        pass
 
 
 def test_generate_openapi_spec_structure() -> None:
@@ -164,6 +185,8 @@ def test_generate_spec_with_pydantic_models() -> None:
 
 
 def test_openapi_spec_contains_operation_id_and_tags() -> None:
+    clear_all_cache()
+    _register_http_trigger()
     spec = json.loads(get_openapi_json())
     item = spec["paths"]["/api/http_trigger"]["get"]
 
@@ -176,6 +199,8 @@ def test_openapi_spec_contains_operation_id_and_tags() -> None:
 
 
 def test_markdown_description_rendering() -> None:
+    clear_all_cache()
+    _register_http_trigger()
     item = json.loads(get_openapi_json())["paths"]["/api/http_trigger"]["get"]
     desc = item["description"]
     assert "### Usage" in desc and "`?name=Azure`" in desc and "```json" in desc

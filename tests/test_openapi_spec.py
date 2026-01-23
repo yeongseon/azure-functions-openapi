@@ -1,11 +1,35 @@
 # tests/test_openapi_spec.py
 import json
 
+from azure_functions_openapi.cache import clear_all_cache
+from azure_functions_openapi.decorator import openapi
 from azure_functions_openapi.openapi import get_openapi_json
+
+
+def _register_http_trigger() -> None:
+    @openapi(
+        route="/api/http_trigger",
+        summary="HTTP Trigger with name parameter",
+        description=(
+            "Returns a greeting using the **name** from query or body.\n\n"
+            "### Usage\n\n"
+            "`?name=Azure`\n\n"
+            "```json\n"
+            '{"name": "Azure"}\n'
+            "```"
+        ),
+        tags=["Example"],
+        operation_id="greetUser",
+        response={200: {"description": "OK"}},
+    )
+    def http_trigger() -> None:
+        pass
 
 
 def test_openapi_spec_http_trigger_metadata() -> None:
     """Verify that the generated spec for /api/http_trigger contains the expected metadata."""
+    clear_all_cache()
+    _register_http_trigger()
     spec = json.loads(get_openapi_json())
 
     # Ensure the path exists
