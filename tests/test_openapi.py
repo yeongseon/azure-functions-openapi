@@ -4,7 +4,7 @@ import json
 from pydantic import BaseModel
 
 from azure_functions_openapi.cache import clear_all_cache
-from azure_functions_openapi.decorator import get_openapi_registry, openapi
+from azure_functions_openapi.decorator import openapi
 from azure_functions_openapi.openapi import generate_openapi_spec, get_openapi_json
 
 
@@ -79,19 +79,17 @@ def test_generate_openapi_spec_with_request_body() -> None:
         summary="With Body",
         description="Endpoint with request body",
         response={200: {"description": "OK"}},
+        request_body={
+            "type": "object",
+            "properties": {
+                "username": {"type": "string"},
+                "password": {"type": "string"},
+            },
+            "required": ["username", "password"],
+        },
     )
     def func_with_body() -> None:
         pass
-
-    registry = get_openapi_registry()
-    registry["func_with_body"]["request_body"] = {
-        "type": "object",
-        "properties": {
-            "username": {"type": "string"},
-            "password": {"type": "string"},
-        },
-        "required": ["username", "password"],
-    }
 
     spec = generate_openapi_spec()
     rb = spec["paths"]["/func_with_body"]["post"]["requestBody"]
