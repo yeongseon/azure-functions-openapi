@@ -92,6 +92,16 @@ class TestCacheManager:
         result = cache.delete("nonexistent")
         assert result is False
 
+    def test_delete_without_access_time(self) -> None:
+        """Test deleting when access time is missing."""
+        cache = CacheManager()
+
+        cache.set("test_key", "test_value")
+        del cache._access_times["test_key"]
+
+        result = cache.delete("test_key")
+        assert result is True
+
     def test_clear(self) -> None:
         """Test clearing all cache entries."""
         cache = CacheManager()
@@ -122,6 +132,15 @@ class TestCacheManager:
         assert removed_count == 1
         assert cache.get("key1") is None
         assert cache.get("key2") == "value2"
+
+    def test_cleanup_expired_no_expired(self) -> None:
+        """Test cleanup when nothing is expired."""
+        cache = CacheManager(default_ttl=10)
+        cache.set("key1", "value1", ttl=10)
+
+        removed_count = cache.cleanup_expired()
+        assert removed_count == 0
+        assert cache.get("key1") == "value1"
 
     def test_get_stats(self) -> None:
         """Test getting cache statistics."""
