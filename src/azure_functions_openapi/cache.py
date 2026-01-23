@@ -191,7 +191,7 @@ def cached_openapi_json(title: str, version: str) -> str:
     """Cache OpenAPI JSON generation."""
     from azure_functions_openapi.openapi import get_openapi_json
 
-    return get_openapi_json()
+    return get_openapi_json(title=title, version=version)
 
 
 @cached(ttl=300, key_prefix="openapi_yaml")  # 5 minutes
@@ -199,4 +199,4 @@ def cached_openapi_yaml(title: str, version: str) -> str:
     """Cache OpenAPI YAML generation."""
     from azure_functions_openapi.openapi import get_openapi_yaml
 
-    return get_openapi_yaml()
+    return get_openapi_yaml(title=title, version=version)
