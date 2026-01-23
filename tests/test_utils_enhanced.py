@@ -117,6 +117,8 @@ class TestValidateRoutePath:
     def test_validate_route_path_valid_routes(self) -> None:
         """Test validation of valid route paths."""
         valid_routes = [
+            "hello",
+            "todos/{id}",
             "/api/test",
             "/users/{id}",
             "/api/v1/users/{user_id}/posts/{post_id}",
@@ -134,7 +136,7 @@ class TestValidateRoutePath:
         invalid_routes: list[Any] = [
             None,
             "",
-            "not_starting_with_slash",
+            "api/test?param=1",
             "/api/../test",  # Path traversal
             "/api/<script>alert('xss')</script>",  # XSS attempt
             "/api/javascript:alert('xss')",  # JavaScript injection

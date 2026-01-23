@@ -173,12 +173,8 @@ def validate_route_path(route: Any) -> bool:
         if re.search(pattern, route, re.IGNORECASE):
             return False
 
-    # Route should start with / and contain only safe characters
-    if not route.startswith("/"):
-        return False
-
     # Allow alphanumeric, hyphens, underscores, slashes, and curly braces for path parameters
-    if not re.match(r"^/[a-zA-Z0-9_\-/{}\s]*$", route):
+    if not re.match(r"^/?[a-zA-Z0-9_\-/{}\s]*$", route):
         return False
 
     return True
