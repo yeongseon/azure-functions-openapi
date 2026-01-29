@@ -26,7 +26,7 @@ dev = [
     "mypy==1.19.1",          # Matches pre-commit rev (latest stable)
     "pre-commit",
     "pytest",
-    "ruff==0.14.13",         # Matches pre-commit rev
+    "ruff==0.14.14",         # Matches pre-commit rev
     "types-PyYAML",
     "pytest-cov",
     "git-changelog",
