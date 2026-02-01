@@ -34,10 +34,10 @@ This project uses pre-commit to ensure consistent code quality across formatting
 
 | Tool   | Version   | Purpose                          |
 |--------|-----------|----------------------------------|
-| black  | 23.11.0   | Auto-code formatter              |
-| ruff   | v0.4.4    | Linter + import sorter + fixer  |
+| black  | 25.1.0    | Auto-code formatter              |
+| ruff   | v0.11.13  | Linter + import sorter + fixer  |
 | mypy   | v1.15.0   | Static type checker              |
-| bandit | 1.7.7     | Security checker on `src/` only  |
+| bandit | 1.8.3     | Security checker on `src/` only  |
 
 ### Bandit Configuration
 
