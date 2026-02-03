@@ -2,6 +2,14 @@
 
 This document provides comprehensive API reference for the azure-functions-openapi library.
 
+## Table of Contents
+
+- Core Components
+- OpenAPI Helpers
+- Swagger UI
+- Server Info and Health
+- CLI Commands
+
 ## Core Components
 
 ### `@openapi` Decorator
@@ -40,6 +48,53 @@ from azure_functions_openapi.monitoring import (
 )
 from azure_functions_openapi.server_info import get_server_info_dict
 ```
+
+---
+
+## OpenAPI Helpers
+
+```python
+from azure_functions_openapi.openapi import (
+    generate_openapi_spec,
+    get_openapi_json,
+    get_openapi_yaml,
+)
+```
+
+Use these helpers to generate the OpenAPI spec directly for custom endpoints
+or offline workflows.
+
+## Swagger UI
+
+```python
+from azure_functions_openapi.swagger_ui import render_swagger_ui
+```
+
+`render_swagger_ui()` returns an `HttpResponse` with security headers and the
+Swagger UI HTML.
+
+## Server Info and Health
+
+```python
+from azure_functions_openapi.server_info import (
+    get_server_info_dict,
+    get_health_status,
+    get_metrics,
+)
+```
+
+These helpers provide runtime details, health status, and performance metrics
+for monitoring endpoints.
+
+## CLI Commands
+
+The CLI exposes:
+
+- `generate` for OpenAPI spec generation
+- `info` for server info
+- `health` for health checks
+- `metrics` for performance metrics
+- `validate` for OpenAPI spec validation
 
 ---
 
@@ -115,4 +170,3 @@ This example demonstrates:
 - `parameters` follow the OpenAPI spec format and support `query`, `path`, `header`, and (planned) `cookie`.
 - You can mix `response_model` with manual `response` for extended behavior.
 - All metadata is stored and rendered dynamically at runtime via the registry.
-
