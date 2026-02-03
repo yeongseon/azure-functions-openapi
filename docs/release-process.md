@@ -19,7 +19,7 @@ Use `.github/RELEASE_CHECKLIST.md` during releases.
 ## Release Steps
 
 1. Update version using `scripts/version_bump.sh`.
-2. Update changelog using `scripts/changelog.sh`.
+2. Update changelog using `make changelog` (or run `git-cliff -o CHANGELOG.md`).
 3. Create a release PR and verify CI.
 4. Tag the release as `vX.Y.Z` after merge.
 5. The `release.yml` workflow publishes to PyPI on tag push.
