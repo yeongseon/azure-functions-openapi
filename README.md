@@ -35,9 +35,23 @@
 
 ### Developer Experience
 - **CLI Tool**: Command-line interface for spec generation, validation, and monitoring
-- **Comprehensive Testing**: 97% test coverage with extensive test suites
+- **Comprehensive Testing**: 85%+ test coverage with unit and integration suites
 - **Documentation**: Detailed guides for security, performance, and CLI usage
 - **Type Safety**: Full type hints and validation throughout
+
+---
+
+## Quality Dashboard
+
+| Metric | Target | Source |
+| --- | --- | --- |
+| Test coverage | 85%+ | Codecov / `make cov` |
+| Linting | Clean | Ruff |
+| Type safety | Clean | Mypy |
+| Security scan | Clean | Bandit |
+| Performance KPIs | Within targets | `docs/PERFORMANCE.md` |
+
+See `docs/PERFORMANCE.md` for KPI definitions and performance targets.
 
 ---
 
