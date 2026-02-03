@@ -2,6 +2,64 @@
 
 This document covers performance optimization features and best practices for Azure Functions OpenAPI.
 
+## KPIs and SLOs
+
+The project tracks performance against clear KPIs to guide optimization and regression prevention.
+
+### Key Performance Indicators (KPIs)
+
+| KPI | Target | Notes |
+| --- | --- | --- |
+| OpenAPI spec generation (cached) | < 100 ms | Typical path after first call |
+| OpenAPI spec generation (cold) | < 2 s | First call after cache miss |
+| Swagger UI render | < 200 ms | HTML response time |
+| Error rate | < 1% | 4xx/5xx across monitored requests |
+| Cache hit rate | > 90% | OpenAPI spec cache |
+
+### Service Level Objectives (SLOs)
+
+| SLO | Target |
+| --- | --- |
+| Availability (docs endpoints) | 99.9% |
+| p95 response time (docs endpoints) | < 500 ms |
+| p99 response time (docs endpoints) | < 1 s |
+
+## Benchmarking and Regression Tests
+
+Performance regression tests live in `./tests/performance` and focus on:
+
+- OpenAPI spec generation latency
+- Request logging throughput
+
+The tests are designed to be stable in CI by using generous thresholds and warmup passes.
+
+## CI/CD Performance Profiling
+
+The performance suite can be executed on demand and on a schedule to detect regressions early:
+
+- Run `pytest tests/performance` locally
+- Use the `performance.yml` workflow for scheduled runs
+
+Results should be captured in CI logs and summarized in release notes when changes impact KPIs.
+
+## Alerting and Production Monitoring
+
+Monitor these signals in production deployments:
+
+- Response time (p95, p99)
+- Error rate (4xx/5xx)
+- Cache hit rate
+- Memory usage (RSS, working set)
+- CPU utilization
+
+Recommended alert thresholds:
+
+- p95 response time > 500 ms for 10 minutes
+- Error rate > 1% for 10 minutes
+- Cache hit rate < 85% for 30 minutes
+- Memory usage > 80% of available limit
+- CPU usage > 85% for 15 minutes
+
 ## Performance Features
 
 ### Caching System
@@ -191,6 +249,17 @@ logger.setLevel(logging.DEBUG)
    - Cache miss rate
    - Cache size
    - Cache evictions
+
+### Quality Metrics
+
+Track code quality alongside performance to prevent regressions:
+
+- **Static analysis**: Ruff (lint), Mypy (type check)
+- **Security checks**: Bandit
+- **Test coverage**: Pytest + coverage (target 85%+)
+- **Complexity/maintainability**: prefer small functions and clear interfaces
+
+Suggested reporting cadence: every release and any significant performance change.
 
 ### Performance Targets
 
