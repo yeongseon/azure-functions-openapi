@@ -29,8 +29,8 @@ Preferred channels:
 
 Response targets:
 
-* Initial response: within 3 business days
-* Follow-up updates: weekly for active issues
+* Initial response: within 3 business days (best-effort target)
+* Follow-up updates: weekly for active issues (best-effort target)
 
 ---
 

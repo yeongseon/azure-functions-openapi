@@ -224,6 +224,8 @@ If a security incident occurs:
 4. Notify users and document remediation steps
 5. Perform a post-incident review
 
+For detailed procedures and runbooks, see the [Incident Response Guide](./incident-response.md).
+
 ## Reporting Security Issues
 
 If you discover a security vulnerability, please:
