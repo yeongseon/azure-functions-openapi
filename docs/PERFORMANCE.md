@@ -2,7 +2,7 @@
 
 This document covers performance optimization features and best practices for Azure Functions OpenAPI.
 
-## KPIs and SLAs
+## KPIs and SLOs
 
 The project tracks performance against clear KPIs to guide optimization and regression prevention.
 
@@ -29,7 +29,6 @@ The project tracks performance against clear KPIs to guide optimization and regr
 Performance regression tests live in `./tests/performance` and focus on:
 
 - OpenAPI spec generation latency
-- Performance monitor overhead
 - Request logging throughput
 
 The tests are designed to be stable in CI by using generous thresholds and warmup passes.
