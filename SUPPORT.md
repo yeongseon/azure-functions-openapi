@@ -19,6 +19,19 @@ Support is provided on a **best-effort basis**:
 * Feature requests may be accepted if aligned with project goals
 * Questions about Azure infrastructure or deployment are out of scope
 
+## Support Channels and SLAs
+
+Preferred channels:
+
+* GitHub Issues for bugs and feature requests
+* GitHub Discussions for questions and usage guidance
+* Security Advisories for security reports
+
+Response targets:
+
+* Initial response: within 3 business days (best-effort target)
+* Follow-up updates: weekly for active issues (best-effort target)
+
 ---
 
 ## Deprecation Policy
