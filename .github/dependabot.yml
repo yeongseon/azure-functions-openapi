@@ -1,5 +1,6 @@
 version: 2
 updates:
+  # Major version updates are allowed by default; this is intentional.
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
