@@ -2,24 +2,57 @@
 
 We welcome contributions to the `azure-functions-openapi` project!
 
-## How to Contribute
+## Branch Strategy
 
-1. **Fork the Repository**
-2. **Create a New Branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+We use **GitHub Flow**:
 
-3. **Write Code & Tests**
-   - Run `make test` to ensure everything passes.
-   - Follow code style using `black`, `ruff`, and `mypy`.
+```
+main ← feature/xxx
+      ↑
+  production
+```
 
-4. **Commit Your Changes**
-   ```bash
-   git commit -m "feat: describe your feature"
-   ```
+### Branch Types
 
-5. **Push and Create a Pull Request**
+| Branch Type | Purpose | Naming Convention |
+|-------------|---------|-------------------|
+| `main` | Production-ready code | `main` |
+| `feature/*` | New features and bug fixes | `feature/description` |
+| `fix/*` | Bug fixes | `fix/issue-number-description` |
+
+### Development Flow
+
+1. **Development**: Create branch from `main`
+2. **Testing**: Push branch → Automatic CI tests
+3. **Production**: PR merge → Automatic deployment
+
+## Development Workflow
+
+### 1. Create Feature Branch
+```bash
+git checkout main
+git pull origin main
+git checkout -b feature/your-feature-name
+```
+
+### 2. Write Code & Tests
+```bash
+make format      # Format code with black
+make lint        # Lint with ruff
+make typecheck   # Type check with mypy
+make test        # Run tests
+make cov         # Run tests with coverage
+```
+
+### 3. Push and Create Pull Request
+```bash
+git push origin feature/your-feature-name
+# Create PR on GitHub
+```
+
+### 4. Automatic Production Deployment
+- PR이 main에 병합되면 자동으로 production에 배포됨
+- PR 댓글에서 배포 상태 확인 가능
 
 ## Project Commands
 
@@ -59,6 +92,13 @@ git commit -m "chore: update dev dependencies"
 
 > ✅ Use imperative present tense ("add", not "added").
 > ✅ Keep the message concise and relevant to the change.
+
+## Deployment
+
+### Automatic Production Deployment
+- **Trigger**: PR merge to main
+- **URL**: `https://production-{repo-name}.azurewebsites.net`
+- **Process**: Automatic deployment after PR approval
 
 ## Code of Conduct
 
