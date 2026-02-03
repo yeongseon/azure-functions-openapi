@@ -6,7 +6,6 @@ This document outlines scheduled maintenance tasks and automation points.
 
 - Dependency updates: Dependabot (weekly)
 - Stale issues and branches: `stale.yml` (daily)
-- Performance regression checks: `performance.yml` (weekly)
 - Maintenance checks: `maintenance.yml` (weekly)
 
 ## Manual Tasks
