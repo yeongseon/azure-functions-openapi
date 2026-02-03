@@ -1,21 +1,23 @@
 version: 2
 updates:
+  # Major version updates are allowed by default; this is intentional.
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     commit-message:
       prefix: "chore(deps)"
     labels:
       - "dependencies"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     commit-message:
       prefix: "chore(deps)"
     labels:
       - "dependencies"
       - "github-actions"
+    open-pull-requests-limit: 5
