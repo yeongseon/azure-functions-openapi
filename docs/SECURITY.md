@@ -179,12 +179,57 @@ Security events are logged with appropriate levels:
 - `WARNING`: Security warnings (e.g., invalid input)
 - `ERROR`: Security errors (e.g., validation failures)
 
+## Security Automation
+
+### CI/CD Scanning
+
+The repository uses automated security scanning:
+
+- Bandit for Python static analysis
+- Semgrep for broader rule coverage
+- Dependabot for dependency updates
+
+### SBOM Generation
+
+Software Bill of Materials (SBOM) generation is supported via CI workflows to
+track dependency inventory and reduce supply chain risk.
+
+## Security Headers Validation
+
+Validate that security headers are present on Swagger UI responses:
+
+- `X-Content-Type-Options`
+- `X-Frame-Options`
+- `Referrer-Policy`
+- `Content-Security-Policy`
+
+Automated checks should be included in tests or smoke checks for deployments.
+
+## Data Privacy and Compliance
+
+When processing user data:
+
+- Avoid storing sensitive data in logs
+- Minimize data collection and retention
+- Use encryption in transit and at rest
+- Follow applicable privacy regulations for your region
+
+## Incident Response
+
+If a security incident occurs:
+
+1. Triage and contain the issue
+2. Assess impact and affected versions
+3. Prepare and release a fix
+4. Notify users and document remediation steps
+5. Perform a post-incident review
+
 ## Reporting Security Issues
 
 If you discover a security vulnerability, please:
 
 1. **Do not** create a public issue
-2. Email security concerns to: security@example.com
+2. Email security concerns to: yeongseon.choe@gmail.com
 3. Include detailed information about the vulnerability
 4. Allow time for the issue to be addressed before disclosure
 
