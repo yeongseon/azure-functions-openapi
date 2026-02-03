@@ -8,6 +8,19 @@ It focuses on practical usage based on a full-featured **Todo API** example.
 
 ---
 
+## Table of Contents
+
+- @openapi Decorator
+- Pydantic Models
+- Parameters (Query / Path / Header)
+- Response Schema Options
+- HTTP Methods and Routing
+- Exposing OpenAPI Docs
+- JSON and YAML Output
+- End-to-End Example: Todo API
+
+---
+
 ## @openapi Decorator
 
 Use the `@openapi` decorator to attach OpenAPI metadata to each function.
@@ -42,7 +55,7 @@ See the full list of supported parameters in the [API Reference](./api.md).
 
 ## Pydantic Models
 
-Define request and response models using **Pydantic v2**.
+Define request and response models using **Pydantic v1 or v2**.
 These models are converted into OpenAPI-compatible schemas and embedded under `components.schemas` in the spec.
 
 ```python
@@ -55,8 +68,8 @@ class TodoResponse(BaseModel):
     done: bool
 ```
 
-> ✅ Make sure your project uses Pydantic **v2**.
-> Pydantic v1 is not supported.
+> ✅ Pydantic v1 and v2 are both supported.
+> The library detects the installed version automatically.
 
 ---
 

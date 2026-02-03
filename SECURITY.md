@@ -30,6 +30,12 @@ If you prefer email, contact: yeongseon.choe@gmail.com
 
 Please allow time for the issue to be addressed before public disclosure.
 
+### Disclosure Policy
+
+- We coordinate disclosure details with the reporter when possible.
+- Do not share vulnerability details publicly until a fix is released.
+- We may request additional information to reproduce and validate the issue.
+
 ## Supported Versions
 
 | Version | Supported          |
