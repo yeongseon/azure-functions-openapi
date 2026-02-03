@@ -17,8 +17,11 @@ main ← feature/xxx
 | Branch Type | Purpose | Naming Convention |
 |-------------|---------|-------------------|
 | `main` | Production-ready code | `main` |
-| `feature/*` | New features and bug fixes | `feature/description` |
-| `fix/*` | Bug fixes | `fix/issue-number-description` |
+| `feat/*` | New features and enhancements | `feat/description` |
+| `fix/*` | Bug fixes and corrections | `fix/description` |
+| `docs/*` | Documentation changes | `docs/description` |
+| `chore/*` | Maintenance and tooling | `chore/description` |
+| `ci/*` | CI/CD and workflow changes | `ci/description` |
 
 ### Development Flow
 
@@ -32,7 +35,7 @@ main ← feature/xxx
 ```bash
 git checkout main
 git pull origin main
-git checkout -b feature/your-feature-name
+git checkout -b feat/your-feature-name
 ```
 
 ### 2. Write Code & Tests
@@ -46,7 +49,7 @@ make cov         # Run tests with coverage
 
 ### 3. Push and Create Pull Request
 ```bash
-git push origin feature/your-feature-name
+git push origin feat/your-feature-name
 # Create PR on GitHub
 ```
 
@@ -92,6 +95,33 @@ git commit -m "chore: update dev dependencies"
 
 > ✅ Use imperative present tense ("add", not "added").
 > ✅ Keep the message concise and relevant to the change.
+
+## Branch Management
+
+### Automatic Branch Cleanup
+- **Stale Branches**: Branches older than 90 days without activity are automatically cleaned up
+- **Stale Issues**: Issues and PRs older than 60 days without activity are automatically closed
+- **Protection**: Main branch has protection rules requiring PR reviews and status checks
+
+### Branch Longevity
+- **Active Development**: Keep branches updated with main branch changes
+- **Regular Cleanup**: Delete merged branches locally after PR is merged
+- **Naming Consistency**: Follow the standardized naming conventions consistently
+
+### Example Branch Management
+```bash
+# Update your feature branch with latest main changes
+git checkout feat/your-feature-name
+git pull origin main
+git merge main
+
+# Delete local branch after merge
+git checkout main
+git branch -d feat/your-feature-name
+
+# Delete remote branch
+git push origin --delete feat/your-feature-name
+```
 
 ## Deployment
 

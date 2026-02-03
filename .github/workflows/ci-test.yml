@@ -20,6 +20,36 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Validate branch naming convention
+        id: validate-branch
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branchName = context.payload.pull_request.head.ref;
+            const validPatterns = [
+              /^feat\/.+$/,
+              /^fix\/.+$/,
+              /^docs\/.+$/,
+              /^chore\/.+$/,
+              /^ci\/.+$/,
+              /^main$/
+            ];
+            
+            const isValid = validPatterns.some(pattern => pattern.test(branchName));
+            
+            if (!isValid) {
+              core.setFailed(`Invalid branch name: ${branchName}. Please use one of the following naming conventions:
+                - feat/<description> for new features
+                - fix/<description> for bug fixes  
+                - docs/<description> for documentation changes
+                - chore/<description> for maintenance tasks
+                - ci/<description> for CI/CD changes
+                - main`);
+            } else {
+              core.info(`Branch name validation passed: ${branchName}`);
+            }
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
