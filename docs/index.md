@@ -160,35 +160,19 @@ Once the app is running, open your browser:
 - [Quickstart Guide](./usage.md) - Get up and running quickly
 - [Installation Guide](./installation.md) - Detailed installation instructions
 - [API Reference](./api.md) - Complete API documentation
-- [Configuration Guide](./configuration.md) - Cache, monitoring, and UI settings
 
 ### Advanced Features
 - [Security Guide](./SECURITY.md) - Security best practices and features
-- [Incident Response Guide](./incident-response.md) - Security incident handling
 - [Performance Guide](./PERFORMANCE.md) - Performance optimization and monitoring
 - [CLI Tool Guide](./CLI.md) - Command-line interface usage
 
 ### Examples & Tutorials
-- [Examples Guide](./examples-guide.md) - Index of all example scenarios
 - [Hello OpenAPI Example](./examples/hello_openapi.md) - Basic example
 - [Todo CRUD API Example](./examples/todo_crud_api.md) - Advanced example with Pydantic
-- [Tutorials](./tutorials.md) - Step-by-step walkthroughs
-- [HTTP Trigger Example](./examples/http_trigger.md) - HTTP trigger basics
-- [Timer Trigger Example](./examples/timer_trigger.md) - Timer trigger with monitoring
-- [Queue Storage Example](./examples/queue_storage.md) - Queue trigger integration
-- [Blob Storage Example](./examples/blob_storage.md) - Blob trigger integration
-- [Cosmos DB Example](./examples/cosmos_db.md) - Change feed processing
-- [Custom Schema Example](./examples/custom_schema.md) - Pydantic schema customization
-- [Authentication Example](./examples/authentication.md) - Secured endpoints
-- [Error Handling Example](./examples/error_handling.md) - Validation and error responses
-- [Performance Optimization Example](./examples/performance_optimization.md) - Monitoring and caching
-- [Deployment Example](./examples/deployment.md) - Publishing to Azure
 
 ### Development
 - [Contribution Guide](./contributing.md) - How to contribute
 - [Development Guide](./development.md) - Development setup and guidelines
-- [Maintenance Guide](./maintenance.md) - Scheduled automation and upkeep
-- [Release Process](./release-process.md) - Versioning and releases
 - [Changelog](./changelog.md) - Version history and changes
 
 ---

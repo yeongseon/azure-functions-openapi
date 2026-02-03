@@ -267,11 +267,6 @@ See [CLI Guide](docs/CLI.md) for complete documentation.
 - [Contribution Guide](docs/contributing.md)
 - [Security Guide](docs/SECURITY.md)
 - [Performance Guide](docs/PERFORMANCE.md)
-- [Configuration Guide](docs/configuration.md)
-- [Examples Guide](docs/examples-guide.md)
-- [Tutorials](docs/tutorials.md)
-- [Maintenance Guide](docs/maintenance.md)
-- [Release Process](docs/release-process.md)
 - [CLI Guide](docs/CLI.md)
 
 ---
