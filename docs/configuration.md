@@ -17,7 +17,8 @@ cache.default_ttl = 600
 from azure_functions_openapi.monitoring import get_performance_monitor
 
 monitor = get_performance_monitor()
-monitor._max_response_times = 2000
+stats = monitor.get_response_time_stats()
+print(stats)
 ```
 
 ## Swagger UI Configuration
