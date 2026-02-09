@@ -177,3 +177,6 @@ cython_debug/
 
 # Coverage
 junit.xml
+
+# Local OpenCode config
+oh-my-opencode.json
