@@ -104,11 +104,8 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
-- Add comprehensive error handling system
-- Add high-performance caching system
 - Enhance Swagger UI security and input validation
 - Add server info, monitoring, and CLI tools
-- Enhance OpenAPI generation with caching and error handling
 
 ### 💼 Other
 
@@ -181,10 +178,10 @@ All notable changes to this project will be documented in this file.
 
 ### 📚 Documentation
 
-- Split development instructions into development.md
+- Split development instructions into the contribution guide
 - Enhance index.md with project overview and documentation links
 - Add detailed docstrings and usage examples to decorator and openapi modules
-- Add mkdocs.md with instructions for local preview and GitHub Pages deployment
+- Add documentation build notes for local preview and GitHub Pages deployment
 - Add badges to README for PyPI, CI, Docs, and License
 - *(todo_api)* Add detailed docstrings for all endpoints and models
 - Add Quick Start section and refresh README badges
@@ -255,9 +252,7 @@ All notable changes to this project will be documented in this file.
 ### 📚 Documentation
 
 - Generate changelog for v0.2.0
-- Update MILESTONES.md to reflect v0.2.0 completion and outline M3 goals
-- Update milestones.md with latest project roadmap
-- Update milestones.md with latest project roadmap
+- Update project milestones to reflect v0.2.0 completion and outline M3 goals
 - Add full documentation with index, usage, contributing and mkdocs config
 
 ### 🧪 Testing
