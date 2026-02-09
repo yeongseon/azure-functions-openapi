@@ -101,8 +101,9 @@ def generate_openapi_spec(
 
         for func_name, meta in registry.items():
             try:
+                logical_name = meta.get("function_name") or func_name
                 # route & method --------------------------------------------------
-                path = meta.get("route") or f"/{func_name}"
+                path = meta.get("route") or f"/{logical_name}"
                 method = (meta.get("method") or "get").lower()
 
                 # responses -------------------------------------------------------
@@ -136,7 +137,7 @@ def generate_openapi_spec(
                 op: dict[str, Any] = {
                     "summary": meta.get("summary", ""),
                     "description": meta.get("description", ""),
-                    "operationId": meta.get("operation_id") or f"{method}_{func_name}",
+                    "operationId": meta.get("operation_id") or f"{method}_{logical_name}",
                     "tags": meta.get("tags") or ["default"],
                     "responses": responses,
                 }
@@ -180,7 +181,7 @@ def generate_openapi_spec(
                 # merge into paths (support multiple methods per route) ----------
                 paths.setdefault(path, {})[method] = op
 
-            except Exception as e:
+            except (KeyError, TypeError, ValueError, OpenAPIError) as e:
                 logger.error(f"Failed to process function {func_name}: {str(e)}")
                 # Continue processing other functions
                 continue

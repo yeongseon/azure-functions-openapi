@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import os
 import platform
 import sys
+import threading
 import time
 from typing import Any
 
@@ -18,10 +19,16 @@ class ServerInfo:
         self._start_time = time.time()
         self._request_count = 0
         self._error_count = 0
+        self._lock = threading.RLock()
+
+    def _get_counters(self) -> tuple[float, int, int]:
+        with self._lock:
+            return self._start_time, self._request_count, self._error_count
 
     def get_server_info(self) -> dict[str, Any]:
         """Get comprehensive server information."""
         try:
+            start_time, request_count, error_count = self._get_counters()
             return {
                 "server": {
                     "name": "Azure Functions OpenAPI",
@@ -37,15 +44,13 @@ class ServerInfo:
                     "processor": platform.processor(),
                 },
                 "uptime": {
-                    "start_time": datetime.fromtimestamp(
-                        self._start_time, timezone.utc
-                    ).isoformat(),
-                    "uptime_seconds": int(time.time() - self._start_time),
-                    "uptime_human": self._format_uptime(time.time() - self._start_time),
+                    "start_time": datetime.fromtimestamp(start_time, timezone.utc).isoformat(),
+                    "uptime_seconds": int(time.time() - start_time),
+                    "uptime_human": self._format_uptime(time.time() - start_time),
                 },
                 "statistics": {
-                    "total_requests": self._request_count,
-                    "total_errors": self._error_count,
+                    "total_requests": request_count,
+                    "total_errors": error_count,
                     "error_rate": self._calculate_error_rate(),
                     "requests_per_minute": self._calculate_requests_per_minute(),
                 },
@@ -72,11 +77,12 @@ class ServerInfo:
     def get_health_status(self) -> dict[str, Any]:
         """Get health status of the server."""
         try:
-            uptime = time.time() - self._start_time
-            error_rate = self._calculate_error_rate()
+            start_time, request_count, error_count = self._get_counters()
+            uptime = time.time() - start_time
+            error_rate = self._calculate_error_rate(request_count, error_count)
 
             # Determine health status
-            if error_rate > 0.1:  # More than 10% error rate
+            if request_count >= 10 and error_rate > 10.0:  # More than 10% error rate
                 status = "unhealthy"
             elif uptime < 60:  # Less than 1 minute uptime
                 status = "starting"
@@ -88,8 +94,8 @@ class ServerInfo:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "uptime_seconds": int(uptime),
                 "error_rate": error_rate,
-                "total_requests": self._request_count,
-                "total_errors": self._error_count,
+                "total_requests": request_count,
+                "total_errors": error_count,
                 "checks": {
                     "server_responding": True,
                     "openapi_available": True,
@@ -112,27 +118,30 @@ class ServerInfo:
 
     def increment_request_count(self) -> None:
         """Increment the request counter."""
-        self._request_count += 1
+        with self._lock:
+            self._request_count += 1
 
     def increment_error_count(self) -> None:
         """Increment the error counter."""
-        self._error_count += 1
+        with self._lock:
+            self._error_count += 1
 
     def get_metrics(self) -> dict[str, Any]:
         """Get performance metrics."""
-        uptime = time.time() - self._start_time
+        start_time, request_count, error_count = self._get_counters()
+        uptime = time.time() - start_time
 
         return {
             "requests": {
                 "total": self._request_count,
-                "per_second": self._request_count / uptime if uptime > 0 else 0,
+                "per_second": request_count / uptime if uptime > 0 else 0,
                 "per_minute": self._calculate_requests_per_minute(),
-                "per_hour": self._request_count / (uptime / 3600) if uptime > 0 else 0,
+                "per_hour": request_count / (uptime / 3600) if uptime > 0 else 0,
             },
             "errors": {
-                "total": self._error_count,
+                "total": error_count,
                 "rate": self._calculate_error_rate(),
-                "per_second": self._error_count / uptime if uptime > 0 else 0,
+                "per_second": error_count / uptime if uptime > 0 else 0,
             },
             "uptime": {
                 "seconds": int(uptime),
@@ -170,18 +179,23 @@ class ServerInfo:
             hours = int((seconds % 86400) // 3600)
             return f"{days} days {hours} hours"
 
-    def _calculate_error_rate(self) -> float:
+    def _calculate_error_rate(
+        self, request_count: int | None = None, error_count: int | None = None
+    ) -> float:
         """Calculate error rate as a percentage."""
-        if self._request_count == 0:
+        if request_count is None or error_count is None:
+            _, request_count, error_count = self._get_counters()
+        if request_count == 0:
             return 0.0
-        return (self._error_count / self._request_count) * 100
+        return (error_count / request_count) * 100
 
     def _calculate_requests_per_minute(self) -> float:
         """Calculate requests per minute."""
-        uptime_minutes = (time.time() - self._start_time) / 60
+        start_time, request_count, _ = self._get_counters()
+        uptime_minutes = (time.time() - start_time) / 60
         if uptime_minutes == 0:
             return 0.0
-        return self._request_count / uptime_minutes
+        return request_count / uptime_minutes
 
     def _estimate_response_time(self) -> float:
         """Estimate average response time (placeholder implementation)."""

@@ -139,8 +139,17 @@ def openapi(
             # Validate request/response models
             _validate_models(request_model, response_model, func.__name__)
 
+            function_id = f"{func.__module__}.{func.__qualname__}"
+
             with _registry_lock:
-                _openapi_registry[func.__name__] = {
+                registry_key = func.__name__
+                existing = _openapi_registry.get(registry_key)
+                if existing and existing.get("_function_id") != function_id:
+                    existing_id = existing.get("_function_id")
+                    if isinstance(existing_id, str) and existing_id not in _openapi_registry:
+                        _openapi_registry[existing_id] = existing
+
+                _openapi_registry[registry_key] = {
                     # ── basic metadata ────────────────────────────────
                     "summary": summary,
                     "description": description,
@@ -156,6 +165,8 @@ def openapi(
                     "request_body": request_body,
                     "response_model": response_model,
                     "response": response or {},
+                    "function_name": func.__name__,
+                    "_function_id": function_id,
                 }
 
             logger.debug(f"Registered OpenAPI metadata for function '{func.__name__}'")

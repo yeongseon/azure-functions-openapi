@@ -4,6 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from functools import wraps
 import logging
+import threading
 import time
 from typing import Any, Callable
 
@@ -19,18 +20,23 @@ class PerformanceMonitor:
         self._response_times: list[float] = []
         self._max_response_times = 1000  # Keep last 1000 response times
         self._start_time = time.time()
+        self._lock = threading.RLock()
 
     def record_response_time(self, response_time: float) -> None:
         """Record a response time."""
-        self._response_times.append(response_time)
+        with self._lock:
+            self._response_times.append(response_time)
 
-        # Keep only the last N response times
-        if len(self._response_times) > self._max_response_times:
-            self._response_times = self._response_times[-self._max_response_times :]
+            # Keep only the last N response times
+            if len(self._response_times) > self._max_response_times:
+                self._response_times = self._response_times[-self._max_response_times :]
 
     def get_response_time_stats(self) -> dict[str, float]:
         """Get response time statistics."""
-        if not self._response_times:
+        with self._lock:
+            response_times = list(self._response_times)
+
+        if not response_times:
             return {
                 "min": 0.0,
                 "max": 0.0,
@@ -41,7 +47,7 @@ class PerformanceMonitor:
                 "count": 0,
             }
 
-        sorted_times = sorted(self._response_times)
+        sorted_times = sorted(response_times)
         count = len(sorted_times)
 
         return {
@@ -57,7 +63,8 @@ class PerformanceMonitor:
     def get_throughput_stats(self) -> dict[str, float]:
         """Get throughput statistics."""
         uptime = time.time() - self._start_time
-        total_requests = len(self._response_times)
+        with self._lock:
+            total_requests = len(self._response_times)
 
         return {
             "requests_per_second": total_requests / uptime if uptime > 0 else 0.0,
@@ -108,6 +115,7 @@ class RequestLogger:
     def __init__(self) -> None:
         self._request_log: list[dict[str, Any]] = []
         self._max_log_entries = 100  # Keep last 100 requests
+        self._lock = threading.RLock()
 
     def log_request(
         self,
@@ -129,22 +137,27 @@ class RequestLogger:
             "ip_address": ip_address,
         }
 
-        self._request_log.append(log_entry)
+        with self._lock:
+            self._request_log.append(log_entry)
 
-        # Keep only the last N entries
-        if len(self._request_log) > self._max_log_entries:
-            self._request_log = self._request_log[-self._max_log_entries :]
+            # Keep only the last N entries
+            if len(self._request_log) > self._max_log_entries:
+                self._request_log = self._request_log[-self._max_log_entries :]
 
         # Log to application logger
         logger.info(f"{method} {path} {status_code} {response_time:.3f}s", extra=log_entry)
 
     def get_recent_requests(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get recent request log entries."""
-        return self._request_log[-limit:] if self._request_log else []
+        with self._lock:
+            return self._request_log[-limit:] if self._request_log else []
 
     def get_request_stats(self) -> dict[str, Any]:
         """Get request statistics."""
-        if not self._request_log:
+        with self._lock:
+            request_log = list(self._request_log)
+
+        if not request_log:
             return {
                 "total_requests": 0,
                 "status_codes": {},
@@ -153,13 +166,13 @@ class RequestLogger:
                 "error_rate": 0.0,
             }
 
-        total_requests = len(self._request_log)
+        total_requests = len(request_log)
         status_codes: dict[int, int] = {}
         methods: dict[str, int] = {}
         response_times: list[float] = []
         error_count = 0
 
-        for entry in self._request_log:
+        for entry in request_log:
             # Status codes
             status = entry["status_code"]
             status_codes[status] = status_codes.get(status, 0) + 1
@@ -212,26 +225,31 @@ class HealthChecker:
         self._checks: dict[str, Callable[[], bool]] = {}
         self._last_check_times: dict[str, float] = {}
         self._check_intervals: dict[str, float] = {}
+        self._lock = threading.RLock()
 
     def register_check(
         self, name: str, check_func: Callable[[], bool], interval: float = 60.0
     ) -> None:
         """Register a health check."""
-        self._checks[name] = check_func
-        self._check_intervals[name] = interval
-        self._last_check_times[name] = 0.0
+        with self._lock:
+            self._checks[name] = check_func
+            self._check_intervals[name] = interval
+            self._last_check_times[name] = 0.0
 
     def run_check(self, name: str) -> dict[str, Any]:
         """Run a specific health check."""
-        if name not in self._checks:
+        with self._lock:
+            check_func = self._checks.get(name)
+        if check_func is None:
             return {"name": name, "status": "unknown", "error": f"Check '{name}' not found"}
 
         try:
             start_time = time.time()
-            result = self._checks[name]()
+            result = check_func()
             end_time = time.time()
 
-            self._last_check_times[name] = end_time
+            with self._lock:
+                self._last_check_times[name] = end_time
 
             return {
                 "name": name,
@@ -240,7 +258,8 @@ class HealthChecker:
                 "last_check": datetime.fromtimestamp(end_time, timezone.utc).isoformat(),
             }
         except Exception as e:
-            self._last_check_times[name] = time.time()
+            with self._lock:
+                self._last_check_times[name] = time.time()
             return {
                 "name": name,
                 "status": "error",
@@ -253,7 +272,10 @@ class HealthChecker:
         results: dict[str, dict[str, Any]] = {}
         overall_status = "healthy"
 
-        for name in self._checks:
+        with self._lock:
+            check_names = list(self._checks.keys())
+
+        for name in check_names:
             result = self.run_check(name)
             results[name] = result
 
@@ -268,11 +290,13 @@ class HealthChecker:
 
     def get_check_status(self, name: str) -> dict[str, Any]:
         """Get the status of a specific check."""
-        if name not in self._checks:
-            return {"name": name, "status": "unknown", "error": f"Check '{name}' not found"}
+        with self._lock:
+            has_check = name in self._checks
+            last_check = self._last_check_times.get(name, 0.0)
+            interval = self._check_intervals.get(name, 60.0)
 
-        last_check = self._last_check_times.get(name, 0.0)
-        interval = self._check_intervals.get(name, 60.0)
+        if not has_check:
+            return {"name": name, "status": "unknown", "error": f"Check '{name}' not found"}
 
         # Check if we need to run the check
         if time.time() - last_check > interval:
