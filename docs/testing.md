@@ -7,7 +7,6 @@ Latest measured result (CI): **87%** (2026-02-09).
 ## Test Structure
 
 - `tests/`: unit and integration-oriented test modules
-- `tests/performance/`: performance regression checks
 
 ## Run Tests
 
@@ -29,7 +28,6 @@ make cov
 - Core API generation: decorator metadata, OpenAPI JSON/YAML output
 - CLI behavior: command parsing, generation/validation command paths
 - Security behavior: sanitization/validation and scanner checks (Bandit/Semgrep in CI)
-- Performance regression checks in `tests/performance/`
 
 ## Adding New Tests
 
@@ -41,5 +39,3 @@ When adding a feature:
 4. Keep tests isolated and deterministic.
 
 ## Performance Checks
-
-Use `tests/performance/test_performance_regression.py` for simple performance guardrails.

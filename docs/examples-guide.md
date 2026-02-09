@@ -14,7 +14,6 @@ This guide indexes the available examples and links to focused walkthroughs.
 - `docs/examples/custom_schema.md`
 - `docs/examples/authentication.md`
 - `docs/examples/error_handling.md`
-- `docs/examples/performance_optimization.md`
 - `docs/examples/deployment.md`
 
 ## How to Use the Examples

@@ -44,9 +44,7 @@
 | Linting | Clean | Ruff |
 | Type safety | Clean | Mypy |
 | Security scan | Clean | Security Scans workflow (`bandit` + `semgrep`) |
-| Performance KPIs | Within targets | `docs/PERFORMANCE.md` |
 
-See `docs/PERFORMANCE.md` for KPI definitions and performance targets.
 
 ---
 
@@ -257,7 +255,6 @@ See [CLI Guide](docs/CLI.md) for complete documentation.
 - [Development Guide](docs/development.md)
 - [Contribution Guide](docs/contributing.md)
 - [Security Guide](docs/SECURITY.md)
-- [Performance Guide](docs/PERFORMANCE.md)
 - [CLI Guide](docs/CLI.md)
 
 ---

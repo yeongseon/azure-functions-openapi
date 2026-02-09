@@ -366,7 +366,6 @@ os.environ['AZURE_FUNCTIONS_OPENAPI_DEBUG'] = '1'
 
 - [API Reference](./api.md)
 - [Security Guide](./SECURITY.md)
-- [Performance Guide](./PERFORMANCE.md)
 - [CLI Guide](./CLI.md)
 
 ### 2. Enable Verbose Logging

@@ -17,5 +17,4 @@ Step-by-step walkthroughs for common scenarios.
 
 ## Tutorial 3: Production Readiness
 
-1. Review performance targets in `docs/PERFORMANCE.md`.
-2. Configure platform monitoring (e.g., Application Insights).
+1. Configure platform monitoring (e.g., Application Insights).
