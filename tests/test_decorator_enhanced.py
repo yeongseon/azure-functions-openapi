@@ -237,7 +237,7 @@ class TestValidationFunctions:
 
     def test_validate_security_valid(self) -> None:
         """Test security validation with valid security requirements."""
-        security = [{"BearerAuth": []}, {"OAuth2": ["read", "write"]}]
+        security: list[dict[str, list[str]]] = [{"BearerAuth": []}, {"OAuth2": ["read", "write"]}]
         result = _validate_security(security, "test_func")
         assert result == security
 
