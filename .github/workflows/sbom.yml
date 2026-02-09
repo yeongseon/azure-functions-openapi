@@ -16,13 +16,13 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Generate SBOM
-        uses: anchore/sbom-action@v0.15.10
+        uses: anchore/sbom-action@v0.22.1
         with:
           format: spdx-json
           output-file: sbom.spdx.json
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: sbom
           path: sbom.spdx.json
