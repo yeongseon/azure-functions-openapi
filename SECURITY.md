@@ -54,9 +54,7 @@ Always update to the latest version to ensure you have the latest security fixes
 
 ## Security Features
 
-See [Security Guide](docs/SECURITY.md) for detailed information about:
+See [Security Guide](docs/security.md) for detailed information about:
 - Content Security Policy (CSP)
 - Security Headers
 - Input Validation and Sanitization
-- Error Handling
-- Caching Security

@@ -19,18 +19,15 @@ nav:
       - Quickstart: usage.md
       - Development: development.md
       - Testing: testing.md
-  - Operations:
-      - Deployment: deployment.md
-      - Rollback: rollback.md
-      - Maintenance: maintenance.md
-      - Incident Response: incident-response.md
-      - Release Process: release-process.md
   - API Reference: api.md
   - Examples:
       - Hello OpenAPI: examples/hello_openapi.md
       - Todo API: examples/todo_crud_api.md
-  - Contributing: contributing.md
+      - Authentication: examples/authentication.md
+  - Troubleshooting: troubleshooting.md
+  - Security: security.md
   - Changelog: changelog.md
+  - Contributing: contributing.md
 
 markdown_extensions:
   - admonition

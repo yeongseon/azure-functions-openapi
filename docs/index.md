@@ -19,15 +19,12 @@ Welcome to **azure-functions-openapi** — a library that provides seamless inte
 - **Zero-configuration integration** - works out of the box
 - **Compatible with Python 3.10+**
 
-### 🔒 Security & Performance
+### 🔒 Security
 - **Enhanced Security**: CSP headers, input validation, XSS protection
-- **Performance**: Optimized OpenAPI generation with low overhead
-- **Error Handling**: Standardized error responses with detailed logging
 - **Input Sanitization**: Automatic sanitization of routes, operation IDs, and parameters
 
 ### 🛠️ Developer Experience
 - **CLI Tool**: Command-line interface for spec generation and validation
-- **Comprehensive Testing**: 85%+ target coverage (latest CI: 87%) with extensive test suites
 - **Documentation**: Detailed guides for security and CLI usage
 - **Type Safety**: Full type hints and validation throughout
 
@@ -154,19 +151,22 @@ Once the app is running, open your browser:
 - [Quickstart Guide](./usage.md) - Get up and running quickly
 - [Installation Guide](./installation.md) - Detailed installation instructions
 - [API Reference](./api.md) - Complete API documentation
+- [Development Guide](./development.md) - Development setup and guidelines
+- [Testing Guide](./testing.md) - Run the test suite locally
 
 ### Advanced Features
-- [Security Guide](./SECURITY.md) - Security best practices and features
-- [CLI Tool Guide](./CLI.md) - Command-line interface usage
+- [Security Guide](./security.md) - Security best practices and features
+- [CLI Tool Guide](./cli.md) - Command-line interface usage
 
-### Examples & Tutorials
+### Examples
 - [Hello OpenAPI Example](./examples/hello_openapi.md) - Basic example
 - [Todo CRUD API Example](./examples/todo_crud_api.md) - Advanced example with Pydantic
+- [Authentication Example](./examples/authentication.md) - Documenting required headers
 
-### Development
-- [Contribution Guide](./contributing.md) - How to contribute
-- [Development Guide](./development.md) - Development setup and guidelines
+### Support
+- [Troubleshooting](./troubleshooting.md) - Common issues and fixes
 - [Changelog](./changelog.md) - Version history and changes
+- [Contributing](./contributing.md) - How to contribute
 
 ---
 

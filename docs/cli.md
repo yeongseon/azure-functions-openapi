@@ -115,19 +115,6 @@ The CLI tool uses standard exit codes:
 - `1`: General error
 - `2`: Invalid arguments
 
-## Error Handling
-
-The CLI tool provides clear error messages:
-
-```bash
-# Invalid command
-$ azure-functions-openapi invalid-command
-Error: Unknown command: invalid-command
-
-# Validation error
-$ openapi-spec-validator invalid.json
-```
-
 ## Configuration
 
 ### Environment Variables

@@ -47,7 +47,7 @@ Response targets:
 * Security issues should be reported privately if possible
 * Fixes will be released as soon as reasonably possible
 
-See docs/SECURITY.md for reporting details.
+See docs/security.md for reporting details.
 
 ---
 

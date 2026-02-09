@@ -76,7 +76,7 @@ def my_function(req):
 #### Problem: Validation errors
 
 ```
-ValidationError: Invalid route path: <script>alert('xss')</script>
+ValueError: Invalid route path: <script>alert('xss')</script>
 ```
 
 **Solutions:**
@@ -133,7 +133,7 @@ ValidationError: Invalid route path: <script>alert('xss')</script>
 #### Problem: Schema generation errors
 
 ```
-OpenAPIError: Failed to generate OpenAPI specification
+RuntimeError: Failed to generate OpenAPI specification
 ```
 
 **Solutions:**
@@ -155,10 +155,8 @@ OpenAPIError: Failed to generate OpenAPI specification
    ```python
    try:
        spec = generate_openapi_spec()
-   except OpenAPIError as e:
+   except RuntimeError as e:
        print(f"OpenAPI generation failed: {e}")
-       # Check the error details
-       print(f"Error details: {e.details}")
    ```
 
 ### 4. Swagger UI Issues
@@ -205,31 +203,7 @@ Refused to load the script because it violates the following Content Security Po
    return render_swagger_ui(custom_csp=custom_csp)
    ```
 
-### 5. Performance Issues
-
-#### Problem: Slow OpenAPI generation
-
-**Solutions:**
-1. **Optimize Pydantic models:**
-   ```python
-   # Use simple models for better performance
-   class SimpleModel(BaseModel):
-      name: str
-      age: int
-   
-   # Avoid complex nested models if possible
-   ```
-
-2. **Review metadata size:**
-   Keep tags, descriptions, and schema definitions concise.
-
-#### Problem: Memory usage issues
-
-**Solutions:**
-1. **Monitor memory usage:**
-   Monitor memory usage in your runtime environment.
-
-### 6. CLI Tool Issues
+### 5. CLI Tool Issues
 
 #### Problem: CLI command not found
 
@@ -321,48 +295,13 @@ except Exception as e:
 ```
 
 
-## 🛠️ Development Tools
-
-### 1. Use Make Commands
-
-```bash
-# Run tests
-make test
-
-# Check code quality
-make check
-
-# Run all checks
-make check-all
-
-# Format code
-make format
-```
-
-### 2. Use CLI for Testing
-
-```bash
-# Generate OpenAPI spec
-azure-functions-openapi generate --title "Test API" --version "1.0.0"
-
-# Use platform health endpoints and logs
-```
-
-### 3. Use Development Mode
-
-```python
-# Enable development mode for more detailed errors
-import os
-os.environ['AZURE_FUNCTIONS_OPENAPI_DEBUG'] = '1'
-```
-
 ## 📞 Getting Help
 
 ### 1. Check Documentation
 
 - [API Reference](./api.md)
-- [Security Guide](./SECURITY.md)
-- [CLI Guide](./CLI.md)
+- [Security Guide](./security.md)
+- [CLI Guide](./cli.md)
 
 ### 2. Enable Verbose Logging
 
@@ -394,24 +333,6 @@ When reporting issues, include:
 # Debug mode
 export AZURE_FUNCTIONS_OPENAPI_DEBUG=1
 
-# Cache TTL (seconds)
-# Configure in your platform if applicable
-
 # Log level
 export AZURE_FUNCTIONS_OPENAPI_LOG_LEVEL=DEBUG
-```
-
-### Configuration File
-
-Create `azure_functions_openapi_config.json`:
-
-```json
-{
-  "debug": true,
-  "log_level": "DEBUG",
-  "security": {
-    "csp_enabled": true,
-    "input_validation": true
-  }
-}
 ```

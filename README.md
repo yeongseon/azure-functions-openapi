@@ -22,10 +22,8 @@
 - Optional Pydantic integration (supports both v1 and v2)
 - Zero hard dependency on Pydantic
 
-### Security & Performance
+### Security
 - **Enhanced Security**: CSP headers, input validation, XSS protection
-- **Performance**: Optimized OpenAPI generation with low overhead
-- **Error Handling**: Standardized error responses with detailed logging
 - **Input Sanitization**: Automatic sanitization of routes, operation IDs, and parameters
 
 ### Developer Experience
@@ -246,16 +244,15 @@ azure-functions-openapi generate --output openapi.json --format json
 openapi-spec-validator openapi.json
 ```
 
-See [CLI Guide](docs/CLI.md) for complete documentation.
+See [CLI Guide](docs/cli.md) for complete documentation.
 
 ## Documentation
 
 - Full docs: [yeongseon.github.io/azure-functions-openapi](https://yeongseon.github.io/azure-functions-openapi/)
 - [Quickstart](docs/usage.md)
-- [Development Guide](docs/development.md)
 - [Contribution Guide](docs/contributing.md)
-- [Security Guide](docs/SECURITY.md)
-- [CLI Guide](docs/CLI.md)
+- [Security Guide](docs/security.md)
+- [CLI Guide](docs/cli.md)
 
 ---
 

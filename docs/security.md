@@ -1,44 +1,8 @@
 # Security Guide
 
-This document outlines the security features and best practices implemented in Azure Functions OpenAPI.
+# Security Guide
 
-## Security Features
-
-### Content Security Policy (CSP)
-
-The Swagger UI is protected with a comprehensive Content Security Policy that:
-
-- Restricts script sources to `'self'` and `https://cdn.jsdelivr.net`
-- Prevents inline script execution except where necessary
-- Blocks external validators for security
-- Prevents frame embedding with `frame-ancestors 'none'`
-- Restricts form actions to same origin
-
-### Security Headers
-
-All responses include the following security headers:
-
-- `X-Content-Type-Options: nosniff` - Prevents MIME type sniffing
-- `X-Frame-Options: DENY` - Prevents clickjacking attacks
-- `X-XSS-Protection: 1; mode=block` - Enables XSS filtering
-- `Referrer-Policy: strict-origin-when-cross-origin` - Controls referrer information
-- `Strict-Transport-Security` - Enforces HTTPS (when applicable)
-
-### Input Validation and Sanitization
-
-#### Route Path Validation
-
-Route paths are validated to prevent:
-- Path traversal attacks (`../`)
-- XSS attempts (`<script>`)
-- JavaScript injection (`javascript:`)
-- Data URI injection (`data:`)
-
-Valid route patterns:
-- Must start with `/`
-- Can contain alphanumeric characters, hyphens, underscores, slashes
-- Can contain curly braces for path parameters (`{id}`)
-- Can contain spaces
+The canonical security policy is maintained in the root [SECURITY.md](../SECURITY.md).
 
 #### Operation ID Sanitization
 
@@ -61,36 +25,7 @@ Tags are validated to:
 - Remove whitespace
 - Prevent empty tags
 
-### Error Handling
-
-#### Standardized Error Responses
-
-All errors follow a consistent format:
-
-```json
-{
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "Human-readable error message",
-    "status_code": 400,
-    "details": {
-      "field": "additional context"
-    }
-  },
-  "timestamp": "2024-01-01T00:00:00Z",
-  "request_id": "unique-request-id"
-}
-```
-
-#### Error Logging
-
-All errors are logged with:
-- Error code and message
-- Request context
-- Stack traces (in development mode)
-- Request IDs for correlation
-
-### Caching Security
+### Caching
 
 Caching should be handled at the application or platform level.
 
@@ -109,7 +44,7 @@ Caching should be handled at the application or platform level.
 1. **Environment Variables**: Use secure environment variables for configuration
 2. **Network Security**: Configure proper network security groups
 3. **Access Control**: Implement proper authentication and authorization
-5. **Regular Updates**: Keep the runtime and dependencies updated
+4. **Regular Updates**: Keep the runtime and dependencies updated
 
 ### For API Design
 
@@ -136,19 +71,6 @@ response = render_swagger_ui(custom_csp=custom_csp)
 
 Security headers are automatically added to all responses. You can customize them by modifying the `render_swagger_ui` function.
 
-### Error Handling
-
-Customize error handling by:
-
-```python
-from azure_functions_openapi.errors import create_error_response, APIError
-
-try:
-    # Your code here
-    pass
-except APIError as e:
-    response = create_error_response(e, include_stack_trace=False)
-```
 
 ### Logging
 
@@ -197,15 +119,7 @@ When processing user data:
 
 ## Incident Response
 
-If a security incident occurs:
-
-1. Triage and contain the issue
-2. Assess impact and affected versions
-3. Prepare and release a fix
-4. Notify users and document remediation steps
-5. Perform a post-incident review
-
-For detailed procedures and runbooks, see the [Incident Response Guide](./incident-response.md).
+Follow your organization's standard security runbooks for incidents and disclosures.
 
 ## Reporting Security Issues
 
