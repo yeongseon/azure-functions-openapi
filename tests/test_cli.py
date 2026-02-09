@@ -13,9 +13,6 @@ import pytest
 
 from azure_functions_openapi.cli import (
     handle_generate,
-    handle_health,
-    handle_info,
-    handle_metrics,
     handle_validate,
     main,
     validate_openapi_spec,
@@ -157,56 +154,6 @@ class TestHandleGenerate:
         assert result == 0
         output = mock_print.call_args[0][0]
         assert "openapi: 3.1.0" in output or "openapi: '3.1.0'" in output
-
-
-class TestHandleInfo:
-    """Tests for handle_info() command."""
-
-    def test_info_json_format(self) -> None:
-        """Test info command with JSON format."""
-        args = mock.Mock()
-        args.format = "json"
-        args.output = None
-        args.pretty = False
-
-        with mock.patch("builtins.print") as mock_print:
-            result = handle_info(args)
-
-        assert result == 0
-        mock_print.assert_called_once()
-
-
-class TestHandleHealth:
-    """Tests for handle_health() command."""
-
-    def test_health_returns_0_when_healthy(self) -> None:
-        """Test health command returns 0 when healthy."""
-        args = mock.Mock()
-        args.format = "json"
-        args.output = None
-        args.pretty = False
-
-        with mock.patch("builtins.print"):
-            result = handle_health(args)
-
-        assert result == 0
-
-
-class TestHandleMetrics:
-    """Tests for handle_metrics() command."""
-
-    def test_metrics_json_format(self) -> None:
-        """Test metrics command with JSON format."""
-        args = mock.Mock()
-        args.format = "json"
-        args.output = None
-        args.pretty = False
-
-        with mock.patch("builtins.print") as mock_print:
-            result = handle_metrics(args)
-
-        assert result == 0
-        mock_print.assert_called_once()
 
 
 class TestHandleValidate:
@@ -435,30 +382,6 @@ class TestCLIIntegration:
             assert spec["openapi"] == "3.1.0"
             assert spec["info"]["title"] == "Full Test"
             assert spec["info"]["version"] == "2.0.0"
-
-    def test_info_command_via_main(self) -> None:
-        """Test info command through main()."""
-        with mock.patch.object(sys, "argv", ["azure-functions-openapi", "info"]):
-            with mock.patch("builtins.print"):
-                result = main()
-
-        assert result == 0
-
-    def test_health_command_via_main(self) -> None:
-        """Test health command through main()."""
-        with mock.patch.object(sys, "argv", ["azure-functions-openapi", "health"]):
-            with mock.patch("builtins.print"):
-                result = main()
-
-        assert result == 0
-
-    def test_metrics_command_via_main(self) -> None:
-        """Test metrics command through main()."""
-        with mock.patch.object(sys, "argv", ["azure-functions-openapi", "metrics"]):
-            with mock.patch("builtins.print"):
-                result = main()
-
-        assert result == 0
 
     def test_validate_command_via_main(self) -> None:
         """Test validate command through main()."""
