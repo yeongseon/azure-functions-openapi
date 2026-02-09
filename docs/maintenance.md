@@ -10,8 +10,8 @@ This document outlines scheduled maintenance tasks and automation points.
 
 ## Manual Tasks
 
-- Run formatting and linting: `scripts/lint.sh`
-- Update changelog: `scripts/changelog.sh`
+- Run formatting and linting: `make lint`
+- Update changelog: `make changelog`
 - Review deprecated APIs and remove them on major releases
 
 ## Documentation from Docstrings
