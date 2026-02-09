@@ -2,35 +2,88 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.9.0] - 2026-02-09
+## [unreleased]
 
-### 🧹 Removed
+### 🚀 Features
 
-- Remove monitoring and server info utilities (monitoring module, server info helpers, CLI info/health/metrics)
+- Resolve deployment and OpenAPI security issue backlog
+
+### 🐛 Bug Fixes
+
+- *(ci)* Resolve lint and deploy workflow validation errors
+- *(test)* Satisfy mypy type for security validation case
+- *(openapi)* Preserve explicit 200 response when response_model exists
+- *(validation)* Align fallback logs with strict behavior
+- *(validation)* Disallow whitespace in route paths
+- *(security)* Harden Swagger UI CSP and gate client logging
+- *(metrics)* Use PerformanceMonitor response-time average
+- *(openapi)* Drop error utilities
+- *(decorator)* Preserve validation errors
+
+### 🚜 Refactor
+
+- Simplify branch strategy to GitHub Flow
+- Harden registry and runtime state handling
+
+### 📚 Documentation
+
+- Add governance, design principles, and LSP configuration
+- Fix CI badge workflow and tool versions
+- Fix CI badge workflow and tool versions
+- Improve core documentation (index, usage, api, installation, README)
+- Remove links to missing pages
+- Add comprehensive examples, tutorials, and configuration guide (#67)
+- Clarify supported Python versions in README
+- Align quality metrics and Python support policy
+- Normalize doc casing and links
+- Remove internal operations guides
+- Drop non-http examples
+- Remove redundant examples and guides
+- Drop tutorials page
+- Merge swagger ui config into usage
+- Trim api reference notes
+- Link to canonical root docs
+- Refresh contributing guidance
+- Align changelog with cleanup
+- Fix mkdocs nav and links
+
+### ⚙️ Miscellaneous Tasks
+
+- Add security policies and incident response (#68)
+- Add performance monitoring and regression testing (#69)
+- Add release process and versioning documentation (#71)
+- Configure dependabot for automated dependency updates (#72)
+- Add maintenance workflows and automation (#70)
+- Skip codecov on dependabot (#80)
+- *(ci)* Route Bandit scans through Makefile security target
+- Ignore local oh-my-opencode config
+- *(ci)* Pin GitHub Actions to immutable SHAs
+- Remove redundant scripts directory
+- Remove monitoring utilities and update docs
+- Remove monitoring modules and CLI commands
+- *(cli)* Remove validate command and document external validator
+- Remove caching layer and update docs
+- *(docs)* Remove performance guide and related artifacts
+- *(docs)* Remove monitoring references
+- *(lint)* Drop unused imports
 
 ## [0.8.0] - 2026-01-22
 
 ### 🚀 Features
 
 - Add optional OpenAPI 3.1 output support (#30)
-  - Add `openapi_version` parameter to `generate_openapi_spec()`, `get_openapi_json()`, `get_openapi_yaml()`
-  - Add `OPENAPI_VERSION_3_0` and `OPENAPI_VERSION_3_1` constants
-  - Add `--openapi-version` CLI flag (choices: 3.0, 3.1)
-  - Implement schema conversion for 3.1 (nullable → type array, example → examples)
-
-### 🧪 Tests
-
-- Fix test file naming conventions (#28)
-- Add comprehensive tests for CLI module (32 tests)
-- Add comprehensive tests for OpenAPI 3.1 functionality (27 tests)
-
-### 🐛 Bug Fixes
-
-- Add missing `--pretty` flag to CLI info, health, metrics commands
 
 ### 📚 Documentation
 
-- Improve security policy with GitHub Security Advisory as preferred reporting method
+- Improve security policy with GitHub Security Advisory
+
+### 🧪 Testing
+
+- Fix test naming and add missing module tests (#28)
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version to 0.8.0 and update CHANGELOG
 
 ## [0.7.0] - 2026-01-22
 
@@ -44,16 +97,17 @@ All notable changes to this project will be documented in this file.
 
 ### 📚 Documentation
 
-- Add community files: CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md (#24)
+- Add community files to repository root (#24)
 
 ### ⚙️ Miscellaneous Tasks
 
+- Add GitHub issue templates
 - Align pre-commit hooks with pyproject.toml settings (#20)
 - Add py.typed marker for PEP 561 compliance (#21)
-- Remove obsolete fix_tags.sh script (#22)
 - Add pull request template (#23)
 - Add security scanning with Dependabot and CodeQL (#25)
-- Update dev dependencies to latest versions (#26)
+- Remove obsolete fix_tags.sh script (#22)
+- Bump version to 0.7.0 and update CHANGELOG
 
 ## [0.6.1] - 2026-01-22
 
@@ -64,6 +118,10 @@ All notable changes to this project will be documented in this file.
 ### 🚜 Refactor
 
 - Adopt Python 3.10 type hint syntax (PEP 604/585) (#9)
+
+### 📚 Documentation
+
+- Update changelog
 
 ## [0.6.0] - 2026-01-21
 
@@ -104,8 +162,11 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- Add comprehensive error handling system
+- Add high-performance caching system
 - Enhance Swagger UI security and input validation
 - Add server info, monitoring, and CLI tools
+- Enhance OpenAPI generation with caching and error handling
 
 ### 💼 Other
 
@@ -178,10 +239,10 @@ All notable changes to this project will be documented in this file.
 
 ### 📚 Documentation
 
-- Split development instructions into the contribution guide
+- Split development instructions into development.md
 - Enhance index.md with project overview and documentation links
 - Add detailed docstrings and usage examples to decorator and openapi modules
-- Add documentation build notes for local preview and GitHub Pages deployment
+- Add mkdocs.md with instructions for local preview and GitHub Pages deployment
 - Add badges to README for PyPI, CI, Docs, and License
 - *(todo_api)* Add detailed docstrings for all endpoints and models
 - Add Quick Start section and refresh README badges
@@ -252,7 +313,9 @@ All notable changes to this project will be documented in this file.
 ### 📚 Documentation
 
 - Generate changelog for v0.2.0
-- Update project milestones to reflect v0.2.0 completion and outline M3 goals
+- Update MILESTONES.md to reflect v0.2.0 completion and outline M3 goals
+- Update milestones.md with latest project roadmap
+- Update milestones.md with latest project roadmap
 - Add full documentation with index, usage, contributing and mkdocs config
 
 ### 🧪 Testing
