@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import secrets
 
 from azure.functions import HttpResponse
 
@@ -11,6 +12,7 @@ def render_swagger_ui(
     title: str = "API Documentation",
     openapi_url: str = "/api/openapi.json",
     custom_csp: str | None = None,
+    enable_client_logging: bool = False,
 ) -> HttpResponse:
     """
     Render Swagger UI with enhanced security headers and CSP protection.
@@ -19,14 +21,17 @@ def render_swagger_ui(
         title: Page title for the Swagger UI
         openapi_url: URL to the OpenAPI specification
         custom_csp: Custom Content Security Policy (optional)
+        enable_client_logging: Whether to enable browser-side response logging
 
     Returns:
         HttpResponse with Swagger UI HTML and security headers
     """
+    nonce = secrets.token_urlsafe(16)
+
     # Enhanced CSP policy for better security
     default_csp = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        f"script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net; "
         "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
         "img-src 'self' data: https:; "
         "font-src 'self' https://cdn.jsdelivr.net; "
@@ -41,6 +46,18 @@ def render_swagger_ui(
     # Validate and sanitize inputs
     sanitized_title = _sanitize_html_content(title)
     sanitized_url = _sanitize_url(openapi_url)
+    response_interceptor = """
+            responseInterceptor: function(response) {
+              return response;
+            }
+    """
+    if enable_client_logging:
+        response_interceptor = """
+            responseInterceptor: function(response) {
+              console.log('API Response:', response.status, response.url);
+              return response;
+            }
+    """
 
     html_content = f"""
     <!DOCTYPE html>
@@ -61,7 +78,7 @@ def render_swagger_ui(
       <body>
         <div id="swagger-ui"></div>
         <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist/swagger-ui-bundle.js"></script>
-        <script>
+        <script nonce="{nonce}">
           // Enhanced security configuration
           const ui = SwaggerUIBundle({{
             url: '{sanitized_url}',
@@ -76,11 +93,7 @@ def render_swagger_ui(
               request.headers['X-Requested-With'] = 'XMLHttpRequest';
               return request;
             }},
-            responseInterceptor: function(response) {{
-              // Log responses for monitoring
-              console.log('API Response:', response.status, response.url);
-              return response;
-            }}
+            {response_interceptor}
           }});
         </script>
       </body>

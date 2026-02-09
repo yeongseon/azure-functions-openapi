@@ -1,6 +1,7 @@
 # tests/test_swagger_ui_enhanced.py
 
 from typing import Any
+import re
 from unittest.mock import patch
 
 from azure.functions import HttpResponse
@@ -93,6 +94,20 @@ class TestRenderSwaggerUI:
         assert response.headers["Pragma"] == "no-cache"
         assert response.headers["Expires"] == "0"
 
+    def test_render_swagger_ui_default_csp_uses_nonce(self) -> None:
+        """Test that default CSP uses nonce-based script policy."""
+        response = render_swagger_ui()
+        csp = response.headers["Content-Security-Policy"]
+
+        assert "script-src" in csp
+        script_src_policy = csp.split("script-src", 1)[1].split(";", 1)[0]
+        assert "unsafe-inline" not in script_src_policy
+        nonce_match = re.search(r"'nonce-([^']+)'", csp)
+        assert nonce_match is not None
+
+        html_content = response.get_body().decode()
+        assert f'<script nonce="{nonce_match.group(1)}">' in html_content
+
     def test_render_swagger_ui_swagger_config(self) -> None:
         """Test that Swagger UI configuration is correct."""
         response = render_swagger_ui()
@@ -105,6 +120,18 @@ class TestRenderSwaggerUI:
         assert "supportedSubmitMethods" in html_content
         assert "requestInterceptor" in html_content
         assert "responseInterceptor" in html_content
+
+    def test_render_swagger_ui_disables_client_console_logging_by_default(self) -> None:
+        """Test that browser-side console logging is disabled by default."""
+        response = render_swagger_ui()
+        html_content = response.get_body().decode()
+        assert "console.log('API Response:'" not in html_content
+
+    def test_render_swagger_ui_enables_client_console_logging_when_opted_in(self) -> None:
+        """Test that browser-side console logging is enabled when requested."""
+        response = render_swagger_ui(enable_client_logging=True)
+        html_content = response.get_body().decode()
+        assert "console.log('API Response:'" in html_content
 
     @patch("azure_functions_openapi.swagger_ui.logger")
     def test_render_swagger_ui_logging(self, mock_logger: Any) -> None:
