@@ -109,29 +109,39 @@ def generate_openapi_spec(
                 # responses -------------------------------------------------------
                 responses: dict[str, Any] = {}
                 for status, detail in meta.get("response", {}).items():
-                    resp = {"description": detail.get("description", "")}
-                    if "content" in detail:
-                        resp["content"] = detail["content"]
+                    resp = dict(detail)
+                    resp.setdefault("description", "")
                     responses[str(status)] = resp
 
                 if meta.get("response_model"):
                     try:
-                        responses["200"] = {
-                            "description": "Successful Response",
-                            "content": {
-                                "application/json": {
-                                    "schema": model_to_schema(meta["response_model"], components)
-                                }
-                            },
-                        }
+                        model_schema = model_to_schema(meta["response_model"], components)
+                        if "200" not in responses:
+                            responses["200"] = {
+                                "description": "Successful Response",
+                                "content": {"application/json": {"schema": model_schema}},
+                            }
+                        else:
+                            content = responses["200"].setdefault("content", {})
+                            if not isinstance(content, dict):
+                                content = {}
+                                responses["200"]["content"] = content
+
+                            json_content = content.setdefault("application/json", {})
+                            if not isinstance(json_content, dict):
+                                json_content = {}
+                                content["application/json"] = json_content
+
+                            json_content.setdefault("schema", model_schema)
                     except Exception as e:
                         logger.warning(
                             f"Failed to generate response schema for {func_name}: {str(e)}"
                         )
-                        responses["200"] = {
-                            "description": "Successful Response",
-                            "content": {"application/json": {"schema": {"type": "object"}}},
-                        }
+                        if "200" not in responses:
+                            responses["200"] = {
+                                "description": "Successful Response",
+                                "content": {"application/json": {"schema": {"type": "object"}}},
+                            }
 
                 # operation object ------------------------------------------------
                 op: dict[str, Any] = {

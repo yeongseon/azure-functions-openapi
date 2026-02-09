@@ -182,6 +182,40 @@ def test_generate_spec_with_pydantic_models() -> None:
     assert "$defs" not in schemas["ResponseModel"]
 
 
+def test_response_200_is_preserved_when_response_model_exists() -> None:
+    class MergeResponseModel(BaseModel):
+        message: str
+
+    @openapi(
+        route="/merge-response",
+        summary="Merge response",
+        response={
+            200: {
+                "description": "Custom 200",
+                "headers": {"X-Trace-Id": {"schema": {"type": "string"}}},
+                "content": {
+                    "application/json": {
+                        "examples": {
+                            "sample": {"value": {"message": "ok"}},
+                        }
+                    }
+                },
+            }
+        },
+        response_model=MergeResponseModel,
+    )
+    def merge_response_func() -> None:
+        pass
+
+    response_200 = generate_openapi_spec()["paths"]["/merge-response"]["get"]["responses"]["200"]
+    assert response_200["description"] == "Custom 200"
+    assert "X-Trace-Id" in response_200["headers"]
+    assert "sample" in response_200["content"]["application/json"]["examples"]
+    assert response_200["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/MergeResponseModel"
+    }
+
+
 def test_openapi_spec_contains_operation_id_and_tags() -> None:
     clear_all_cache()
     _register_http_trigger()
