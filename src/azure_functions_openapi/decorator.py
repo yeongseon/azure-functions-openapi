@@ -7,7 +7,6 @@ from typing import Any, Callable, TypeVar
 
 from pydantic import BaseModel
 
-from azure_functions_openapi.errors import OpenAPIError, ValidationError
 from azure_functions_openapi.utils import sanitize_operation_id, validate_route_path
 
 # Define a generic type variable for functions
@@ -172,15 +171,18 @@ def openapi(
             logger.debug(f"Registered OpenAPI metadata for function '{func.__name__}'")
             return func
 
+        except ValueError as e:
+            logger.error(
+                f"Failed to register OpenAPI metadata for function '{func.__name__}': {str(e)}"
+            )
+            raise
         except Exception as e:
             logger.error(
                 f"Failed to register OpenAPI metadata for function '{func.__name__}': {str(e)}"
             )
-            raise OpenAPIError(
-                message=f"Failed to register OpenAPI metadata for function '{func.__name__}'",
-                details={"function_name": func.__name__, "error": str(e)},
-                cause=e,
-            )
+            raise RuntimeError(
+                f"Failed to register OpenAPI metadata for function '{func.__name__}': {e}"
+            ) from e
 
     return decorator
 
@@ -207,10 +209,7 @@ def _validate_and_sanitize_route(route: str | None, func_name: str) -> str | Non
             route,
             func_name,
         )
-        raise ValidationError(
-            message=f"Invalid route path: {route}",
-            details={"route": route, "function_name": func_name},
-        )
+        raise ValueError(f"Invalid route path: {route}")
 
     return route
 
@@ -227,10 +226,7 @@ def _validate_and_sanitize_operation_id(operation_id: str | None, func_name: str
             operation_id,
             func_name,
         )
-        raise ValidationError(
-            message=f"Invalid operation ID: {operation_id}",
-            details={"operation_id": operation_id, "function_name": func_name},
-        )
+        raise ValueError(f"Invalid operation ID: {operation_id}")
 
     return sanitized
 
@@ -243,31 +239,18 @@ def _validate_parameters(
         return []
 
     if not isinstance(parameters, list):
-        raise ValidationError(
-            message="Parameters must be a list",
-            details={"parameters": str(parameters), "function_name": func_name},
-        )
+        raise ValueError("Parameters must be a list")
 
     validated_params = []
     for i, param in enumerate(parameters):
         if not isinstance(param, dict):
-            raise ValidationError(
-                message=f"Parameter at index {i} must be a dictionary",
-                details={"parameter_index": i, "function_name": func_name},
-            )
+            raise ValueError(f"Parameter at index {i} must be a dictionary")
 
         # Validate required fields
         required_fields = ["name", "in"]
         for field in required_fields:
             if field not in param:
-                raise ValidationError(
-                    message=f"Parameter at index {i} missing required field: {field}",
-                    details={
-                        "parameter_index": i,
-                        "missing_field": field,
-                        "function_name": func_name,
-                    },
-                )
+                raise ValueError(f"Parameter at index {i} missing required field: {field}")
 
         validated_params.append(param)
 
@@ -282,34 +265,21 @@ def _validate_security(
         return []
 
     if not isinstance(security, list):
-        raise ValidationError(
-            message="Security must be a list",
-            details={"security": str(security), "function_name": func_name},
-        )
+        raise ValueError("Security must be a list")
 
     validated_security: list[dict[str, list[str]]] = []
     for i, requirement in enumerate(security):
         if not isinstance(requirement, dict):
-            raise ValidationError(
-                message=f"Security requirement at index {i} must be a dictionary",
-                details={"security_index": i, "function_name": func_name},
-            )
+            raise ValueError(f"Security requirement at index {i} must be a dictionary")
 
         validated_requirement: dict[str, list[str]] = {}
         for scheme_name, scopes in requirement.items():
             if not isinstance(scheme_name, str) or not scheme_name.strip():
-                raise ValidationError(
-                    message=f"Security scheme name at index {i} must be a non-empty string",
-                    details={"security_index": i, "function_name": func_name},
-                )
+                raise ValueError(f"Security scheme name at index {i} must be a non-empty string")
 
             if not isinstance(scopes, list) or not all(isinstance(scope, str) for scope in scopes):
-                raise ValidationError(
-                    message=(
-                        f"Security scopes for '{scheme_name}' at index {i} "
-                        "must be a list of strings"
-                    ),
-                    details={"security_index": i, "function_name": func_name},
+                raise ValueError(
+                    f"Security scopes for '{scheme_name}' at index {i} must be a list of strings"
                 )
 
             validated_requirement[scheme_name] = scopes
@@ -325,25 +295,17 @@ def _validate_tags(tags: list[str] | None, func_name: str) -> list[str]:
         return ["default"]
 
     if not isinstance(tags, list):
-        raise ValidationError(
-            message="Tags must be a list", details={"tags": str(tags), "function_name": func_name}
-        )
+        raise ValueError("Tags must be a list")
 
     validated_tags = []
     for i, tag in enumerate(tags):
         if not isinstance(tag, str):
-            raise ValidationError(
-                message=f"Tag at index {i} must be a string",
-                details={"tag_index": i, "function_name": func_name},
-            )
+            raise ValueError(f"Tag at index {i} must be a string")
 
         # Sanitize tag
         sanitized_tag = tag.strip()
         if not sanitized_tag:
-            raise ValidationError(
-                message=f"Tag at index {i} cannot be empty",
-                details={"tag_index": i, "function_name": func_name},
-            )
+            raise ValueError(f"Tag at index {i} cannot be empty")
 
         validated_tags.append(sanitized_tag)
 
@@ -357,13 +319,7 @@ def _validate_models(
 ) -> None:
     """Validate Pydantic models."""
     if request_model and not issubclass(request_model, BaseModel):
-        raise ValidationError(
-            message="Request model must be a Pydantic BaseModel subclass",
-            details={"request_model": str(request_model), "function_name": func_name},
-        )
+        raise ValueError("Request model must be a Pydantic BaseModel subclass")
 
     if response_model and not issubclass(response_model, BaseModel):
-        raise ValidationError(
-            message="Response model must be a Pydantic BaseModel subclass",
-            details={"response_model": str(response_model), "function_name": func_name},
-        )
+        raise ValueError("Response model must be a Pydantic BaseModel subclass")

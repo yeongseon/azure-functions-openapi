@@ -16,7 +16,6 @@ from azure_functions_openapi.decorator import (
     get_openapi_registry,
     openapi,
 )
-from azure_functions_openapi.errors import OpenAPIError, ValidationError
 
 
 class SampleModel(BaseModel):
@@ -31,7 +30,7 @@ class TestOpenAPIDecoratorEnhanced:
 
     def test_openapi_decorator_with_validation_error(self) -> None:
         """Test decorator with validation error."""
-        with pytest.raises(OpenAPIError):
+        with pytest.raises(ValueError):
 
             @openapi(
                 route="<script>alert('xss')</script>",  # Invalid route
@@ -59,7 +58,7 @@ class TestOpenAPIDecoratorEnhanced:
 
     def test_openapi_decorator_with_invalid_parameters(self) -> None:
         """Test decorator with invalid parameters."""
-        with pytest.raises(OpenAPIError):
+        with pytest.raises(ValueError):
 
             @openapi(
                 parameters=cast(Any, "not_a_list"),  # Invalid parameters type
@@ -70,7 +69,7 @@ class TestOpenAPIDecoratorEnhanced:
 
     def test_openapi_decorator_with_invalid_parameter_structure(self) -> None:
         """Test decorator with invalid parameter structure."""
-        with pytest.raises(OpenAPIError):
+        with pytest.raises(ValueError):
 
             @openapi(
                 parameters=[{"name": "test"}],  # Missing required field 'in'
@@ -81,7 +80,7 @@ class TestOpenAPIDecoratorEnhanced:
 
     def test_openapi_decorator_with_invalid_tags(self) -> None:
         """Test decorator with invalid tags."""
-        with pytest.raises(OpenAPIError):
+        with pytest.raises(ValueError):
 
             @openapi(
                 tags=cast(Any, "not_a_list"),  # Invalid tags type
@@ -92,7 +91,7 @@ class TestOpenAPIDecoratorEnhanced:
 
     def test_openapi_decorator_with_invalid_security(self) -> None:
         """Test decorator with invalid security."""
-        with pytest.raises(OpenAPIError):
+        with pytest.raises(ValueError):
 
             @openapi(
                 security=cast(Any, "not_a_list"),
@@ -103,7 +102,7 @@ class TestOpenAPIDecoratorEnhanced:
 
     def test_openapi_decorator_with_empty_tag(self) -> None:
         """Test decorator with empty tag."""
-        with pytest.raises(OpenAPIError):
+        with pytest.raises(ValueError):
 
             @openapi(
                 tags=["valid_tag", ""],  # Empty tag
@@ -114,7 +113,7 @@ class TestOpenAPIDecoratorEnhanced:
 
     def test_openapi_decorator_with_invalid_request_model(self) -> None:
         """Test decorator with invalid request model."""
-        with pytest.raises(OpenAPIError):
+        with pytest.raises(ValueError):
 
             @openapi(
                 request_model=cast(Any, str),  # Not a BaseModel subclass
@@ -125,7 +124,7 @@ class TestOpenAPIDecoratorEnhanced:
 
     def test_openapi_decorator_with_invalid_response_model(self) -> None:
         """Test decorator with invalid response model."""
-        with pytest.raises(OpenAPIError):
+        with pytest.raises(ValueError):
 
             @openapi(
                 response_model=cast(Any, int),  # Not a BaseModel subclass
@@ -184,7 +183,7 @@ class TestValidationFunctions:
 
     def test_validate_and_sanitize_route_invalid(self) -> None:
         """Test route validation with invalid route."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             _validate_and_sanitize_route("<script>alert('xss')</script>", "test_func")
 
     def test_validate_and_sanitize_operation_id_valid(self) -> None:
@@ -216,17 +215,17 @@ class TestValidationFunctions:
 
     def test_validate_parameters_invalid_type(self) -> None:
         """Test parameter validation with invalid type."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             _validate_parameters(cast(Any, "not_a_list"), "test_func")
 
     def test_validate_parameters_invalid_structure(self) -> None:
         """Test parameter validation with invalid structure."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             _validate_parameters([{"name": "test"}], "test_func")  # Missing 'in' field
 
     def test_validate_parameters_invalid_item_type(self) -> None:
         """Test parameter validation with invalid item type."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             _validate_parameters(cast(Any, ["not_a_dict"]), "test_func")
 
     def test_validate_tags_valid(self) -> None:
@@ -248,17 +247,17 @@ class TestValidationFunctions:
 
     def test_validate_security_invalid_type(self) -> None:
         """Test security validation with invalid type."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             _validate_security(cast(Any, "not_a_list"), "test_func")
 
     def test_validate_security_invalid_item(self) -> None:
         """Test security validation with invalid requirement object."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             _validate_security(cast(Any, ["not_a_dict"]), "test_func")
 
     def test_validate_security_invalid_scope_type(self) -> None:
         """Test security validation with invalid scope entries."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             _validate_security(cast(Any, [{"BearerAuth": [1]}]), "test_func")
 
     def test_validate_tags_none(self) -> None:
@@ -268,22 +267,22 @@ class TestValidationFunctions:
 
     def test_validate_tags_invalid_type(self) -> None:
         """Test tag validation with invalid type."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             _validate_tags(cast(Any, "not_a_list"), "test_func")
 
     def test_validate_tags_invalid_item_type(self) -> None:
         """Test tag validation with invalid item type."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             _validate_tags(cast(Any, [123]), "test_func")
 
     def test_validate_tags_empty_tag(self) -> None:
         """Test tag validation with empty tag."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             _validate_tags(["valid", ""], "test_func")
 
     def test_validate_tags_whitespace_tag(self) -> None:
         """Test tag validation with whitespace-only tag."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             _validate_tags(["valid", "   "], "test_func")
 
     def test_validate_models_valid(self) -> None:
@@ -296,12 +295,12 @@ class TestValidationFunctions:
 
     def test_validate_models_invalid_request_model(self) -> None:
         """Test model validation with invalid request model."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             _validate_models(cast(Any, str), None, "test_func")
 
     def test_validate_models_invalid_response_model(self) -> None:
         """Test model validation with invalid response model."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             _validate_models(None, cast(Any, int), "test_func")
 
 
@@ -311,7 +310,7 @@ class TestOpenAPIDecoratorErrorHandling:
     @patch("azure_functions_openapi.decorator.logger")
     def test_decorator_error_logging(self, mock_logger: Any) -> None:
         """Test that decorator errors are logged."""
-        with pytest.raises(OpenAPIError):
+        with pytest.raises(ValueError):
 
             @openapi(route="<script>alert('xss')</script>", summary="Test")
             def test_func() -> None:
@@ -321,17 +320,15 @@ class TestOpenAPIDecoratorErrorHandling:
         mock_logger.error.assert_called()
 
     def test_decorator_exception_conversion(self) -> None:
-        """Test that exceptions are converted to OpenAPIError."""
+        """Test that exceptions are converted to RuntimeError."""
         with patch(
             "azure_functions_openapi.decorator._validate_and_sanitize_route"
         ) as mock_validate:
             mock_validate.side_effect = Exception("Unexpected error")
-
-            with pytest.raises(OpenAPIError) as exc_info:
+            with pytest.raises(RuntimeError) as exc_info:
 
                 @openapi(summary="Test")
                 def test_func() -> None:
                     pass
 
             assert "Failed to register OpenAPI metadata" in str(exc_info.value)
-            assert exc_info.value.details["function_name"] == "test_func"
