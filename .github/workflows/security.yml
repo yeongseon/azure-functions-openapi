@@ -29,7 +29,7 @@ jobs:
           make install
 
       - name: Run Bandit
-        run: hatch run python -m bandit -r src
+        run: make security
 
   semgrep:
     runs-on: ubuntu-latest

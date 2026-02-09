@@ -87,6 +87,7 @@ cov = "PYTHONPATH=. pytest --cov=src/azure_functions_openapi --cov-report=term-m
 docs = "mkdocs serve"
 precommit = "pre-commit run --all-files"
 precommit-install = "pre-commit install"
+security = "python -m bandit -r src"
 
 # ---------------------------------------------
 # 🖥️ CLI Entrypoint

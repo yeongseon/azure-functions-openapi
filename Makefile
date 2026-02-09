@@ -59,6 +59,10 @@ cov: ensure-hatch
 lint: ensure-hatch
 	@$(HATCH) run lint
 
+.PHONY: security
+security: ensure-hatch
+	@$(HATCH) run security
+
 .PHONY: typecheck
 typecheck: ensure-hatch
 	@$(HATCH) run typecheck
