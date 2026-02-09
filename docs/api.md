@@ -29,13 +29,8 @@ from azure_functions_openapi.errors import (
 
 ### Caching System
 
-High-performance caching with TTL and LRU eviction:
-
-```python
-from azure_functions_openapi.cache import (
-    cached, get_cache_manager, invalidate_cache, clear_all_cache
-)
-```
+Caching is not provided by this library. Apply caching at the application
+or platform level if needed.
 
 ## OpenAPI Helpers
 

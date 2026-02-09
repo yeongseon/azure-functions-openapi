@@ -92,11 +92,7 @@ All errors are logged with:
 
 ### Caching Security
 
-The caching system includes:
-- Input validation for cache keys
-- TTL-based expiration
-- Memory-safe operations
-- No sensitive data caching
+Caching should be handled at the application or platform level.
 
 ## Security Best Practices
 

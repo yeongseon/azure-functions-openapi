@@ -91,7 +91,6 @@ response = render_swagger_ui(
 - **Security Headers**: CSP, X-Frame-Options, X-XSS-Protection
 - **Input Sanitization**: XSS protection and content validation
 - **Customization**: Configurable CSP policies and UI options
-- **Monitoring**: Request/response interceptors for logging
 
 ### 4. Error Handling System (`errors.py`)
 
@@ -113,26 +112,9 @@ response = create_error_response(error, include_stack_trace=False)
 - **Logging**: Comprehensive error logging with context
 - **Request Tracking**: Unique request IDs for correlation
 
-### 5. Caching System (`cache.py`)
+### 5. Performance Considerations
 
-High-performance in-memory caching:
-
-```python
-# Cache decorator
-@cached(ttl=300, key_prefix="api")
-def expensive_operation():
-    return compute_result()
-
-# Cache management
-cache_manager = get_cache_manager()
-cache_manager.set("key", "value", ttl=60)
-```
-
-**Key Features:**
-- **TTL Support**: Time-to-live based expiration
-- **LRU Eviction**: Least Recently Used eviction policy
-- **Thread Safety**: Safe for concurrent access
-- **Statistics**: Cache hit/miss statistics and monitoring
+Performance optimizations should be applied at the application/platform level.
 
 ### 6. Operational Concerns
 
@@ -150,7 +132,7 @@ Function Definition → @openapi Decorator → Metadata Validation → Registry 
 ### 2. OpenAPI Generation
 
 ```
-Registry → Schema Generation → Error Handling → Caching → JSON/YAML Output
+Registry → Schema Generation → Error Handling → JSON/YAML Output
 ```
 
 ### 3. Swagger UI Rendering
@@ -214,7 +196,7 @@ def custom_error_handler(error: APIError) -> HttpResponse:
 ```python
 class CustomCacheManager(CacheManager):
     def get(self, key: str) -> Optional[Any]:
-        # Custom cache retrieval logic
+# Custom retrieval logic
         return super().get(key)
 ```
 
@@ -236,14 +218,11 @@ CLI Commands → Library Functions → Azure Functions → OpenAPI Generation
 
 ### Memory Management
 
-- **Cache Limits**: Configurable cache size limits
-- **LRU Eviction**: Automatic cleanup of unused entries
-- **TTL Expiration**: Time-based cache invalidation
+- **Memory Limits**: Use platform limits and monitoring
 
 ### Performance Optimization
 
 - **Lazy Loading**: On-demand schema generation
-- **Caching**: Aggressive caching of expensive operations
 - **Parallel Processing**: Concurrent request handling
 
 ### Monitoring and Alerting
@@ -254,8 +233,7 @@ Monitoring and alerting should be implemented at the application/platform layer.
 
 ### Planned Enhancements
 
-1. **Distributed Caching**: Redis/Memcached integration
-2. **Advanced Monitoring**: Prometheus/Grafana integration
+1. **Advanced Monitoring**: Prometheus/Grafana integration
 3. **API Gateway Integration**: Azure API Management support
 4. **Authentication**: OAuth2/OpenID Connect support
 5. **Rate Limiting**: Built-in rate limiting capabilities

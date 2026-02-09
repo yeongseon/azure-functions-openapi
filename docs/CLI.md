@@ -150,8 +150,7 @@ Create a configuration file at `~/.azure-functions-openapi/config.json`:
 {
   "default_format": "json",
   "default_output_dir": "./docs",
-  "pretty_print": true,
-  "cache_ttl": 300
+  "pretty_print": true
 }
 ```
 

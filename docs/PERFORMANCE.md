@@ -10,11 +10,9 @@ The project tracks performance against clear KPIs to guide optimization and regr
 
 | KPI | Target | Notes |
 | --- | --- | --- |
-| OpenAPI spec generation (cached) | < 100 ms | Typical path after first call |
-| OpenAPI spec generation (cold) | < 2 s | First call after cache miss |
+| OpenAPI spec generation | < 2 s | Typical path |
 | Swagger UI render | < 200 ms | HTML response time |
 | Error rate | < 1% | 4xx/5xx across monitored requests |
-| Cache hit rate | > 90% | OpenAPI spec cache |
 
 ### Service Level Objectives (SLOs)
 
@@ -61,7 +59,6 @@ Monitor these signals in production deployments:
 
 - Response time (p95, p99)
 - Error rate (4xx/5xx)
-- Cache hit rate
 - Memory usage (RSS, working set)
 - CPU utilization
 
@@ -69,51 +66,15 @@ Recommended alert thresholds:
 
 - p95 response time > 500 ms for 10 minutes
 - Error rate > 1% for 10 minutes
-- Cache hit rate < 85% for 30 minutes
 - Memory usage > 80% of available limit
 - CPU usage > 85% for 15 minutes
 
 ## Performance Features
 
-### Caching System
+### Caching
 
-The library includes a comprehensive caching system to improve performance:
-
-#### In-Memory Cache
-
-- **TTL-based expiration**: Automatic cleanup of expired entries
-- **LRU eviction**: Least Recently Used eviction when cache is full
-- **Thread-safe operations**: Safe for concurrent access
-- **Configurable TTL**: Default 5 minutes, customizable per operation
-
-#### Cached Operations
-
-The following operations are automatically cached:
-
-- **OpenAPI spec generation**: 10-minute TTL
-- **JSON serialization**: 5-minute TTL
-- **YAML serialization**: 5-minute TTL
-
-#### Cache Management
-
-```python
-from azure_functions_openapi.cache import (
-    get_cache_manager,
-    invalidate_cache,
-    clear_all_cache,
-    get_cache_stats
-)
-
-# Get cache statistics
-stats = get_cache_stats()
-print(f"Active entries: {stats['active_entries']}")
-
-# Invalidate specific cache entries
-invalidated = invalidate_cache("openapi_spec")
-
-# Clear all cache
-clear_all_cache()
-```
+Caching is not built into this library. Apply caching at the application or
+platform level if needed.
 
 ### Performance Monitoring
 
@@ -124,16 +85,14 @@ to track response times, throughput, and request logging.
 
 ### OpenAPI Generation
 
-1. **Use caching**: The library automatically caches generated specs
-2. **Minimize changes**: Avoid frequent changes to function metadata
-3. **Batch operations**: Group related operations together
-4. **Optimize models**: Use efficient Pydantic models
+1. **Minimize changes**: Avoid frequent changes to function metadata
+2. **Batch operations**: Group related operations together
+3. **Optimize models**: Use efficient Pydantic models
 
 ### Memory Management
 
-1. **Monitor cache size**: Use `get_cache_stats()` to monitor memory usage
-2. **Clear cache periodically**: Use `clear_all_cache()` in maintenance windows
-3. **Limit cache entries**: The cache automatically limits entries to prevent memory issues
+1. **Monitor memory**: Use platform monitoring to understand memory usage
+2. **Limit metadata**: Keep models and descriptions lean
 
 ### Response Optimization
 
@@ -150,19 +109,6 @@ to track response times, throughput, and request logging.
 4. **Retry logic**: Implement exponential backoff for retries
 
 ## Performance Configuration
-
-### Cache Configuration
-
-Configure cache behavior:
-
-```python
-from azure_functions_openapi.cache import get_cache_manager
-
-cache = get_cache_manager()
-cache.default_ttl = 600  # 10 minutes
-```
-
-### Monitoring Configuration
 
 Configure monitoring settings via your platform configuration and
 application logger.
@@ -188,11 +134,7 @@ application logger.
    - Error count
    - Error types
 
-4. **Cache Performance**
-   - Cache hit rate
-   - Cache miss rate
-   - Cache size
-   - Cache evictions
+
 
 ### Quality Metrics
 
@@ -209,26 +151,22 @@ Suggested reporting cadence: every release and any significant performance chang
 
 Recommended performance targets:
 
-- **Response Time**: < 100ms for cached operations
+- **Response Time**: < 2s for spec generation
 - **Throughput**: > 1000 requests/second
 - **Error Rate**: < 1%
-- **Cache Hit Rate**: > 90%
 
 ## Performance Troubleshooting
 
 ### Common Issues
 
 1. **Slow Response Times**
-   - Check cache hit rates
    - Monitor memory usage
    - Review function complexity
    - Check external service latency
 
 2. **High Memory Usage**
-   - Monitor cache size
-   - Check for memory leaks
-   - Review data structures
-   - Clear cache if needed
+    - Check for memory leaks
+    - Review data structures
 
 3. **High Error Rates**
    - Check input validation
@@ -306,8 +244,7 @@ Monitor key metrics during testing using your platform observability tools.
 - [ ] Use connection pooling
 - [ ] Implement retry logic
 - [ ] Regular performance testing
-- [ ] Monitor cache hit rates
-- [ ] Clear cache when needed
+- [ ] Monitor memory usage
 - [ ] Use async operations where appropriate
 - [ ] Optimize database queries
 - [ ] Monitor external service latency

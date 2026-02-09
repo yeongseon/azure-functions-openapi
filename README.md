@@ -24,7 +24,7 @@
 
 ### Security & Performance
 - **Enhanced Security**: CSP headers, input validation, XSS protection
-- **Performance Caching**: In-memory caching with TTL and LRU eviction
+- **Performance**: Optimized OpenAPI generation with low overhead
 - **Error Handling**: Standardized error responses with detailed logging
 - **Input Sanitization**: Automatic sanitization of routes, operation IDs, and parameters
 

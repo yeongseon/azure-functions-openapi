@@ -179,31 +179,31 @@ class TestGetOpenAPIJSONEnhanced:
 
     def test_get_openapi_json_success(self) -> None:
         """Test successful JSON generation."""
-        with patch("azure_functions_openapi.openapi.cached_openapi_spec") as mock_cached:
-            mock_cached.return_value = {"openapi": "3.0.0", "info": {"title": "Test API"}}
+        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+            mock_generate.return_value = {"openapi": "3.0.0", "info": {"title": "Test API"}}
 
             result = get_openapi_json("Test API", "1.0.0")
 
             assert (
                 result == '{\n  "openapi": "3.0.0",\n  "info": {\n    "title": "Test API"\n  }\n}'
             )
-            mock_cached.assert_called_once_with("Test API", "1.0.0", "3.0.0")
+            mock_generate.assert_called_once_with("Test API", "1.0.0", "3.0.0")
 
     def test_get_openapi_json_error(self) -> None:
         """Test JSON generation with error."""
-        with patch("azure_functions_openapi.openapi.cached_openapi_spec") as mock_cached:
-            mock_cached.side_effect = Exception("Cache error")
+        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+            mock_generate.side_effect = Exception("Spec error")
 
             with pytest.raises(OpenAPIError) as exc_info:
                 get_openapi_json("Test API", "1.0.0")
 
             assert "Failed to generate OpenAPI JSON" in str(exc_info.value)
-            assert exc_info.value.details["error"] == "Cache error"
+            assert exc_info.value.details["error"] == "Spec error"
 
     def test_get_openapi_json_logging(self) -> None:
         """Test that JSON generation logs errors."""
-        with patch("azure_functions_openapi.openapi.cached_openapi_spec") as mock_cached:
-            mock_cached.side_effect = Exception("Cache error")
+        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+            mock_generate.side_effect = Exception("Spec error")
 
             with patch("azure_functions_openapi.openapi.logger") as mock_logger:
                 with pytest.raises(OpenAPIError):
@@ -219,30 +219,30 @@ class TestGetOpenAPIYAMLEnhanced:
 
     def test_get_openapi_yaml_success(self) -> None:
         """Test successful YAML generation."""
-        with patch("azure_functions_openapi.openapi.cached_openapi_spec") as mock_cached:
-            mock_cached.return_value = {"openapi": "3.0.0", "info": {"title": "Test API"}}
+        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+            mock_generate.return_value = {"openapi": "3.0.0", "info": {"title": "Test API"}}
 
             result = get_openapi_yaml("Test API", "1.0.0")
 
             assert "openapi: 3.0.0" in result
             assert "title: Test API" in result
-            mock_cached.assert_called_once_with("Test API", "1.0.0", "3.0.0")
+            mock_generate.assert_called_once_with("Test API", "1.0.0", "3.0.0")
 
     def test_get_openapi_yaml_error(self) -> None:
         """Test YAML generation with error."""
-        with patch("azure_functions_openapi.openapi.cached_openapi_spec") as mock_cached:
-            mock_cached.side_effect = Exception("Cache error")
+        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+            mock_generate.side_effect = Exception("Spec error")
 
             with pytest.raises(OpenAPIError) as exc_info:
                 get_openapi_yaml("Test API", "1.0.0")
 
             assert "Failed to generate OpenAPI YAML" in str(exc_info.value)
-            assert exc_info.value.details["error"] == "Cache error"
+            assert exc_info.value.details["error"] == "Spec error"
 
     def test_get_openapi_yaml_logging(self) -> None:
         """Test that YAML generation logs errors."""
-        with patch("azure_functions_openapi.openapi.cached_openapi_spec") as mock_cached:
-            mock_cached.side_effect = Exception("Cache error")
+        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+            mock_generate.side_effect = Exception("Spec error")
 
             with patch("azure_functions_openapi.openapi.logger") as mock_logger:
                 with pytest.raises(OpenAPIError):

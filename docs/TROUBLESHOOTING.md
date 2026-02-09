@@ -210,52 +210,24 @@ Refused to load the script because it violates the following Content Security Po
 #### Problem: Slow OpenAPI generation
 
 **Solutions:**
-1. **Enable caching:**
-   ```python
-   # Caching is enabled by default
-   # Check cache statistics
-   from azure_functions_openapi.cache import get_cache_stats
-   
-   stats = get_cache_stats()
-   print(f"Cache hit rate: {stats}")
-   ```
-
-2. **Optimize Pydantic models:**
+1. **Optimize Pydantic models:**
    ```python
    # Use simple models for better performance
    class SimpleModel(BaseModel):
-       name: str
-       age: int
+      name: str
+      age: int
    
    # Avoid complex nested models if possible
    ```
 
-3. **Clear cache if needed:**
-   ```python
-   from azure_functions_openapi.cache import clear_all_cache
-   
-   # Clear cache (use sparingly)
-   clear_all_cache()
-   ```
+2. **Review metadata size:**
+   Keep tags, descriptions, and schema definitions concise.
 
 #### Problem: Memory usage issues
 
 **Solutions:**
-1. **Monitor cache size:**
-   ```python
-   from azure_functions_openapi.cache import get_cache_manager
-   
-   cache = get_cache_manager()
-   stats = cache.get_stats()
-   print(f"Cache entries: {stats['total_entries']}")
-   ```
-
-2. **Configure cache limits:**
-   ```python
-   # Set smaller cache size
-   cache = get_cache_manager()
-   cache._max_response_times = 100  # Reduce from default 1000
-   ```
+1. **Monitor memory usage:**
+   Use platform monitoring to detect memory growth.
 
 ### 6. CLI Tool Issues
 
@@ -428,7 +400,7 @@ When reporting issues, include:
 export AZURE_FUNCTIONS_OPENAPI_DEBUG=1
 
 # Cache TTL (seconds)
-export AZURE_FUNCTIONS_OPENAPI_CACHE_TTL=300
+# Configure in your platform if applicable
 
 # Log level
 export AZURE_FUNCTIONS_OPENAPI_LOG_LEVEL=DEBUG
@@ -441,7 +413,6 @@ Create `azure_functions_openapi_config.json`:
 ```json
 {
   "debug": true,
-  "cache_ttl": 300,
   "log_level": "DEBUG",
   "security": {
     "csp_enabled": true,

@@ -7,7 +7,6 @@ from typing import Any
 
 import yaml
 
-from azure_functions_openapi.cache import cached_openapi_spec
 from azure_functions_openapi.decorator import get_openapi_registry
 from azure_functions_openapi.errors import OpenAPIError
 from azure_functions_openapi.utils import model_to_schema
@@ -246,7 +245,7 @@ def get_openapi_json(
         OpenAPI spec in JSON format.
     """
     try:
-        spec = cached_openapi_spec(title, version, openapi_version)
+        spec = generate_openapi_spec(title, version, openapi_version)
         return json.dumps(spec, indent=2, ensure_ascii=False)
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI JSON: {str(e)}")
@@ -271,7 +270,7 @@ def get_openapi_yaml(
         OpenAPI spec in YAML format.
     """
     try:
-        spec = cached_openapi_spec(title, version, openapi_version)
+        spec = generate_openapi_spec(title, version, openapi_version)
         return yaml.safe_dump(spec, sort_keys=False, allow_unicode=True)
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI YAML: {str(e)}")

@@ -20,7 +20,7 @@ app = func.FunctionApp()
 
 
 @app.schedule(schedule="0 */5 * * * *", arg_name="timer", run_on_startup=False)
-def refresh_cache(timer: func.TimerRequest) -> None:
+def refresh_docs(timer: func.TimerRequest) -> None:
     # Background job, no OpenAPI metadata required.
     pass
 

@@ -4,12 +4,7 @@ This document lists common configuration options and recommended defaults.
 
 ## Cache Configuration
 
-```python
-from azure_functions_openapi.cache import get_cache_manager
-
-cache = get_cache_manager()
-cache.default_ttl = 600
-```
+Caching should be handled at the application or platform level.
 
 ## Swagger UI Configuration
 

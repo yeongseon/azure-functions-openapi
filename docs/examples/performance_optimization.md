@@ -1,11 +1,10 @@
 # Performance Optimization Example
 
-Highlights caching and performance optimization techniques.
+Highlights performance optimization techniques.
 
 ## Key Concepts
 
-- Cache usage for OpenAPI spec generation
-- Performance optimization via caching
+- Performance optimization via efficient OpenAPI generation
 
 ## Sample
 
@@ -26,4 +25,4 @@ def openapi_json(req: func.HttpRequest) -> func.HttpResponse:
 
 ## Notes
 
-- The OpenAPI spec is cached internally for faster responses.
+- Keep OpenAPI generation lean for faster responses.
