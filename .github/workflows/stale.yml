@@ -16,7 +16,7 @@ jobs:
     
     steps:
       - name: 'Stale issues and PRs'
-        uses: actions/stale@v9
+        uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639 # v9
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           stale-issue-message: 'This issue has been marked as stale because it has not had recent activity. It will be closed in 7 days if no further activity occurs. Please reopen if this is still relevant.'
@@ -36,13 +36,13 @@ jobs:
     
     steps:
       - name: 'Checkout code'
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
       - name: 'Delete stale branches'
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -133,13 +133,13 @@ jobs:
     
     steps:
       - name: 'Checkout code'
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
 
       - name: 'Validate branch naming convention'
         id: validate-branch
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -172,7 +172,7 @@ jobs:
 
       - name: 'Add comment with validation result'
         if: steps.validate-branch.outputs.isValid == 'false'
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
