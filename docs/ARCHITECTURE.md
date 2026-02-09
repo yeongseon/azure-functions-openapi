@@ -134,42 +134,10 @@ cache_manager.set("key", "value", ttl=60)
 - **Thread Safety**: Safe for concurrent access
 - **Statistics**: Cache hit/miss statistics and monitoring
 
-### 6. Monitoring System (`monitoring.py`)
+### 6. Operational Concerns
 
-Performance monitoring and health checks:
-
-```python
-# Performance monitoring
-@monitor_performance
-def api_endpoint():
-    return process_request()
-
-# Health checks
-health_status = run_health_check("openapi_generation")
-```
-
-**Key Features:**
-- **Response Time Tracking**: Detailed performance metrics
-- **Health Checks**: Automated system health monitoring
-- **Request Logging**: Comprehensive request/response logging
-- **Statistics**: Throughput and error rate calculations
-
-### 7. Server Information (`server_info.py`)
-
-Runtime information and system status:
-
-```python
-# Server information
-info = get_server_info_dict()
-health = get_health_status()
-metrics = get_metrics()
-```
-
-**Key Features:**
-- **Runtime Info**: Python version, platform, architecture
-- **Performance Metrics**: Uptime, request counts, error rates
-- **Security Status**: Security features and configuration
-- **Health Monitoring**: System health and component status
+This library focuses on OpenAPI generation and documentation rendering.
+Operational monitoring should be implemented at the application/platform level.
 
 ## 🔄 Data Flow
 
@@ -228,9 +196,7 @@ Request → Cache Check → Cache Hit/Miss → Response/Computation → Cache Up
 
 ### Monitoring Pipeline
 
-```
-Request → Timing → Logging → Statistics → Health Checks → Alerts
-```
+Use your platform observability stack to collect metrics and alerts.
 
 ## 🔧 Extension Points
 
@@ -242,15 +208,6 @@ def custom_error_handler(error: APIError) -> HttpResponse:
     return create_error_response(error)
 ```
 
-### Custom Health Checks
-
-```python
-def custom_health_check() -> bool:
-    # Custom health check logic
-    return True
-
-register_health_check("custom_check", custom_health_check)
-```
 
 ### Custom Cache Strategies
 
@@ -291,9 +248,7 @@ CLI Commands → Library Functions → Azure Functions → OpenAPI Generation
 
 ### Monitoring and Alerting
 
-- **Health Checks**: Automated system health monitoring
-- **Performance Metrics**: Real-time performance tracking
-- **Error Tracking**: Comprehensive error logging and analysis
+Monitoring and alerting should be implemented at the application/platform layer.
 
 ## 🔮 Future Architecture Considerations
 

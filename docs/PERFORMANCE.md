@@ -29,14 +29,13 @@ The project tracks performance against clear KPIs to guide optimization and regr
 Performance regression tests live in `./tests/performance` and focus on:
 
 - OpenAPI spec generation latency
-- Request logging throughput
 
 The tests are designed to be stable in CI by using generous thresholds and warmup passes.
 
 ### Measurement Method
 
 - Runtime: local Python 3.9.6 on macOS
-- Script: direct timing for `generate_openapi_spec()` and `RequestLogger.log_request()`
+- Script: direct timing for `generate_openapi_spec()`
 - Precision: `perf_counter_ns`
 - Date: 2026-02-09
 
@@ -46,8 +45,6 @@ The tests are designed to be stable in CI by using generous thresholds and warmu
 | --- | --- | --- |
 | OpenAPI generation average | 1.34 us | empty/minimal registry in local run |
 | OpenAPI generation p95 | 1.38 us | same measurement batch |
-| Request logging throughput | 410,287 ops/s | 5,000 log entries |
-| Request logging elapsed time | 12.19 ms | same 5,000-entry batch |
 
 ## CI/CD Performance Profiling
 
@@ -120,58 +117,8 @@ clear_all_cache()
 
 ### Performance Monitoring
 
-#### Response Time Tracking
-
-The library tracks response times for all operations:
-
-```python
-from azure_functions_openapi.monitoring import get_performance_monitor
-
-monitor = get_performance_monitor()
-stats = monitor.get_response_time_stats()
-
-print(f"Average response time: {stats['avg']:.3f}s")
-print(f"95th percentile: {stats['p95']:.3f}s")
-```
-
-#### Throughput Metrics
-
-Monitor requests per second, minute, and hour:
-
-```python
-throughput = monitor.get_throughput_stats()
-print(f"Requests per second: {throughput['requests_per_second']:.2f}")
-```
-
-#### Request Logging
-
-Track individual requests with detailed metrics:
-
-```python
-from azure_functions_openapi.monitoring import log_request
-
-log_request(
-    method="GET",
-    path="/api/users",
-    status_code=200,
-    response_time=0.150,
-    user_agent="Mozilla/5.0...",
-    ip_address="192.168.1.1"
-)
-```
-
-### Performance Decorators
-
-Use the `@monitor_performance` decorator to automatically track function performance:
-
-```python
-from azure_functions_openapi.monitoring import monitor_performance
-
-@monitor_performance
-def my_api_function():
-    # Your function code
-    return {"result": "success"}
-```
+Use your platform observability tooling (e.g., Azure Monitor/Application Insights)
+to track response times, throughput, and request logging.
 
 ## Performance Best Practices
 
@@ -217,27 +164,8 @@ cache.default_ttl = 600  # 10 minutes
 
 ### Monitoring Configuration
 
-Configure monitoring settings:
-
-```python
-from azure_functions_openapi.monitoring import get_performance_monitor
-
-monitor = get_performance_monitor()
-monitor._max_response_times = 2000  # Keep more response times
-```
-
-### Logging Configuration
-
-Configure logging for performance monitoring:
-
-```python
-import logging
-
-# Set up performance logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('azure_functions_openapi.monitoring')
-logger.setLevel(logging.DEBUG)
-```
+Configure monitoring settings via your platform configuration and
+application logger.
 
 ## Performance Metrics
 
@@ -364,23 +292,7 @@ ab -n 10000 -c 500 http://localhost:7071/api/openapi.json
 
 ### Monitoring During Tests
 
-Monitor key metrics during testing:
-
-```python
-from azure_functions_openapi.monitoring import get_performance_monitor
-
-monitor = get_performance_monitor()
-
-# Before test
-initial_stats = monitor.get_response_time_stats()
-
-# Run your test
-# ...
-
-# After test
-final_stats = monitor.get_response_time_stats()
-print(f"Performance change: {final_stats['avg'] - initial_stats['avg']:.3f}s")
-```
+Monitor key metrics during testing using your platform observability tools.
 
 ## Performance Optimization Checklist
 

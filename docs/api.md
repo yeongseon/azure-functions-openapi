@@ -7,7 +7,6 @@ This document provides comprehensive API reference for the azure-functions-opena
 - Core Components
 - OpenAPI Helpers
 - Swagger UI
-- Server Info and Health
 - CLI Commands
 
 ## Core Components
@@ -38,19 +37,6 @@ from azure_functions_openapi.cache import (
 )
 ```
 
-### Monitoring & Health Checks
-
-Built-in monitoring and health check capabilities:
-
-```python
-from azure_functions_openapi.monitoring import (
-    monitor_performance, log_request, run_health_check
-)
-from azure_functions_openapi.server_info import get_server_info_dict
-```
-
----
-
 ## OpenAPI Helpers
 
 ```python
@@ -73,27 +59,11 @@ from azure_functions_openapi.swagger_ui import render_swagger_ui
 `render_swagger_ui()` returns an `HttpResponse` with security headers and the
 Swagger UI HTML.
 
-## Server Info and Health
-
-```python
-from azure_functions_openapi.server_info import (
-    get_server_info_dict,
-    get_health_status,
-    get_metrics,
-)
-```
-
-These helpers provide runtime details, health status, and performance metrics
-for monitoring endpoints.
-
 ## CLI Commands
 
 The CLI exposes:
 
 - `generate` for OpenAPI spec generation
-- `info` for server info
-- `health` for health checks
-- `metrics` for performance metrics
 - `validate` for OpenAPI spec validation
 
 ---

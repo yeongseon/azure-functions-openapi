@@ -48,76 +48,6 @@ azure-functions-openapi generate --pretty --title "My API" --version "1.0.0"
 - `--format, -f`: Output format (json or yaml, default: json)
 - `--pretty, -p`: Pretty print output
 
-### Server Information
-
-Get server information:
-
-```bash
-# Get server info as JSON
-azure-functions-openapi info
-
-# Get server info as YAML
-azure-functions-openapi info --format yaml
-
-# Save to file
-azure-functions-openapi info --output server-info.json
-```
-
-#### Server Information Includes
-
-- Server details (name, version, environment)
-- Runtime information (Python version, platform)
-- Uptime statistics
-- Request/error statistics
-- Security features status
-- Available features
-
-### Health Status
-
-Check health status:
-
-```bash
-# Check health status
-azure-functions-openapi health
-
-# Save health status to file
-azure-functions-openapi health --output health.json
-
-# Get health status as YAML
-azure-functions-openapi health --format yaml
-```
-
-#### Health Status Information
-
-- Overall health status (healthy/unhealthy/starting/error)
-- Individual health checks
-- Timestamp
-- Uptime
-- Error rate
-- Request statistics
-
-### Performance Metrics
-
-Get performance metrics:
-
-```bash
-# Get metrics
-azure-functions-openapi metrics
-
-# Save metrics to file
-azure-functions-openapi metrics --output metrics.json
-
-# Get metrics as YAML
-azure-functions-openapi metrics --format yaml
-```
-
-#### Metrics Include
-
-- Request statistics (total, per second, per minute, per hour)
-- Error statistics (total, rate, per second)
-- Uptime information
-- Performance metrics (response time, memory usage)
-
 ### Validate OpenAPI Specification
 
 Validate an OpenAPI specification file:
@@ -155,38 +85,10 @@ azure-functions-openapi generate \
   --pretty
 ```
 
-### Health Check Script
+The CLI tool provides two primary commands:
 
-```bash
-#!/bin/bash
-# health-check.sh
-
-# Check health status
-if azure-functions-openapi health --format json | jq -r '.status' | grep -q "healthy"; then
-    echo "✅ Service is healthy"
-    exit 0
-else
-    echo "❌ Service is unhealthy"
-    exit 1
-fi
-```
-
-### Monitoring Script
-
-```bash
-#!/bin/bash
-# monitor.sh
-
-# Get metrics and save to file with timestamp
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-azure-functions-openapi metrics --output "metrics_${TIMESTAMP}.json"
-
-# Check if error rate is too high
-ERROR_RATE=$(azure-functions-openapi metrics --format json | jq -r '.errors.rate')
-if (( $(echo "$ERROR_RATE > 5" | bc -l) )); then
-    echo "⚠️  High error rate: ${ERROR_RATE}%"
-fi
-```
+- `generate`: Create OpenAPI JSON/YAML output
+- `validate`: Validate existing OpenAPI documents
 
 ### CI/CD Integration
 
@@ -285,14 +187,8 @@ Create a configuration file at `~/.azure-functions-openapi/config.json`:
 Use jq to process JSON output:
 
 ```bash
-# Get only the status from health check
-azure-functions-openapi health | jq -r '.status'
-
-# Get error rate from metrics
-azure-functions-openapi metrics | jq -r '.errors.rate'
-
-# Filter server info
-azure-functions-openapi info | jq '.server'
+# Filter OpenAPI info
+azure-functions-openapi generate --format json | jq '.info'
 ```
 
 ### curl Integration

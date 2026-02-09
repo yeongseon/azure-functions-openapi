@@ -31,5 +31,5 @@ def queue_status(req: func.HttpRequest) -> func.HttpResponse:
 
 ## Notes
 
-- Use a separate HTTP route to expose metadata and health checks.
+- Use a separate HTTP route to expose metadata and operational checks.
 - Keep queue trigger logic focused on background processing.

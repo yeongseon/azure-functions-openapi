@@ -113,7 +113,7 @@ The caching system includes:
 1. **Environment Variables**: Use secure environment variables for configuration
 2. **Network Security**: Configure proper network security groups
 3. **Access Control**: Implement proper authentication and authorization
-4. **Monitoring**: Set up security monitoring and alerting
+4. **Monitoring**: Set up application-level monitoring and alerting
 5. **Regular Updates**: Keep the runtime and dependencies updated
 
 ### For API Design
@@ -133,7 +133,7 @@ You can provide a custom CSP policy:
 ```python
 from azure_functions_openapi.swagger_ui import render_swagger_ui
 
-custom_csp = "default-src 'self'; script-src 'self' 'unsafe-inline'"
+custom_csp = "default-src 'self'; script-src 'self'"
 response = render_swagger_ui(custom_csp=custom_csp)
 ```
 
@@ -157,20 +157,8 @@ except APIError as e:
 
 ## Security Monitoring
 
-### Health Checks
-
-The library includes built-in health checks for:
-- OpenAPI generation
-- Swagger UI rendering
-- Cache functionality
-
-### Metrics
-
-Monitor security-related metrics:
-- Error rates
-- Response times
-- Request patterns
-- Failed validations
+Security monitoring should be implemented at the application or platform level
+(e.g., Azure Monitor, Application Insights, or your preferred observability stack).
 
 ### Logging
 

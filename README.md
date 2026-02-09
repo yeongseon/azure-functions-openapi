@@ -28,14 +28,8 @@
 - **Error Handling**: Standardized error responses with detailed logging
 - **Input Sanitization**: Automatic sanitization of routes, operation IDs, and parameters
 
-### Monitoring & Operations
-- **Health Checks**: Built-in health monitoring for all components
-- **Performance Metrics**: Response time tracking, throughput monitoring
-- **Request Logging**: Detailed request/response logging with statistics
-- **Server Information**: Comprehensive server info and runtime details
-
 ### Developer Experience
-- **CLI Tool**: Command-line interface for spec generation, validation, and monitoring
+- **CLI Tool**: Command-line interface for spec generation and validation
 - **Comprehensive Testing**: 85%+ test coverage with unit and integration suites
 - **Documentation**: Detailed guides for security, performance, and CLI usage
 - **Type Safety**: Full type hints and validation throughout
@@ -247,14 +241,8 @@ The package includes a powerful CLI tool for various operations:
 # Generate OpenAPI specification
 azure-functions-openapi generate --title "My API" --version "1.0.0"
 
-# Get server information
-azure-functions-openapi info
-
-# Check health status
-azure-functions-openapi health
-
-# Get performance metrics
-azure-functions-openapi metrics
+# Generate OpenAPI spec
+azure-functions-openapi generate --output openapi.json --format json
 
 # Validate OpenAPI specification
 azure-functions-openapi validate openapi.json

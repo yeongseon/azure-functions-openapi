@@ -21,11 +21,5 @@ extract API docs via MkDocs plugins if needed.
 
 ## Health Checks
 
-Use the health check utilities to validate production readiness:
-
-```python
-from azure_functions_openapi.monitoring import run_all_health_checks
-
-results = run_all_health_checks()
-print(results["overall_status"])
-```
+Use your platform observability tooling (e.g., Azure Monitor/Application Insights)
+to validate production readiness and health.

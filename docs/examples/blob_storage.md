@@ -27,13 +27,13 @@ def handle_blob(blob: func.InputStream) -> None:
     _ = blob.read()
 
 
-@app.route(route="blob/health", auth_level=func.AuthLevel.ANONYMOUS)
-@openapi(summary="Blob processing health", route="/api/blob/health", tags=["Blob"])
-def blob_health(req: func.HttpRequest) -> func.HttpResponse:
+@app.route(route="blob/status", auth_level=func.AuthLevel.ANONYMOUS)
+@openapi(summary="Blob processing status", route="/api/blob/status", tags=["Blob"])
+def blob_status(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse("OK")
 ```
 
 ## Notes
 
 - Keep blob processing logic isolated from HTTP concerns.
-- Provide a separate endpoint for monitoring and documentation.
+- Provide a separate endpoint for operational checks and documentation.

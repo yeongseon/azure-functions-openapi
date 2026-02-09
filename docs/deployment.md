@@ -39,4 +39,4 @@ For detailed rollback guidance, see `docs/rollback.md`.
 1. Identify the last known-good commit or release tag.
 2. Build artifacts from that revision.
 3. Run manual deployment with the known-good package.
-4. Verify health checks after deployment.
+4. Verify key user flows and platform health indicators after deployment.

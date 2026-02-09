@@ -352,27 +352,8 @@ except Exception as e:
 
 ### 4. Monitor Performance
 
-```python
-from azure_functions_openapi.monitoring import get_performance_monitor
-
-monitor = get_performance_monitor()
-stats = monitor.get_response_time_stats()
-print(f"Response time stats: {stats}")
-
-throughput = monitor.get_throughput_stats()
-print(f"Throughput: {throughput}")
-```
-
-### 5. Check Health Status
-
-```python
-from azure_functions_openapi.monitoring import run_all_health_checks
-
-health = run_all_health_checks()
-print(f"Health status: {health['overall_status']}")
-for check_name, check_result in health['checks'].items():
-    print(f"  {check_name}: {check_result['status']}")
-```
+Use your platform observability tooling (e.g., Azure Monitor/Application Insights)
+to inspect response times and throughput.
 
 ## 🛠️ Development Tools
 
@@ -398,11 +379,7 @@ make format
 # Generate OpenAPI spec
 azure-functions-openapi generate --title "Test API" --version "1.0.0"
 
-# Check health
-azure-functions-openapi health
-
-# Get metrics
-azure-functions-openapi metrics
+# Use platform health endpoints and logs
 ```
 
 ### 3. Use Development Mode

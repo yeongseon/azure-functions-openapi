@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2026-02-09
+
+### 🧹 Removed
+
+- Remove monitoring and server info utilities (monitoring module, server info helpers, CLI info/health/metrics)
+
 ## [0.8.0] - 2026-01-22
 
 ### 🚀 Features
@@ -16,8 +22,6 @@ All notable changes to this project will be documented in this file.
 
 - Fix test file naming conventions (#28)
 - Add comprehensive tests for CLI module (32 tests)
-- Add comprehensive tests for monitoring module
-- Add comprehensive tests for server_info module
 - Add comprehensive tests for OpenAPI 3.1 functionality (27 tests)
 
 ### 🐛 Bug Fixes

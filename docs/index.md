@@ -1,6 +1,6 @@
 # Azure Functions OpenAPI
 
-Welcome to **azure-functions-openapi** — a comprehensive library that provides seamless integration of **OpenAPI (Swagger)** documentation for Python-based Azure Functions with enterprise-grade security, performance, and monitoring capabilities.
+Welcome to **azure-functions-openapi** — a library that provides seamless integration of **OpenAPI (Swagger)** documentation for Python-based Azure Functions with strong security and performance defaults.
 
 ## 🚀 Features
 
@@ -25,14 +25,8 @@ Welcome to **azure-functions-openapi** — a comprehensive library that provides
 - **Error Handling**: Standardized error responses with detailed logging
 - **Input Sanitization**: Automatic sanitization of routes, operation IDs, and parameters
 
-### 📊 Monitoring & Operations
-- **Health Checks**: Built-in health monitoring for all components
-- **Performance Metrics**: Response time tracking, throughput monitoring
-- **Request Logging**: Detailed request/response logging with statistics
-- **Server Information**: Comprehensive server info and runtime details
-
 ### 🛠️ Developer Experience
-- **CLI Tool**: Command-line interface for spec generation, validation, and monitoring
+- **CLI Tool**: Command-line interface for spec generation and validation
 - **Comprehensive Testing**: 85%+ target coverage (latest CI: 87%) with extensive test suites
 - **Documentation**: Detailed guides for security, performance, and CLI usage
 - **Type Safety**: Full type hints and validation throughout
@@ -163,7 +157,7 @@ Once the app is running, open your browser:
 
 ### Advanced Features
 - [Security Guide](./SECURITY.md) - Security best practices and features
-- [Performance Guide](./PERFORMANCE.md) - Performance optimization and monitoring
+- [Performance Guide](./PERFORMANCE.md) - Performance optimization
 - [CLI Tool Guide](./CLI.md) - Command-line interface usage
 
 ### Examples & Tutorials

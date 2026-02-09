@@ -17,6 +17,5 @@ Step-by-step walkthroughs for common scenarios.
 
 ## Tutorial 3: Production Readiness
 
-1. Enable monitoring with `monitor_performance`.
-2. Add health checks using `run_all_health_checks`.
-3. Review performance targets in `docs/PERFORMANCE.md`.
+1. Review performance targets in `docs/PERFORMANCE.md`.
+2. Configure platform monitoring (e.g., Application Insights).

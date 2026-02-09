@@ -29,7 +29,7 @@ make cov
 - Core API generation: decorator metadata, OpenAPI JSON/YAML output
 - CLI behavior: command parsing, generation/validation command paths
 - Security behavior: sanitization/validation and scanner checks (Bandit/Semgrep in CI)
-- Monitoring/performance: health and regression checks in `tests/performance/`
+- Performance regression checks in `tests/performance/`
 
 ## Adding New Tests
 

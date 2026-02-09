@@ -13,7 +13,6 @@ from azure_functions_openapi.openapi import (
     get_openapi_json,
     get_openapi_yaml,
 )
-from azure_functions_openapi.server_info import get_health_status, get_metrics, get_server_info_dict
 
 
 def main() -> int:
@@ -28,15 +27,6 @@ Examples:
   
   # Generate and save to file
   azure-functions-openapi generate --output openapi.json --format json
-  
-  # Get server information
-  azure-functions-openapi info
-  
-  # Check health status
-  azure-functions-openapi health
-  
-  # Get metrics
-  azure-functions-openapi metrics
         """,
     )
 
@@ -62,42 +52,6 @@ Examples:
         help="OpenAPI version (default: 3.0)",
     )
 
-    # Info command
-    info_parser = subparsers.add_parser("info", help="Get server information")
-    info_parser.add_argument("--output", "-o", help="Output file path")
-    info_parser.add_argument(
-        "--format",
-        "-f",
-        choices=["json", "yaml"],
-        default="json",
-        help="Output format (default: json)",
-    )
-    info_parser.add_argument("--pretty", "-p", action="store_true", help="Pretty print output")
-
-    # Health command
-    health_parser = subparsers.add_parser("health", help="Check health status")
-    health_parser.add_argument("--output", "-o", help="Output file path")
-    health_parser.add_argument(
-        "--format",
-        "-f",
-        choices=["json", "yaml"],
-        default="json",
-        help="Output format (default: json)",
-    )
-    health_parser.add_argument("--pretty", "-p", action="store_true", help="Pretty print output")
-
-    # Metrics command
-    metrics_parser = subparsers.add_parser("metrics", help="Get performance metrics")
-    metrics_parser.add_argument("--output", "-o", help="Output file path")
-    metrics_parser.add_argument(
-        "--format",
-        "-f",
-        choices=["json", "yaml"],
-        default="json",
-        help="Output format (default: json)",
-    )
-    metrics_parser.add_argument("--pretty", "-p", action="store_true", help="Pretty print output")
-
     # Validate command
     validate_parser = subparsers.add_parser("validate", help="Validate OpenAPI specification")
     validate_parser.add_argument("file", help="OpenAPI specification file to validate")
@@ -117,12 +71,6 @@ Examples:
     try:
         if args.command == "generate":
             return handle_generate(args)
-        elif args.command == "info":
-            return handle_info(args)
-        elif args.command == "health":
-            return handle_health(args)
-        elif args.command == "metrics":
-            return handle_metrics(args)
         elif args.command == "validate":
             return handle_validate(args)
         else:
@@ -155,85 +103,6 @@ def handle_generate(args: argparse.Namespace) -> int:
         return 0
     except Exception as e:
         print(f"Failed to generate OpenAPI specification: {e}", file=sys.stderr)
-        return 1
-
-
-def handle_info(args: argparse.Namespace) -> int:
-    """Handle info command."""
-    try:
-        info = get_server_info_dict()
-
-        if args.format == "json":
-            content = json.dumps(info, indent=2 if args.pretty else None)
-        else:  # yaml
-            import yaml
-
-            content = yaml.safe_dump(info, default_flow_style=False)
-
-        if args.output:
-            output_path = Path(args.output)
-            output_path.write_text(content, encoding="utf-8")
-            print(f"Server information written to {output_path}")
-        else:
-            print(content)
-
-        return 0
-    except Exception as e:
-        print(f"Failed to get server information: {e}", file=sys.stderr)
-        return 1
-
-
-def handle_health(args: argparse.Namespace) -> int:
-    """Handle health command."""
-    try:
-        health = get_health_status()
-
-        if args.format == "json":
-            content = json.dumps(health, indent=2 if args.pretty else None)
-        else:  # yaml
-            import yaml
-
-            content = yaml.safe_dump(health, default_flow_style=False)
-
-        if args.output:
-            output_path = Path(args.output)
-            output_path.write_text(content, encoding="utf-8")
-            print(f"Health status written to {output_path}")
-        else:
-            print(content)
-
-        # Return non-zero exit code if unhealthy
-        if health.get("status") == "unhealthy":
-            return 1
-
-        return 0
-    except Exception as e:
-        print(f"Failed to get health status: {e}", file=sys.stderr)
-        return 1
-
-
-def handle_metrics(args: argparse.Namespace) -> int:
-    """Handle metrics command."""
-    try:
-        metrics = get_metrics()
-
-        if args.format == "json":
-            content = json.dumps(metrics, indent=2 if args.pretty else None)
-        else:  # yaml
-            import yaml
-
-            content = yaml.safe_dump(metrics, default_flow_style=False)
-
-        if args.output:
-            output_path = Path(args.output)
-            output_path.write_text(content, encoding="utf-8")
-            print(f"Metrics written to {output_path}")
-        else:
-            print(content)
-
-        return 0
-    except Exception as e:
-        print(f"Failed to get metrics: {e}", file=sys.stderr)
         return 1
 
 
