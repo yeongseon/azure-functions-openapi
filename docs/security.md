@@ -2,7 +2,7 @@
 
 # Security Guide
 
-The canonical security policy is maintained in the root [SECURITY.md](../SECURITY.md).
+The canonical security policy is maintained in the root [SECURITY.md](https://github.com/yeongseon/azure-functions-openapi/blob/main/SECURITY.md).
 
 #### Operation ID Sanitization
 

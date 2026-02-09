@@ -20,6 +20,8 @@ nav:
       - Development: development.md
       - Testing: testing.md
   - API Reference: api.md
+  - CLI: cli.md
+  - Architecture: architecture.md
   - Examples:
       - Hello OpenAPI: examples/hello_openapi.md
       - Todo API: examples/todo_crud_api.md
