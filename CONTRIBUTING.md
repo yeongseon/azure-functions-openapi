@@ -62,7 +62,7 @@ If your branch does not match, rename it before requesting review.
 ### Docs and Release Branch Guidance
 
 - Use `docs/<topic>` only for documentation changes.
-- Use `fix/<topic>` for urgent hotfixes; see `docs/release-process.md` for patch release steps.
+- Use `fix/<topic>` for urgent hotfixes and coordinate patch releases with project maintainers.
 
 ### 4. Automatic Production Deployment
 - PR이 main에 병합되면 자동으로 production에 배포됨
