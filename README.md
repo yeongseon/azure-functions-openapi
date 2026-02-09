@@ -1,7 +1,7 @@
 # azure-functions-openapi
 
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-openapi.svg)](https://pypi.org/project/azure-functions-openapi/)
-[![Python Version](https://img.shields.io/pypi/pyversions/azure-functions-openapi.svg)](https://pypi.org/project/azure-functions-openapi/)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-openapi/)
 [![CI](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/ci-test.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/ci-test.yml)
 [![codecov](https://codecov.io/gh/yeongseon/azure-functions-openapi/branch/main/graph/badge.svg)](https://codecov.io/gh/yeongseon/azure-functions-openapi)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
@@ -56,6 +56,8 @@ See `docs/PERFORMANCE.md` for KPI definitions and performance targets.
 ---
 
 ## Installation
+
+Supported Python versions: **3.10 - 3.14**
 
 ```bash
 pip install azure-functions-openapi
