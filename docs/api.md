@@ -16,18 +16,11 @@ This document provides comprehensive API reference for the azure-functions-opena
 The `@openapi` decorator attaches OpenAPI metadata to an Azure Function route.
 This metadata is collected to generate the OpenAPI spec using `get_openapi_json()` and `get_openapi_yaml()`.
 
-### Error Handling
+### Errors
 
-The library provides comprehensive error handling with standardized error responses:
+Validation and generation errors raise standard Python exceptions.
 
-```python
-from azure_functions_openapi.errors import (
-    APIError, ValidationError, NotFoundError, OpenAPIError,
-    create_error_response, handle_exception
-)
-```
-
-### Caching System
+### Caching
 
 Caching is not provided by this library. Apply caching at the application
 or platform level if needed.
