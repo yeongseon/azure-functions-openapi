@@ -124,7 +124,6 @@ class TestValidateRoutePath:
             "/api/v1/users/{user_id}/posts/{post_id}",
             "/api/test-with-hyphens",
             "/api/test_with_underscores",
-            "/api/test with spaces",
             "/",
         ]
 
@@ -143,6 +142,7 @@ class TestValidateRoutePath:
             "/api/data:text/html,<script>alert('xss')</script>",  # Data URI injection
             "/api/test?param=<script>",  # XSS in query
             "/api/test#<script>",  # XSS in fragment
+            "/api/test with spaces",  # Whitespace in route
         ]
 
         for route in invalid_routes:

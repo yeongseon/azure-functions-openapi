@@ -174,7 +174,8 @@ def validate_route_path(route: Any) -> bool:
             return False
 
     # Allow alphanumeric, hyphens, underscores, slashes, and curly braces for path parameters
-    if not re.match(r"^/?[a-zA-Z0-9_\-/{}\s]*$", route):
+    # Whitespace is intentionally disallowed for route consistency and safety.
+    if not re.match(r"^/?[a-zA-Z0-9_\-/{}]*$", route):
         return False
 
     return True
