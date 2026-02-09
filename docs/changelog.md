@@ -1,8 +1,5 @@
 # Changelog
 
-## [0.1.0] - Initial Release
+# Changelog
 
-- `@openapi` decorator
-- OpenAPI JSON/YAML route generators
-- Swagger UI support
-- Pydantic model integration
+The full changelog is maintained in the root [CHANGELOG.md](../CHANGELOG.md).
