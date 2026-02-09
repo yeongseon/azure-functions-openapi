@@ -1,7 +1,7 @@
 # tests/test_swagger_ui_enhanced.py
 
-from typing import Any
 import re
+from typing import Any
 from unittest.mock import patch
 
 from azure.functions import HttpResponse
