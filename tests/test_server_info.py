@@ -132,6 +132,24 @@ class TestServerInfo:
         assert metrics["requests"]["total"] == 10
         assert metrics["errors"]["total"] == 2
 
+    def test_estimate_response_time_uses_performance_monitor_average(self) -> None:
+        server_info = ServerInfo()
+
+        with patch(
+            "azure_functions_openapi.monitoring.get_performance_monitor"
+        ) as mock_get_monitor:
+            mock_get_monitor.return_value.get_response_time_stats.return_value = {"avg": 0.123}
+            assert server_info._estimate_response_time() == 0.123
+
+    def test_estimate_response_time_returns_zero_when_monitor_fails(self) -> None:
+        server_info = ServerInfo()
+
+        with patch(
+            "azure_functions_openapi.monitoring.get_performance_monitor"
+        ) as mock_get_monitor:
+            mock_get_monitor.side_effect = RuntimeError("monitor unavailable")
+            assert server_info._estimate_response_time() == 0.0
+
     def test_format_uptime_seconds(self) -> None:
         server_info = ServerInfo()
 

@@ -198,9 +198,15 @@ class ServerInfo:
         return request_count / uptime_minutes
 
     def _estimate_response_time(self) -> float:
-        """Estimate average response time (placeholder implementation)."""
-        # This is a placeholder - in a real implementation, you'd track actual response times
-        return 0.1  # 100ms average
+        """Estimate average response time using monitoring data when available."""
+        try:
+            from azure_functions_openapi.monitoring import get_performance_monitor
+
+            stats = get_performance_monitor().get_response_time_stats()
+            avg = stats.get("avg", 0.0)
+            return float(avg) if isinstance(avg, (int, float)) else 0.0
+        except Exception:
+            return 0.0
 
     def _get_memory_usage(self) -> dict[str, Any]:
         """Get memory usage information."""
