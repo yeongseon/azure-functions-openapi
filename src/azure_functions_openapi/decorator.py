@@ -295,7 +295,8 @@ def _validate_security(
             if not isinstance(scopes, list) or not all(isinstance(scope, str) for scope in scopes):
                 raise ValidationError(
                     message=(
-                        f"Security scopes for '{scheme_name}' at index {i} must be a list of strings"
+                        f"Security scopes for '{scheme_name}' at index {i} "
+                        "must be a list of strings"
                     ),
                     details={"security_index": i, "function_name": func_name},
                 )

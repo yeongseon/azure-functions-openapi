@@ -25,8 +25,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     
-    environment: production
-    environment-url: https://production-${{ github.event.repository.name }}.azurewebsites.net
+    environment:
+      name: production
+      url: https://production-${{ github.event.repository.name }}.azurewebsites.net
     
     steps:
       - name: Checkout code
