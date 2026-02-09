@@ -42,7 +42,7 @@ jobs:
           fetch-depth: 0
 
       - name: 'Delete stale branches'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -139,7 +139,7 @@ jobs:
 
       - name: 'Validate branch naming convention'
         id: validate-branch
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -172,7 +172,7 @@ jobs:
 
       - name: 'Add comment with validation result'
         if: steps.validate-branch.outputs.isValid == 'false'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
