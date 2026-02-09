@@ -8,7 +8,6 @@ from typing import Any
 import yaml
 
 from azure_functions_openapi.decorator import get_openapi_registry
-from azure_functions_openapi.errors import OpenAPIError
 from azure_functions_openapi.utils import model_to_schema
 
 logger = logging.getLogger(__name__)
@@ -88,9 +87,9 @@ def generate_openapi_spec(
         OpenAPI specification dictionary
     """
     if openapi_version not in (OPENAPI_VERSION_3_0, OPENAPI_VERSION_3_1):
-        raise OpenAPIError(
-            message=f"Unsupported OpenAPI version: {openapi_version}",
-            details={"supported_versions": [OPENAPI_VERSION_3_0, OPENAPI_VERSION_3_1]},
+        raise ValueError(
+            f"Unsupported OpenAPI version: {openapi_version}. Supported: "
+            f"{OPENAPI_VERSION_3_0}, {OPENAPI_VERSION_3_1}"
         )
 
     try:
@@ -190,7 +189,7 @@ def generate_openapi_spec(
                 # merge into paths (support multiple methods per route) ----------
                 paths.setdefault(path, {})[method] = op
 
-            except (KeyError, TypeError, ValueError, OpenAPIError) as e:
+            except (KeyError, TypeError, ValueError) as e:
                 logger.error(f"Failed to process function {func_name}: {str(e)}")
                 # Continue processing other functions
                 continue
@@ -224,9 +223,7 @@ def generate_openapi_spec(
 
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI specification: {str(e)}")
-        raise OpenAPIError(
-            message="Failed to generate OpenAPI specification", details={"error": str(e)}, cause=e
-        )
+        raise RuntimeError("Failed to generate OpenAPI specification") from e
 
 
 def get_openapi_json(
@@ -249,9 +246,7 @@ def get_openapi_json(
         return json.dumps(spec, indent=2, ensure_ascii=False)
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI JSON: {str(e)}")
-        raise OpenAPIError(
-            message="Failed to generate OpenAPI JSON", details={"error": str(e)}, cause=e
-        )
+        raise RuntimeError("Failed to generate OpenAPI JSON") from e
 
 
 def get_openapi_yaml(
@@ -274,6 +269,4 @@ def get_openapi_yaml(
         return yaml.safe_dump(spec, sort_keys=False, allow_unicode=True)
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI YAML: {str(e)}")
-        raise OpenAPIError(
-            message="Failed to generate OpenAPI YAML", details={"error": str(e)}, cause=e
-        )
+        raise RuntimeError("Failed to generate OpenAPI YAML") from e

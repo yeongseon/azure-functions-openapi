@@ -6,7 +6,6 @@ from unittest.mock import patch
 from pydantic import BaseModel, Field
 import pytest
 
-from azure_functions_openapi.errors import OpenAPIError
 from azure_functions_openapi.openapi import (
     generate_openapi_spec,
     get_openapi_json,
@@ -147,11 +146,11 @@ class TestGenerateOpenAPISpecEnhanced:
         with patch("azure_functions_openapi.openapi.get_openapi_registry") as mock_registry:
             mock_registry.side_effect = Exception("Registry error")
 
-            with pytest.raises(OpenAPIError) as exc_info:
+            with pytest.raises(RuntimeError) as exc_info:
                 generate_openapi_spec("Test API", "1.0.0")
 
             assert "Failed to generate OpenAPI specification" in str(exc_info.value)
-            assert exc_info.value.details["error"] == "Registry error"
+            assert "Registry error" in str(exc_info.value.__cause__)
 
     def test_generate_openapi_spec_logging(self) -> None:
         """Test that OpenAPI spec generation logs correctly."""
@@ -194,11 +193,11 @@ class TestGetOpenAPIJSONEnhanced:
         with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
             mock_generate.side_effect = Exception("Spec error")
 
-            with pytest.raises(OpenAPIError) as exc_info:
+            with pytest.raises(RuntimeError) as exc_info:
                 get_openapi_json("Test API", "1.0.0")
 
             assert "Failed to generate OpenAPI JSON" in str(exc_info.value)
-            assert exc_info.value.details["error"] == "Spec error"
+            assert "Spec error" in str(exc_info.value.__cause__)
 
     def test_get_openapi_json_logging(self) -> None:
         """Test that JSON generation logs errors."""
@@ -206,7 +205,7 @@ class TestGetOpenAPIJSONEnhanced:
             mock_generate.side_effect = Exception("Spec error")
 
             with patch("azure_functions_openapi.openapi.logger") as mock_logger:
-                with pytest.raises(OpenAPIError):
+                with pytest.raises(RuntimeError):
                     get_openapi_json("Test API", "1.0.0")
 
                 mock_logger.error.assert_called_once()
@@ -233,11 +232,11 @@ class TestGetOpenAPIYAMLEnhanced:
         with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
             mock_generate.side_effect = Exception("Spec error")
 
-            with pytest.raises(OpenAPIError) as exc_info:
+            with pytest.raises(RuntimeError) as exc_info:
                 get_openapi_yaml("Test API", "1.0.0")
 
             assert "Failed to generate OpenAPI YAML" in str(exc_info.value)
-            assert exc_info.value.details["error"] == "Spec error"
+            assert "Spec error" in str(exc_info.value.__cause__)
 
     def test_get_openapi_yaml_logging(self) -> None:
         """Test that YAML generation logs errors."""
@@ -245,7 +244,7 @@ class TestGetOpenAPIYAMLEnhanced:
             mock_generate.side_effect = Exception("Spec error")
 
             with patch("azure_functions_openapi.openapi.logger") as mock_logger:
-                with pytest.raises(OpenAPIError):
+                with pytest.raises(RuntimeError):
                     get_openapi_yaml("Test API", "1.0.0")
 
                 mock_logger.error.assert_called_once()

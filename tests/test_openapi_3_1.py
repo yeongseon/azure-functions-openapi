@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pytest
 
-from azure_functions_openapi.errors import OpenAPIError
 from azure_functions_openapi.openapi import (
     OPENAPI_VERSION_3_0,
     OPENAPI_VERSION_3_1,
@@ -174,7 +173,7 @@ class TestGenerateOpenapiSpec:
         assert "summary" in spec["info"]
 
     def test_invalid_version_raises_error(self) -> None:
-        with pytest.raises(OpenAPIError) as exc_info:
+        with pytest.raises(ValueError) as exc_info:
             generate_openapi_spec(openapi_version="2.0.0")
 
         assert "Unsupported OpenAPI version" in str(exc_info.value)
