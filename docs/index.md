@@ -33,7 +33,7 @@ Welcome to **azure-functions-openapi** — a comprehensive library that provides
 
 ### 🛠️ Developer Experience
 - **CLI Tool**: Command-line interface for spec generation, validation, and monitoring
-- **Comprehensive Testing**: 97% test coverage with extensive test suites
+- **Comprehensive Testing**: 85%+ target coverage (latest CI: 87%) with extensive test suites
 - **Documentation**: Detailed guides for security, performance, and CLI usage
 - **Type Safety**: Full type hints and validation throughout
 

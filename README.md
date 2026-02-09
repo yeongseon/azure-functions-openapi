@@ -3,6 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-openapi.svg)](https://pypi.org/project/azure-functions-openapi/)
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-openapi/)
 [![CI](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/ci-test.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/ci-test.yml)
+[![Security Scans](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/security.yml)
 [![codecov](https://codecov.io/gh/yeongseon/azure-functions-openapi/branch/main/graph/badge.svg)](https://codecov.io/gh/yeongseon/azure-functions-openapi)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
 [![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-openapi/)
@@ -45,10 +46,10 @@
 
 | Metric | Target | Source |
 | --- | --- | --- |
-| Test coverage | 85%+ | Codecov / `make cov` |
+| Test coverage | 85%+ target (latest CI: 87%) | Codecov / `make cov` |
 | Linting | Clean | Ruff |
 | Type safety | Clean | Mypy |
-| Security scan | Clean | Bandit |
+| Security scan | Clean | Security Scans workflow (`bandit` + `semgrep`) |
 | Performance KPIs | Within targets | `docs/PERFORMANCE.md` |
 
 See `docs/PERFORMANCE.md` for KPI definitions and performance targets.
@@ -57,7 +58,7 @@ See `docs/PERFORMANCE.md` for KPI definitions and performance targets.
 
 ## Installation
 
-Supported Python versions: **3.10 - 3.14**
+Supported Python versions: **3.10 - 3.14** (all versions are required in CI; 3.14 is stable)
 
 ```bash
 pip install azure-functions-openapi

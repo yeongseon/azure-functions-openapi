@@ -33,6 +33,22 @@ Performance regression tests live in `./tests/performance` and focus on:
 
 The tests are designed to be stable in CI by using generous thresholds and warmup passes.
 
+### Measurement Method
+
+- Runtime: local Python 3.9.6 on macOS
+- Script: direct timing for `generate_openapi_spec()` and `RequestLogger.log_request()`
+- Precision: `perf_counter_ns`
+- Date: 2026-02-09
+
+### Latest Snapshot
+
+| Metric | Latest value | Notes |
+| --- | --- | --- |
+| OpenAPI generation average | 1.34 us | empty/minimal registry in local run |
+| OpenAPI generation p95 | 1.38 us | same measurement batch |
+| Request logging throughput | 410,287 ops/s | 5,000 log entries |
+| Request logging elapsed time | 12.19 ms | same 5,000-entry batch |
+
 ## CI/CD Performance Profiling
 
 The performance suite can be executed on demand and on a schedule to detect regressions early:

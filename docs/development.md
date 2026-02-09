@@ -56,6 +56,8 @@ pre-commit clean
 
 Makefile provides shortcuts for common development tasks:
 
+Use these as the **golden commands** for local validation and CI parity. Prefer `make` targets over direct tool commands.
+
 ```bash
 make install           # Set up Hatch environment and dev dependencies
 make format            # Format code (ruff + black)

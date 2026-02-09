@@ -187,6 +187,9 @@ The repository uses automated security scanning:
 
 - Bandit for Python static analysis
 - Semgrep for broader rule coverage
+
+Security scans run in GitHub Actions via `.github/workflows/security.yml`.
+For local parity, run `make security`.
 - Dependabot for dependency updates
 
 ### SBOM Generation

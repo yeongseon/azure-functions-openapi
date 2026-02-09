@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        # Python 3.14 is stable and required in this matrix (not allow-fail).
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
