@@ -18,6 +18,7 @@ This guide describes how to respond to security incidents in this project.
 - Implement the fix with tests
 - Release a patch version
 - Update documentation and advisories
+- If production is unstable, execute `docs/rollback.md` immediately
 
 ## Communication
 

@@ -62,3 +62,15 @@ def test_openapi_registers_metadata_with_request_body() -> None:
     assert schema["type"] == "object"
     assert "name" in schema["properties"]
     assert schema["properties"]["name"]["type"] == "string"
+
+
+def test_openapi_registers_security_metadata() -> None:
+    @openapi(
+        summary="Secured endpoint",
+        security=[{"BearerAuth": []}],
+    )
+    def secured_dummy() -> None:
+        pass
+
+    registry = get_openapi_registry()
+    assert registry["secured_dummy"]["security"] == [{"BearerAuth": []}]

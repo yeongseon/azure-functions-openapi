@@ -4,6 +4,17 @@ on:
   pull_request:
     types: [closed]
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      app_name:
+        description: "Azure Function App name (default: production-<repo>)"
+        required: false
+        type: string
+      package_path:
+        description: "Path to deploy package"
+        required: false
+        default: "dist/"
+        type: string
 
 permissions:
   contents: read
@@ -12,7 +23,7 @@ permissions:
 jobs:
   deploy-production:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     
     environment: production
     environment-url: https://production-${{ github.event.repository.name }}.azurewebsites.net
@@ -36,22 +47,37 @@ jobs:
       - name: Build distribution packages
         run: python -m build
 
+      - name: Resolve deployment target
+        id: target
+        run: |
+          APP_NAME="${{ github.event.inputs.app_name || format('production-{0}', github.event.repository.name) }}"
+          echo "app_name=${APP_NAME}" >> "$GITHUB_OUTPUT"
+          echo "base_url=https://${APP_NAME}.azurewebsites.net" >> "$GITHUB_OUTPUT"
+
       - name: Deploy to Azure Functions (Production)
         uses: azure/functions-action@v1
         with:
-          app-name: production-${{ github.event.repository.name }}
+          app-name: ${{ steps.target.outputs.app_name }}
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE_PRODUCTION }}
-          package: dist/
+          package: ${{ github.event.inputs.package_path || 'dist/' }}
+
+      - name: Post-deploy health check
+        run: |
+          BASE_URL="${{ steps.target.outputs.base_url }}"
+          echo "Checking ${BASE_URL}/api/health"
+          curl --fail --show-error --silent --retry 5 --retry-delay 5 "${BASE_URL}/api/health" > /tmp/health.json
+          echo "Checking ${BASE_URL}/api/openapi.json"
+          curl --fail --show-error --silent --retry 5 --retry-delay 5 "${BASE_URL}/api/openapi.json" > /tmp/openapi.json
 
       - name: Comment deployment status
-        if: always()
+        if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@v8
         with:
           script: |
             const { owner, repo } = context.repo;
             const prNumber = context.payload.pull_request.number;
             const status = process.env.ACTIONS_STEP_STATE;
-            const deploymentUrl = process.env.ENVIRONMENT_URL;
+            const deploymentUrl = `${{ steps.target.outputs.base_url }}`;
             
             let comment = `🚀 **Production Deployment Status**\n\n`;
             

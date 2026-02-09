@@ -4,21 +4,18 @@ We welcome contributions to the `azure-functions-openapi` project!
 
 ## Branch Strategy
 
-We use **GitHub Flow**:
-
-```
-main ← feature/xxx
-      ↑
-  production
-```
+We use **GitHub Flow** with standardized branch names.
 
 ### Branch Types
 
 | Branch Type | Purpose | Naming Convention |
 |-------------|---------|-------------------|
 | `main` | Production-ready code | `main` |
-| `feature/*` | New features and bug fixes | `feature/description` |
-| `fix/*` | Bug fixes | `fix/issue-number-description` |
+| `feat/*` | New features | `feat/security-parameter` |
+| `fix/*` | Bug fixes | `fix/issue-81-security` |
+| `docs/*` | Documentation-only changes | `docs/deployment-runbook` |
+| `chore/*` | Tooling, maintenance, dependency updates | `chore/update-actions` |
+| `ci/*` | CI/CD workflow changes | `ci/manual-deploy-trigger` |
 
 ### Development Flow
 
@@ -32,7 +29,7 @@ main ← feature/xxx
 ```bash
 git checkout main
 git pull origin main
-git checkout -b feature/your-feature-name
+git checkout -b feat/your-feature-name
 ```
 
 ### 2. Write Code & Tests
@@ -46,9 +43,26 @@ make cov         # Run tests with coverage
 
 ### 3. Push and Create Pull Request
 ```bash
-git push origin feature/your-feature-name
+git push origin feat/your-feature-name
 # Create PR on GitHub
 ```
+
+### Branch Naming Validation
+
+PRs are validated by `.github/workflows/stale.yml` using these patterns:
+
+- `feat/<description>`
+- `fix/<description>`
+- `docs/<description>`
+- `chore/<description>`
+- `ci/<description>`
+
+If your branch does not match, rename it before requesting review.
+
+### Docs and Release Branch Guidance
+
+- Use `docs/<topic>` only for documentation changes.
+- Use `fix/<topic>` for urgent hotfixes; see `docs/release-process.md` for patch release steps.
 
 ### 4. Automatic Production Deployment
 - PR이 main에 병합되면 자동으로 production에 배포됨

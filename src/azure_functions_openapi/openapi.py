@@ -146,6 +146,11 @@ def generate_openapi_spec(
                 if parameters:
                     op["parameters"] = parameters
 
+                # security --------------------------------------------------------
+                security: list[dict[str, list[str]]] = meta.get("security", [])
+                if security:
+                    op["security"] = security
+
                 # requestBody (POST/PUT/PATCH) ------------------------------------
                 if method in {"post", "put", "patch"}:
                     if meta.get("request_body"):

@@ -17,6 +17,14 @@ nav:
   - Getting Started:
       - Installation: installation.md
       - Quickstart: usage.md
+      - Development: development.md
+      - Testing: testing.md
+  - Operations:
+      - Deployment: deployment.md
+      - Rollback: rollback.md
+      - Maintenance: maintenance.md
+      - Incident Response: incident-response.md
+      - Release Process: release-process.md
   - API Reference: api.md
   - Examples:
       - Hello OpenAPI: examples/hello_openapi.md

@@ -225,3 +225,17 @@ def test_generate_openapi_spec_with_cookie_parameter() -> None:
     params = generate_openapi_spec()["paths"]["/cookie_test"]["get"]["parameters"]
     cookie_param = next(p for p in params if p["in"] == "cookie")
     assert cookie_param["name"] == "session_id"
+
+
+def test_generate_openapi_spec_with_security() -> None:
+    @openapi(
+        route="/secure",
+        summary="Secure endpoint",
+        security=[{"BearerAuth": []}],
+        response={200: {"description": "OK"}},
+    )
+    def secure_endpoint() -> None:
+        pass
+
+    op = generate_openapi_spec()["paths"]["/secure"]["get"]
+    assert op["security"] == [{"BearerAuth": []}]

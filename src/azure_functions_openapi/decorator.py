@@ -30,6 +30,7 @@ def openapi(
     route: str | None = None,
     method: str | None = None,
     parameters: list[dict[str, Any]] | None = None,
+    security: list[dict[str, list[str]]] | None = None,
     # ── request / response schema ───────────────────────────────
     request_model: type[BaseModel] | None = None,
     request_body: dict[str, Any] | None = None,
@@ -106,6 +107,9 @@ def openapi(
         Explicit HTTP method if not inferrable.
     parameters:
         List of param objects (query/path/header/cookie).
+    security:
+        List of OpenAPI Security Requirement Objects.
+        Example: [{"BearerAuth": []}]
     request_model:
         Pydantic model used to derive requestBody schema.
     request_body:
@@ -129,6 +133,7 @@ def openapi(
                 operation_id, func.__name__
             )
             validated_parameters = _validate_parameters(parameters, func.__name__)
+            validated_security = _validate_security(security, func.__name__)
             validated_tags = _validate_tags(tags, func.__name__)
 
             # Validate request/response models
@@ -145,6 +150,7 @@ def openapi(
                     "route": validated_route,
                     "method": method,
                     "parameters": validated_parameters,
+                    "security": validated_security,
                     # ── request / response schema ────────────────────
                     "request_model": request_model,
                     "request_body": request_body,
@@ -255,6 +261,50 @@ def _validate_parameters(
         validated_params.append(param)
 
     return validated_params
+
+
+def _validate_security(
+    security: list[dict[str, list[str]]] | None, func_name: str
+) -> list[dict[str, list[str]]]:
+    """Validate OpenAPI security requirements list."""
+    if not security:
+        return []
+
+    if not isinstance(security, list):
+        raise ValidationError(
+            message="Security must be a list",
+            details={"security": str(security), "function_name": func_name},
+        )
+
+    validated_security: list[dict[str, list[str]]] = []
+    for i, requirement in enumerate(security):
+        if not isinstance(requirement, dict):
+            raise ValidationError(
+                message=f"Security requirement at index {i} must be a dictionary",
+                details={"security_index": i, "function_name": func_name},
+            )
+
+        validated_requirement: dict[str, list[str]] = {}
+        for scheme_name, scopes in requirement.items():
+            if not isinstance(scheme_name, str) or not scheme_name.strip():
+                raise ValidationError(
+                    message=f"Security scheme name at index {i} must be a non-empty string",
+                    details={"security_index": i, "function_name": func_name},
+                )
+
+            if not isinstance(scopes, list) or not all(isinstance(scope, str) for scope in scopes):
+                raise ValidationError(
+                    message=(
+                        f"Security scopes for '{scheme_name}' at index {i} must be a list of strings"
+                    ),
+                    details={"security_index": i, "function_name": func_name},
+                )
+
+            validated_requirement[scheme_name] = scopes
+
+        validated_security.append(validated_requirement)
+
+    return validated_security
 
 
 def _validate_tags(tags: list[str] | None, func_name: str) -> list[str]:

@@ -11,6 +11,7 @@ from azure_functions_openapi.decorator import (
     _validate_and_sanitize_route,
     _validate_models,
     _validate_parameters,
+    _validate_security,
     _validate_tags,
     get_openapi_registry,
     openapi,
@@ -84,6 +85,17 @@ class TestOpenAPIDecoratorEnhanced:
 
             @openapi(
                 tags=cast(Any, "not_a_list"),  # Invalid tags type
+                summary="Test",
+            )
+            def test_func() -> None:
+                pass
+
+    def test_openapi_decorator_with_invalid_security(self) -> None:
+        """Test decorator with invalid security."""
+        with pytest.raises(OpenAPIError):
+
+            @openapi(
+                security=cast(Any, "not_a_list"),
                 summary="Test",
             )
             def test_func() -> None:
@@ -222,6 +234,32 @@ class TestValidationFunctions:
         tags = ["tag1", "tag2"]
         result = _validate_tags(tags, "test_func")
         assert result == tags
+
+    def test_validate_security_valid(self) -> None:
+        """Test security validation with valid security requirements."""
+        security = [{"BearerAuth": []}, {"OAuth2": ["read", "write"]}]
+        result = _validate_security(security, "test_func")
+        assert result == security
+
+    def test_validate_security_none(self) -> None:
+        """Test security validation with None."""
+        result = _validate_security(None, "test_func")
+        assert result == []
+
+    def test_validate_security_invalid_type(self) -> None:
+        """Test security validation with invalid type."""
+        with pytest.raises(ValidationError):
+            _validate_security(cast(Any, "not_a_list"), "test_func")
+
+    def test_validate_security_invalid_item(self) -> None:
+        """Test security validation with invalid requirement object."""
+        with pytest.raises(ValidationError):
+            _validate_security(cast(Any, ["not_a_dict"]), "test_func")
+
+    def test_validate_security_invalid_scope_type(self) -> None:
+        """Test security validation with invalid scope entries."""
+        with pytest.raises(ValidationError):
+            _validate_security(cast(Any, [{"BearerAuth": [1]}]), "test_func")
 
     def test_validate_tags_none(self) -> None:
         """Test tag validation with None tags."""
