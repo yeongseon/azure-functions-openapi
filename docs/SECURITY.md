@@ -109,7 +109,6 @@ Caching should be handled at the application or platform level.
 1. **Environment Variables**: Use secure environment variables for configuration
 2. **Network Security**: Configure proper network security groups
 3. **Access Control**: Implement proper authentication and authorization
-4. **Monitoring**: Set up application-level monitoring and alerting
 5. **Regular Updates**: Keep the runtime and dependencies updated
 
 ### For API Design
@@ -150,11 +149,6 @@ try:
 except APIError as e:
     response = create_error_response(e, include_stack_trace=False)
 ```
-
-## Security Monitoring
-
-Security monitoring should be implemented at the application or platform level
-(e.g., Azure Monitor, Application Insights, or your preferred observability stack).
 
 ### Logging
 

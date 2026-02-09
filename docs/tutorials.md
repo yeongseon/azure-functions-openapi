@@ -14,7 +14,3 @@ Step-by-step walkthroughs for common scenarios.
 1. Define request/response models in Pydantic.
 2. Use `request_model` and `response_model` in `@openapi`.
 3. Validate and return typed responses.
-
-## Tutorial 3: Production Readiness
-
-1. Configure platform monitoring (e.g., Application Insights).

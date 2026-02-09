@@ -227,7 +227,7 @@ Refused to load the script because it violates the following Content Security Po
 
 **Solutions:**
 1. **Monitor memory usage:**
-   Use platform monitoring to detect memory growth.
+   Monitor memory usage in your runtime environment.
 
 ### 6. CLI Tool Issues
 
@@ -320,10 +320,6 @@ except Exception as e:
     traceback.print_exc()
 ```
 
-### 4. Monitor Performance
-
-Use your platform observability tooling (e.g., Azure Monitor/Application Insights)
-to inspect response times and throughput.
 
 ## 🛠️ Development Tools
 

@@ -18,8 +18,3 @@ This document outlines scheduled maintenance tasks and automation points.
 
 If you add public APIs, include clear docstrings. The docs build can be extended to
 extract API docs via MkDocs plugins if needed.
-
-## Health Checks
-
-Use your platform observability tooling (e.g., Azure Monitor/Application Insights)
-to validate production readiness and health.

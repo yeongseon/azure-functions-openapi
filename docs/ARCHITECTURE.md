@@ -119,7 +119,6 @@ Performance optimizations should be applied at the application/platform level.
 ### 6. Operational Concerns
 
 This library focuses on OpenAPI generation and documentation rendering.
-Operational monitoring should be implemented at the application/platform level.
 
 ## 🔄 Data Flow
 
@@ -170,15 +169,9 @@ User Input → Sanitization → Validation → Processing → Response
 
 ## 📊 Performance Architecture
 
-### Caching Strategy
-
-```
-Request → Cache Check → Cache Hit/Miss → Response/Computation → Cache Update
-```
-
 ### Monitoring Pipeline
 
-Use your platform observability stack to collect metrics and alerts.
+Collect metrics and alerts in your platform tooling.
 
 ## 🔧 Extension Points
 
@@ -193,12 +186,7 @@ def custom_error_handler(error: APIError) -> HttpResponse:
 
 ### Custom Cache Strategies
 
-```python
-class CustomCacheManager(CacheManager):
-    def get(self, key: str) -> Optional[Any]:
-# Custom retrieval logic
-        return super().get(key)
-```
+Caching strategies should be implemented outside this library.
 
 ## 🚀 Deployment Architecture
 
@@ -218,7 +206,7 @@ CLI Commands → Library Functions → Azure Functions → OpenAPI Generation
 
 ### Memory Management
 
-- **Memory Limits**: Use platform limits and monitoring
+- **Memory Limits**: Use platform limits and observe usage
 
 ### Performance Optimization
 

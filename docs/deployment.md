@@ -18,7 +18,7 @@ Use manual deployment for hotfixes, incident recovery, or controlled redeploys.
 4. Set optional inputs:
    - `app_name`: override target Function App name
    - `package_path`: override package path (default `dist/`)
-5. Start the workflow and monitor logs.
+5. Start the workflow and review logs.
 
 ### Authorization requirements
 
