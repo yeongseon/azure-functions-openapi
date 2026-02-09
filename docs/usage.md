@@ -17,6 +17,7 @@ It focuses on practical usage based on a full-featured **Todo API** example.
 - HTTP Methods and Routing
 - Exposing OpenAPI Docs
 - JSON and YAML Output
+- Swagger UI Configuration
 - End-to-End Example: Todo API
 
 ---
@@ -149,6 +150,23 @@ def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
 | `/docs`          | Swagger UI    | Developer-friendly interactive UI          |
 
 ---
+
+## Swagger UI Configuration
+
+```python
+from azure_functions_openapi.swagger_ui import render_swagger_ui
+
+response = render_swagger_ui(openapi_url="/api/openapi.json", title="API Docs")
+```
+
+### Security Configuration
+
+```python
+from azure_functions_openapi.swagger_ui import render_swagger_ui
+
+custom_csp = "default-src 'self'; script-src 'self'"
+response = render_swagger_ui(custom_csp=custom_csp)
+```
 
 ## End-to-End Example: Todo API
 
