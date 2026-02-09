@@ -281,12 +281,10 @@ azure-functions-openapi: command not found
    python -m azure_functions_openapi.cli --help
    ```
 
-#### Problem: CLI validation errors
+#### Problem: Spec validation errors
 
 ```bash
-azure-functions-openapi validate openapi.json
-Validation errors found:
-  - Missing required field: openapi
+openapi-spec-validator openapi.json
 ```
 
 **Solutions:**
@@ -305,10 +303,10 @@ Validation errors found:
 2. **Use correct file format:**
    ```bash
    # For JSON files
-   azure-functions-openapi validate spec.json
+   openapi-spec-validator spec.json
    
    # For YAML files
-   azure-functions-openapi validate spec.yaml --format yaml
+   openapi-spec-validator spec.yaml
    ```
 
 ## 🔍 Debugging Techniques

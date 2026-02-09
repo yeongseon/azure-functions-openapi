@@ -52,16 +52,6 @@ Examples:
         help="OpenAPI version (default: 3.0)",
     )
 
-    # Validate command
-    validate_parser = subparsers.add_parser("validate", help="Validate OpenAPI specification")
-    validate_parser.add_argument("file", help="OpenAPI specification file to validate")
-    validate_parser.add_argument(
-        "--format",
-        "-f",
-        choices=["json", "yaml"],
-        help="File format (auto-detect if not specified)",
-    )
-
     args = parser.parse_args()
 
     if not args.command:
@@ -71,8 +61,6 @@ Examples:
     try:
         if args.command == "generate":
             return handle_generate(args)
-        elif args.command == "validate":
-            return handle_validate(args)
         else:
             print(f"Unknown command: {args.command}")
             return 1
@@ -104,109 +92,6 @@ def handle_generate(args: argparse.Namespace) -> int:
     except Exception as e:
         print(f"Failed to generate OpenAPI specification: {e}", file=sys.stderr)
         return 1
-
-
-def handle_validate(args: argparse.Namespace) -> int:
-    """Handle validate command."""
-    try:
-        file_path = Path(args.file)
-        if not file_path.exists():
-            print(f"File not found: {file_path}", file=sys.stderr)
-            return 1
-
-        content = file_path.read_text(encoding="utf-8")
-
-        # Auto-detect format if not specified
-        if not args.format:
-            if file_path.suffix.lower() in [".json"]:
-                args.format = "json"
-            elif file_path.suffix.lower() in [".yaml", ".yml"]:
-                args.format = "yaml"
-            else:
-                # Try to parse as JSON first, then YAML
-                try:
-                    json.loads(content)
-                    args.format = "json"
-                except json.JSONDecodeError:
-                    args.format = "yaml"
-
-        # Parse the content
-        if args.format == "json":
-            spec = json.loads(content)
-        else:  # yaml
-            import yaml
-
-            spec = yaml.safe_load(content)
-
-        # Basic validation
-        errors = validate_openapi_spec(spec)
-
-        if errors:
-            print("Validation errors found:", file=sys.stderr)
-            for error in errors:
-                print(f"  - {error}", file=sys.stderr)
-            return 1
-        else:
-            print("OpenAPI specification is valid")
-            return 0
-
-    except Exception as e:
-        print(f"Failed to validate OpenAPI specification: {e}", file=sys.stderr)
-        return 1
-
-
-def validate_openapi_spec(spec: dict[str, Any]) -> list[str]:
-    """Validate OpenAPI specification."""
-    errors: list[str] = []
-
-    # Check required fields
-    if "openapi" not in spec:
-        errors.append("Missing required field: openapi")
-
-    if "info" not in spec:
-        errors.append("Missing required field: info")
-    else:
-        info = spec["info"]
-        if "title" not in info:
-            errors.append("Missing required field: info.title")
-        if "version" not in info:
-            errors.append("Missing required field: info.version")
-
-    if "paths" not in spec:
-        errors.append("Missing required field: paths")
-
-    # Check OpenAPI version
-    if "openapi" in spec:
-        version = spec["openapi"]
-        if not version.startswith("3."):
-            errors.append(f"Unsupported OpenAPI version: {version}")
-
-    # Check paths
-    if "paths" in spec:
-        paths = spec["paths"]
-        if not isinstance(paths, dict):
-            errors.append("paths must be an object")
-        else:
-            for path, path_item in paths.items():
-                if not isinstance(path_item, dict):
-                    errors.append(f"Path '{path}' must be an object")
-                else:
-                    # Check HTTP methods
-                    valid_methods = [
-                        "get",
-                        "post",
-                        "put",
-                        "delete",
-                        "patch",
-                        "head",
-                        "options",
-                        "trace",
-                    ]
-                    for method in path_item.keys():
-                        if method not in valid_methods and not method.startswith("x-"):
-                            errors.append(f"Invalid HTTP method '{method}' in path '{path}'")
-
-    return errors
 
 
 if __name__ == "__main__":

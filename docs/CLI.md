@@ -50,26 +50,11 @@ azure-functions-openapi generate --pretty --title "My API" --version "1.0.0"
 
 ### Validate OpenAPI Specification
 
-Validate an OpenAPI specification file:
+Use external validators to check generated specs:
 
 ```bash
-# Validate JSON file
-azure-functions-openapi validate openapi.json
-
-# Validate YAML file
-azure-functions-openapi validate openapi.yaml
-
-# Specify format explicitly
-azure-functions-openapi validate spec.json --format json
+openapi-spec-validator openapi.json
 ```
-
-#### Validation Checks
-
-- Required fields (openapi, info, paths)
-- OpenAPI version compatibility
-- Path structure validation
-- HTTP method validation
-- Parameter structure validation
 
 ## Examples
 
@@ -85,10 +70,9 @@ azure-functions-openapi generate \
   --pretty
 ```
 
-The CLI tool provides two primary commands:
+The CLI tool provides one primary command:
 
 - `generate`: Create OpenAPI JSON/YAML output
-- `validate`: Validate existing OpenAPI documents
 
 ### CI/CD Integration
 
@@ -102,20 +86,20 @@ jobs:
   validate-api:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v6
         with:
           python-version: 3.10
       - name: Install dependencies
         run: |
-          pip install azure-functions-openapi
+          pip install azure-functions-openapi openapi-spec-validator
       - name: Generate OpenAPI spec
         run: |
           azure-functions-openapi generate --output openapi.json
       - name: Validate OpenAPI spec
         run: |
-          azure-functions-openapi validate openapi.json
+          openapi-spec-validator openapi.json
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
@@ -130,8 +114,6 @@ The CLI tool uses standard exit codes:
 - `0`: Success
 - `1`: General error
 - `2`: Invalid arguments
-- `3`: File not found
-- `4`: Validation error
 
 ## Error Handling
 
@@ -142,15 +124,8 @@ The CLI tool provides clear error messages:
 $ azure-functions-openapi invalid-command
 Error: Unknown command: invalid-command
 
-# File not found
-$ azure-functions-openapi validate nonexistent.json
-Error: File not found: nonexistent.json
-
 # Validation error
-$ azure-functions-openapi validate invalid.json
-Validation errors found:
-  - Missing required field: openapi
-  - Missing required field: info
+$ openapi-spec-validator invalid.json
 ```
 
 ## Configuration
@@ -242,7 +217,7 @@ CMD ["azure-functions-openapi", "generate", "--output", "/app/openapi.json"]
 3. **Invalid JSON/YAML**
    ```bash
    # Validate your input files
-   azure-functions-openapi validate your-file.json
+   openapi-spec-validator your-file.json
    ```
 
 ### Debug Mode

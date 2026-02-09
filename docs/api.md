@@ -64,7 +64,7 @@ Swagger UI HTML.
 The CLI exposes:
 
 - `generate` for OpenAPI spec generation
-- `validate` for OpenAPI spec validation
+- Use external validators (e.g., `openapi-spec-validator`) for spec validation
 
 ---
 

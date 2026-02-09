@@ -244,8 +244,8 @@ azure-functions-openapi generate --title "My API" --version "1.0.0"
 # Generate OpenAPI spec
 azure-functions-openapi generate --output openapi.json --format json
 
-# Validate OpenAPI specification
-azure-functions-openapi validate openapi.json
+# Validate OpenAPI specification (external validator)
+openapi-spec-validator openapi.json
 ```
 
 See [CLI Guide](docs/CLI.md) for complete documentation.
