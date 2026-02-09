@@ -203,7 +203,7 @@ def _validate_and_sanitize_route(route: str | None, func_name: str) -> str | Non
 
     if not validate_route_path(route):
         logger.warning(
-            "Invalid route path '%s' for function '%s'. Using function name as fallback.",
+            "Invalid route path '%s' for function '%s'. Validation failed; no fallback applied.",
             route,
             func_name,
         )
@@ -223,7 +223,7 @@ def _validate_and_sanitize_operation_id(operation_id: str | None, func_name: str
     sanitized = sanitize_operation_id(operation_id)
     if not sanitized:
         logger.warning(
-            "Invalid operation ID '%s' for function '%s'. Using function name as fallback.",
+            "Invalid operation ID '%s' for function '%s'. Validation failed; no fallback applied.",
             operation_id,
             func_name,
         )
