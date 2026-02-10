@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 💼 Other
+
+- Bump version to 0.10.1
+
+### 📚 Documentation
+
+- Remove authentication example
+- Expand example setup guidance
+
+### ⚙️ Miscellaneous Tasks
+
+- *(examples)* Align requirements
+
+## [0.10.0] - 2026-02-09
+
 ### 🚀 Features
 
 - Resolve deployment and OpenAPI security issue backlog
@@ -19,6 +34,10 @@ All notable changes to this project will be documented in this file.
 - *(metrics)* Use PerformanceMonitor response-time average
 - *(openapi)* Drop error utilities
 - *(decorator)* Preserve validation errors
+
+### 💼 Other
+
+- Bump version to 0.10.0
 
 ### 🚜 Refactor
 
@@ -46,6 +65,7 @@ All notable changes to this project will be documented in this file.
 - Refresh contributing guidance
 - Align changelog with cleanup
 - Fix mkdocs nav and links
+- Update changelog
 
 ### ⚙️ Miscellaneous Tasks
 
