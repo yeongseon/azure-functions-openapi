@@ -25,7 +25,6 @@ nav:
   - Examples:
       - Hello OpenAPI: examples/hello_openapi.md
       - Todo API: examples/todo_crud_api.md
-      - Authentication: examples/authentication.md
   - Troubleshooting: troubleshooting.md
   - Security: security.md
   - Changelog: changelog.md

@@ -161,7 +161,6 @@ Once the app is running, open your browser:
 ### Examples
 - [Hello OpenAPI Example](./examples/hello_openapi.md) - Basic example
 - [Todo CRUD API Example](./examples/todo_crud_api.md) - Advanced example with Pydantic
-- [Authentication Example](./examples/authentication.md) - Documenting required headers
 
 ### Support
 - [Troubleshooting](./troubleshooting.md) - Common issues and fixes
