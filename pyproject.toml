@@ -29,7 +29,7 @@ dev = [
     "ruff==0.14.13",         # Matches pre-commit rev
     "types-PyYAML",
     "pytest-cov",
-    "git-changelog",
+
     "bandit==1.9.3"          # Matches pre-commit rev
 ]
 docs = [
