@@ -27,6 +27,7 @@ nav:
       - Todo API: examples/todo_crud_api.md
   - Troubleshooting: troubleshooting.md
   - Security: security.md
+  - Release Process: release_process.md
   - Changelog: changelog.md
   - Contributing: contributing.md
 
