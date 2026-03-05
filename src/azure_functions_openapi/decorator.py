@@ -134,24 +134,24 @@ def openapi(
 
                 inner_func = func._function._func
             else:
-                inner_func = func            
+                inner_func = func    
 
             # Enhanced input validation and sanitization
-            validated_route = _validate_and_sanitize_route(route, func.__name__)
+            validated_route = _validate_and_sanitize_route(route, inner_func.__name__)
             sanitized_operation_id = _validate_and_sanitize_operation_id(
-                operation_id, func.__name__
+                operation_id, inner_func.__name__
             )
-            validated_parameters = _validate_parameters(parameters, func.__name__)
-            validated_security = _validate_security(security, func.__name__)
-            validated_tags = _validate_tags(tags, func.__name__)
+            validated_parameters = _validate_parameters(parameters, inner_func.__name__)
+            validated_security = _validate_security(security, inner_func.__name__)
+            validated_tags = _validate_tags(tags, inner_func.__name__)
 
             # Validate request/response models
-            _validate_models(request_model, response_model, func.__name__)
+            _validate_models(request_model, response_model, inner_func.__name__)
 
-            function_id = f"{func.__module__}.{func.__qualname__}"
+            function_id = f"{inner_func.__module__}.{inner_func.__qualname__}"
 
             with _registry_lock:
-                registry_key = func.__name__
+                registry_key = inner_func.__name__
                 existing = _openapi_registry.get(registry_key)
                 if existing and existing.get("_function_id") != function_id:
                     existing_id = existing.get("_function_id")
@@ -174,24 +174,24 @@ def openapi(
                     "request_body": request_body,
                     "response_model": response_model,
                     "response": response or {},
-                    "function_name": func.__name__,
+                    "function_name": inner_func.__name__,
                     "_function_id": function_id,
                 }
 
-            logger.debug(f"Registered OpenAPI metadata for function '{func.__name__}'")
-            return func
+            logger.debug(f"Registered OpenAPI metadata for function '{inner_func.__name__}'")
+            return inner_func
 
         except ValueError as e:
             logger.error(
-                f"Failed to register OpenAPI metadata for function '{func.__name__}': {str(e)}"
+                f"Failed to register OpenAPI metadata for function '{inner_func.__name__}': {str(e)}"
             )
             raise
         except Exception as e:
             logger.error(
-                f"Failed to register OpenAPI metadata for function '{func.__name__}': {str(e)}"
+                f"Failed to register OpenAPI metadata for function '{inner_func.__name__}': {str(e)}"
             )
             raise RuntimeError(
-                f"Failed to register OpenAPI metadata for function '{func.__name__}': {e}"
+                f"Failed to register OpenAPI metadata for function '{inner_func.__name__}': {e}"
             ) from e
 
     return decorator
