@@ -95,7 +95,6 @@ app = func.FunctionApp()
 
 @openapi(
     summary="Greet user",
-    route="/api/http_trigger",
     request_model={"name": "string"},
     response_model={"message": "string"},
     tags=["Example"]

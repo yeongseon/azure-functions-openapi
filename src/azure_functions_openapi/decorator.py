@@ -6,7 +6,7 @@ import threading
 from typing import Any, Callable, TypeVar
 
 from pydantic import BaseModel
-
+from azure.functions.decorators.function_app import FunctionBuilder
 from azure_functions_openapi.utils import sanitize_operation_id, validate_route_path
 
 # Define a generic type variable for functions
@@ -44,8 +44,8 @@ def openapi(
     ### 1 · Minimal “Hello World”
 
     ```python
+    @openapi()
     @app.route(route="hello")
-    @openapi(summary="Hello", description="Returns plain text.")
     def hello(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse("Hello, world!", status_code=200)
     ```
@@ -126,6 +126,16 @@ def openapi(
 
     def decorator(func: F) -> F:
         try:
+            # Infer route and method if attached to FunctionBuilder decorator
+            nonlocal route, method
+            if isinstance(func, FunctionBuilder):
+                route = route or func._function.get_bindings()[0].route
+                method = func._function.get_bindings()[0].methods[0].name
+
+                inner_func = func._function._func
+            else:
+                inner_func = func            
+
             # Enhanced input validation and sanitization
             validated_route = _validate_and_sanitize_route(route, func.__name__)
             sanitized_operation_id = _validate_and_sanitize_operation_id(
