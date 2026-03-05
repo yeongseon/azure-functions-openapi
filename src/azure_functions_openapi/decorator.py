@@ -127,14 +127,14 @@ def openapi(
     def decorator(func: F) -> F:
         try:
             # Infer route and method if attached to FunctionBuilder decorator
+            inner_func = func
             nonlocal route, method
             if isinstance(func, FunctionBuilder):
                 route = route or func._function.get_bindings()[0].route
-                method = func._function.get_bindings()[0].methods[0].name
+                if func._function.get_bindings()[0].methods:
+                    method = func._function.get_bindings()[0].methods[0].name
 
-                inner_func = func._function._func
-            else:
-                inner_func = func    
+                inner_func = func._function._func 
 
             # Enhanced input validation and sanitization
             validated_route = _validate_and_sanitize_route(route, inner_func.__name__)
