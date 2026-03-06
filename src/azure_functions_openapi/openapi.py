@@ -205,7 +205,7 @@ def generate_openapi_spec(
                 ),
             },
             "paths": paths,
-            "servers": [{"url": "/api"}]
+            "servers": [{"url": "/api"}],
         }
 
         if openapi_version == OPENAPI_VERSION_3_1:
