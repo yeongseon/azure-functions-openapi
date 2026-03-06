@@ -3,11 +3,15 @@ from __future__ import annotations
 
 import logging
 import threading
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, TypeVar, cast
 
-from pydantic import BaseModel
 from azure.functions.decorators.function_app import FunctionBuilder
-from azure_functions_openapi.utils import sanitize_operation_id, validate_route_path
+from pydantic import BaseModel
+
+from azure_functions_openapi.utils import (
+    sanitize_operation_id,
+    validate_route_path,
+)
 
 # Define a generic type variable for functions
 F = TypeVar("F", bound=Callable[..., Any])
@@ -130,11 +134,12 @@ def openapi(
             inner_func = func
             nonlocal route, method
             if isinstance(func, FunctionBuilder):
-                route = route or func._function.get_bindings()[0].route
-                if func._function.get_bindings()[0].methods:
-                    method = func._function.get_bindings()[0].methods[0].name
+                route = route or getattr(func._function.get_bindings()[0], "route", None)
+                methods = getattr(func._function.get_bindings()[0], "methods", [])
+                if methods:
+                    method = getattr(methods[0], "name", None)
 
-                inner_func = func._function._func 
+                inner_func = cast(F, func._function._func)
 
             # Enhanced input validation and sanitization
             validated_route = _validate_and_sanitize_route(route, inner_func.__name__)
@@ -183,12 +188,14 @@ def openapi(
 
         except ValueError as e:
             logger.error(
-                f"Failed to register OpenAPI metadata for function '{inner_func.__name__}': {str(e)}"
+                f"Failed to register OpenAPI metadata for function '{inner_func.__name__}': "
+                f"{str(e)}"
             )
             raise
         except Exception as e:
             logger.error(
-                f"Failed to register OpenAPI metadata for function '{inner_func.__name__}': {str(e)}"
+                f"Failed to register OpenAPI metadata for function '{inner_func.__name__}': "
+                f"{str(e)}"
             )
             raise RuntimeError(
                 f"Failed to register OpenAPI metadata for function '{inner_func.__name__}': {e}"
