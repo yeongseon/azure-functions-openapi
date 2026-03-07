@@ -173,7 +173,7 @@ docs:
 	@if [ -n "$$CI" ]; then \
 		echo "CI detected: running MkDocs directly"; \
 		python -m pip install --upgrade pip > /dev/null 2>&1 || true; \
-		pip install mkdocs mkdocs-material mkdocstrings[python] > /dev/null 2>&1; \
+		pip install "mkdocs<2.0" "mkdocs-material<10.0" "mkdocstrings[python]<1.0" > /dev/null 2>&1; \
 		mkdocs build; \
 	else \
 		$(MAKE) ensure-hatch > /dev/null; \
