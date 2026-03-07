@@ -15,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 OPENAPI_VERSION_3_0 = "3.0.0"
 OPENAPI_VERSION_3_1 = "3.1.0"
+DEFAULT_OPENAPI_INFO_DESCRIPTION = (
+    "Auto-generated OpenAPI documentation. " "Markdown supported in descriptions (CommonMark)."
+)
 
 
 def _convert_nullable_to_type_array(schema: dict[str, Any]) -> dict[str, Any]:
@@ -74,6 +77,7 @@ def generate_openapi_spec(
     title: str = "API",
     version: str = "1.0.0",
     openapi_version: str = OPENAPI_VERSION_3_0,
+    description: str = DEFAULT_OPENAPI_INFO_DESCRIPTION,
 ) -> dict[str, Any]:
     """
     Compile an OpenAPI specification from the registry.
@@ -82,6 +86,7 @@ def generate_openapi_spec(
         title: API title
         version: API version
         openapi_version: OpenAPI specification version ("3.0.0" or "3.1.0")
+        description: Description for the OpenAPI info object
 
     Returns:
         OpenAPI specification dictionary
@@ -205,10 +210,7 @@ def generate_openapi_spec(
             "info": {
                 "title": title,
                 "version": version,
-                "description": (
-                    "Auto-generated OpenAPI documentation. "
-                    "Markdown supported in descriptions (CommonMark)."
-                ),
+                "description": description,
             },
             "paths": paths,
         }
@@ -236,6 +238,7 @@ def get_openapi_json(
     title: str = "API",
     version: str = "1.0.0",
     openapi_version: str = OPENAPI_VERSION_3_0,
+    description: str = DEFAULT_OPENAPI_INFO_DESCRIPTION,
 ) -> str:
     """Return the spec as pretty-printed JSON (UTF-8).
 
@@ -243,12 +246,16 @@ def get_openapi_json(
         title: API title
         version: API version
         openapi_version: OpenAPI specification version ("3.0.0" or "3.1.0")
+        description: Description for the OpenAPI info object
 
     Returns:
         OpenAPI spec in JSON format.
     """
     try:
-        spec = generate_openapi_spec(title, version, openapi_version)
+        if description == DEFAULT_OPENAPI_INFO_DESCRIPTION:
+            spec = generate_openapi_spec(title, version, openapi_version)
+        else:
+            spec = generate_openapi_spec(title, version, openapi_version, description=description)
         return json.dumps(spec, indent=2, ensure_ascii=False)
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI JSON: {str(e)}")
@@ -259,6 +266,7 @@ def get_openapi_yaml(
     title: str = "API",
     version: str = "1.0.0",
     openapi_version: str = OPENAPI_VERSION_3_0,
+    description: str = DEFAULT_OPENAPI_INFO_DESCRIPTION,
 ) -> str:
     """Return the spec as YAML.
 
@@ -266,12 +274,16 @@ def get_openapi_yaml(
         title: API title
         version: API version
         openapi_version: OpenAPI specification version ("3.0.0" or "3.1.0")
+        description: Description for the OpenAPI info object
 
     Returns:
         OpenAPI spec in YAML format.
     """
     try:
-        spec = generate_openapi_spec(title, version, openapi_version)
+        if description == DEFAULT_OPENAPI_INFO_DESCRIPTION:
+            spec = generate_openapi_spec(title, version, openapi_version)
+        else:
+            spec = generate_openapi_spec(title, version, openapi_version, description=description)
         return yaml.safe_dump(spec, sort_keys=False, allow_unicode=True)
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI YAML: {str(e)}")

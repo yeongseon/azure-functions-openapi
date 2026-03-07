@@ -4,7 +4,12 @@ import json
 from pydantic import BaseModel
 
 from azure_functions_openapi.decorator import openapi
-from azure_functions_openapi.openapi import generate_openapi_spec, get_openapi_json
+from azure_functions_openapi.openapi import (
+    DEFAULT_OPENAPI_INFO_DESCRIPTION,
+    generate_openapi_spec,
+    get_openapi_json,
+    get_openapi_yaml,
+)
 
 
 def _register_http_trigger() -> None:
@@ -69,6 +74,22 @@ def test_get_openapi_json_output() -> None:
 
     assert {"openapi", "info", "paths"} <= data.keys()
     assert isinstance(data["paths"], dict)
+
+
+def test_generate_openapi_spec_uses_default_info_description() -> None:
+    spec = generate_openapi_spec()
+
+    assert spec["info"]["description"] == DEFAULT_OPENAPI_INFO_DESCRIPTION
+
+
+def test_get_openapi_json_and_yaml_accept_custom_info_description() -> None:
+    description = "Custom API description for generated docs."
+
+    json_data = json.loads(get_openapi_json(description=description))
+    yaml_data = get_openapi_yaml(description=description)
+
+    assert json_data["info"]["description"] == description
+    assert f"description: {description}" in yaml_data
 
 
 def test_generate_openapi_spec_with_request_body() -> None:

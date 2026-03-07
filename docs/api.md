@@ -38,6 +38,9 @@ from azure_functions_openapi.openapi import (
 Use these helpers to generate the OpenAPI spec directly for custom endpoints
 or offline workflows.
 
+`generate_openapi_spec()`, `get_openapi_json()`, and `get_openapi_yaml()` accept
+an optional `description` argument for the top-level `info.description` field.
+
 ## Swagger UI
 
 ```python

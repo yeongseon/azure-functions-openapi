@@ -199,6 +199,17 @@ class TestGetOpenAPIJSONEnhanced:
             assert "Failed to generate OpenAPI JSON" in str(exc_info.value)
             assert "Spec error" in str(exc_info.value.__cause__)
 
+    def test_get_openapi_json_passes_custom_description(self) -> None:
+        """Test custom description forwarding for JSON generation."""
+        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+            mock_generate.return_value = {"openapi": "3.0.0", "info": {"title": "Test API"}}
+
+            get_openapi_json("Test API", "1.0.0", description="Custom description")
+
+            mock_generate.assert_called_once_with(
+                "Test API", "1.0.0", "3.0.0", description="Custom description"
+            )
+
     def test_get_openapi_json_logging(self) -> None:
         """Test that JSON generation logs errors."""
         with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
@@ -237,6 +248,17 @@ class TestGetOpenAPIYAMLEnhanced:
 
             assert "Failed to generate OpenAPI YAML" in str(exc_info.value)
             assert "Spec error" in str(exc_info.value.__cause__)
+
+    def test_get_openapi_yaml_passes_custom_description(self) -> None:
+        """Test custom description forwarding for YAML generation."""
+        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+            mock_generate.return_value = {"openapi": "3.0.0", "info": {"title": "Test API"}}
+
+            get_openapi_yaml("Test API", "1.0.0", description="Custom description")
+
+            mock_generate.assert_called_once_with(
+                "Test API", "1.0.0", "3.0.0", description="Custom description"
+            )
 
     def test_get_openapi_yaml_logging(self) -> None:
         """Test that YAML generation logs errors."""

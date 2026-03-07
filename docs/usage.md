@@ -64,13 +64,19 @@ Add the OpenAPI and Swagger UI endpoints to your v2 `FunctionApp`:
 @app.function_name(name="openapi_spec")
 @app.route(route="openapi.json", methods=["GET"])
 def openapi_spec(req: func.HttpRequest) -> func.HttpResponse:
-    return get_openapi_json()
+    return get_openapi_json(
+        title="Todo API",
+        description="OpenAPI document for the Todo API.",
+    )
 
 
 @app.function_name(name="openapi_yaml_spec")
 @app.route(route="openapi.yaml", methods=["GET"])
 def openapi_yaml_spec(req: func.HttpRequest) -> func.HttpResponse:
-    return get_openapi_yaml()
+    return get_openapi_yaml(
+        title="Todo API",
+        description="OpenAPI document for the Todo API.",
+    )
 
 
 @app.function_name(name="swagger_ui")
@@ -92,3 +98,4 @@ def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
 - This package is for the Azure Functions Python **v2** programming model.
 - It does not support the legacy `function.json`-based v1 model.
 - Pydantic v1 and v2 support refers to schema generation only, not Azure Functions programming model support.
+- `get_openapi_json()` and `get_openapi_yaml()` accept an optional `description` argument for the top-level OpenAPI `info.description` field.
