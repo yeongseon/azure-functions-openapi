@@ -3,6 +3,7 @@ PYTHON := $(VENV_DIR)/bin/python
 PIP := $(VENV_DIR)/bin/pip
 HATCH := $(VENV_DIR)/bin/hatch
 PACKAGE_INIT := $(shell find src -mindepth 2 -maxdepth 2 -name "__init__.py" | head -n1)
+DEMO_TAPE := demo/openapi-cli.tape
 
 .PHONY: bootstrap
 bootstrap:
@@ -183,6 +184,11 @@ docs:
 .PHONY: docs-serve
 docs-serve: ensure-hatch
 	@$(HATCH) run docs
+
+.PHONY: demo
+demo:
+	@mkdir -p docs/assets demo/output
+	@docker run --rm -v "$(CURDIR):/vhs" -w /vhs ghcr.io/charmbracelet/vhs $(DEMO_TAPE)
 
 .PHONY: doctor
 doctor:
