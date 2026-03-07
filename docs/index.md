@@ -1,175 +1,32 @@
 # Azure Functions OpenAPI
 
-Welcome to **azure-functions-openapi** — a library that provides seamless integration of **OpenAPI (Swagger)** documentation for Python-based Azure Functions with strong security and performance defaults.
+`azure-functions-openapi` adds OpenAPI (Swagger) documentation to the **Azure Functions Python v2 programming model**.
+It is built for decorator-based `func.FunctionApp()` applications and HTTP-triggered functions.
 
-## 🚀 Features
+## Highlights
 
-### Core Features
-- **`@openapi` decorator** with comprehensive metadata support:
-  - `summary`, `description`, `tags`
-  - `operation_id`, `route`, `method`
-  - `request_model`, `response_model`
-  - `parameters`, `request_body`, `response`
-- **Automatic generation** of:
-  - `/openapi.json` - JSON specification
-  - `/openapi.yaml` - YAML specification
-  - `/docs` - Interactive Swagger UI
-- **Pydantic v1 and v2 support** with automatic schema generation
-- **Type-safe schema generation** with full type hints
-- **Zero-configuration integration** - works out of the box
-- **Compatible with Python 3.10+**
+- `@openapi` decorator for endpoint metadata
+- Generated `/openapi.json`, `/openapi.yaml`, and `/docs`
+- Optional Pydantic v1 and v2 schema support
+- Swagger UI helper with secure defaults
+- CLI tooling for generation and validation workflows
 
-### 🔒 Security
-- **Enhanced Security**: CSP headers, input validation, XSS protection
-- **Input Sanitization**: Automatic sanitization of routes, operation IDs, and parameters
-
-### 🛠️ Developer Experience
-- **CLI Tool**: Command-line interface for spec generation and validation
-- **Documentation**: Detailed guides for security and CLI usage
-- **Type Safety**: Full type hints and validation throughout
-
-## Getting Started
-
-### 1. Create a Function App and Register Routes
-
-To expose your Azure Functions with OpenAPI documentation, decorate your function with `@openapi`
-and register the documentation endpoints manually.
+## Example
 
 ```python
-# function_app.py
-
-import json
-import logging
 import azure.functions as func
+
 from azure_functions_openapi.decorator import openapi
-from azure_functions_openapi.openapi import get_openapi_json, get_openapi_yaml
-from azure_functions_openapi.swagger_ui import render_swagger_ui
+
 
 app = func.FunctionApp()
 
 
-@app.route(route="http_trigger", auth_level=func.AuthLevel.ANONYMOUS)
-@openapi(
-    route="/api/http_trigger",
-    summary="HTTP Trigger with name parameter",
-    description="""
-Returns a greeting using the **name** from query or body.
-
-You can pass the name:
-- via query string: `?name=Azure`
-- via JSON body: `{ "name": "Azure" }`
-""",
-    operation_id="greetUser",
-    tags=["Example"],
-    parameters=[
-        {
-            "name": "name",
-            "in": "query",
-            "required": True,
-            "schema": {"type": "string"},
-            "description": "Name to greet",
-        }
-    ],
-    response={
-        200: {
-            "description": "Successful response with greeting",
-            "content": {
-                "application/json": {
-                    "examples": {
-                        "sample": {
-                            "summary": "Example greeting",
-                            "value": {"message": "Hello, Azure!"},
-                        }
-                    }
-                }
-            },
-        },
-        400: {"description": "Invalid request"},
-    },
-)
-def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
-    name = req.params.get("name")
-    if not name:
-        try:
-            body = req.get_json()
-            name = body.get("name") if isinstance(body, dict) else None
-        except ValueError:
-            pass
-
-    if not name:
-        return func.HttpResponse("Invalid request – `name` is required", status_code=400)
-
-    return func.HttpResponse(
-        json.dumps({"message": f"Hello, {name}!"}),
-        mimetype="application/json",
-        status_code=200,
-    )
-
-
-# OpenAPI documentation routes
-@app.route(route="openapi.json", auth_level=func.AuthLevel.ANONYMOUS)
-def openapi_spec(req: func.HttpRequest) -> func.HttpResponse:
-    return func.HttpResponse(get_openapi_json(), mimetype="application/json")
-
-
-@app.route(route="openapi.yaml", auth_level=func.AuthLevel.ANONYMOUS)
-def openapi_yaml_spec(req: func.HttpRequest) -> func.HttpResponse:
-    return func.HttpResponse(get_openapi_yaml(), mimetype="application/x-yaml")
-
-
-@app.route(route="docs", auth_level=func.AuthLevel.ANONYMOUS)
-@app.function_name(name="swagger_ui")
-def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
-    return render_swagger_ui()
+@app.function_name(name="hello")
+@app.route(route="hello", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
+@openapi(summary="Hello endpoint", route="/api/hello", tags=["Example"])
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse("ok")
 ```
 
----
-
-### 2. Run the App
-
-Use the Azure Functions Core Tools:
-
-```bash
-func start
-```
-
----
-
-### 3. View the Swagger API
-
-Once the app is running, open your browser:
-
-- OpenAPI JSON: [http://localhost:7071/openapi.json](http://localhost:7071/openapi.json)
-- OpenAPI YAML: [http://localhost:7071/openapi.yaml](http://localhost:7071/openapi.yaml)
-- Swagger UI: [http://localhost:7071/docs](http://localhost:7071/docs)
-
----
-
-## 📚 Documentation
-
-### Getting Started
-- [Quickstart Guide](./usage.md) - Get up and running quickly
-- [Installation Guide](./installation.md) - Detailed installation instructions
-- [API Reference](./api.md) - Complete API documentation
-- [Development Guide](./development.md) - Development setup and guidelines
-- [Testing Guide](./testing.md) - Run the test suite locally
-
-### Advanced Features
-- [Security Guide](./security.md) - Security best practices and features
-- [CLI Tool Guide](./cli.md) - Command-line interface usage
-
-### Examples
-- [Hello OpenAPI Example](./examples/hello_openapi.md) - Basic example
-- [Todo CRUD API Example](./examples/todo_crud_api.md) - Advanced example with Pydantic
-
-### Support
-- [Troubleshooting](./troubleshooting.md) - Common issues and fixes
-- [Changelog](./changelog.md) - Version history and changes
-- [Contributing](./contributing.md) - How to contribute
-
----
-
-## About
-
-- Repository: [GitHub](https://github.com/yeongseon/azure-functions-openapi)
-- License: MIT
+See the Installation and Usage guides for the full setup, including the OpenAPI JSON, YAML, and Swagger UI routes.

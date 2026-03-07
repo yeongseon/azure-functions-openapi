@@ -9,253 +9,103 @@
 [![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-openapi/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> Effortless OpenAPI (Swagger) documentation & Swagger‑UI for **Python Azure Functions**.
+OpenAPI (Swagger) documentation and Swagger UI for the **Azure Functions Python v2 programming model**.
 
----
+## Scope
+
+- Azure Functions Python **v2 programming model**
+- Decorator-based `func.FunctionApp()` applications
+- HTTP-triggered functions documented with `@openapi`
+- Optional Pydantic schema generation (supports both Pydantic v1 and v2)
+
+This package does **not** support the legacy `function.json`-based v1 programming model.
 
 ## Features
 
-### Core Features
-- `@openapi` decorator — annotate once, generate full spec
-- Serves `/openapi.json`, `/openapi.yaml`, and `/docs` (Swagger UI)
-- Supports query/path/header parameters, requestBody, responses, tags
-- Optional Pydantic integration (supports both v1 and v2)
-- Zero hard dependency on Pydantic
-
-### Security
-- **Enhanced Security**: CSP headers, input validation, XSS protection
-- **Input Sanitization**: Automatic sanitization of routes, operation IDs, and parameters
-
-### Developer Experience
-- **CLI Tool**: Command-line interface for spec generation and validation
-- **Comprehensive Testing**: 85%+ test coverage with unit and integration suites
-- **Documentation**: Detailed guides for security, performance, and CLI usage
-- **Type Safety**: Full type hints and validation throughout
-
----
-
-## Quality Dashboard
-
-| Metric | Target | Source |
-| --- | --- | --- |
-| Test coverage | 85%+ target (latest CI: 87%) | Codecov / `make cov` |
-| Linting | Clean | Ruff |
-| Type safety | Clean | Mypy |
-| Security scan | Clean | Security Scans workflow (`bandit` + `semgrep`) |
-
-
----
+- `@openapi` decorator for operation metadata
+- `/openapi.json`, `/openapi.yaml`, and `/docs` endpoints
+- Query, path, header, body, and response schema support
+- Swagger UI helper with security defaults
+- CLI tooling for generation and validation workflows
 
 ## Installation
-
-Supported Python versions: **3.10 - 3.14** (all versions are required in CI; 3.14 is stable)
 
 ```bash
 pip install azure-functions-openapi
 ```
 
-For local development:
+Your Function App dependencies should include:
 
-```bash
-git clone https://github.com/yeongseon/azure-functions-openapi.git
-cd azure-functions-openapi
-pip install -e .[dev]
+```text
+azure-functions
+azure-functions-openapi
 ```
-
----
 
 ## Quick Start
 
-> Create a minimal HTTP-triggered Azure Function with auto Swagger documentation.
-
-1. Set up environment
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install azure-functions azure-functions-worker azure-functions-openapi
-```
-
-2. Initialize Azure Functions project
-```bash
-func init hello_openapi --python
-cd hello_openapi
-```
-
-3. Add `function_app.py` with OpenAPI-decorated function and endpoints:
 ```python
-# hello_openapi/function_app.py
-
 import json
+
 import azure.functions as func
+
 from azure_functions_openapi.decorator import openapi
 from azure_functions_openapi.openapi import get_openapi_json, get_openapi_yaml
 from azure_functions_openapi.swagger_ui import render_swagger_ui
 
+
 app = func.FunctionApp()
 
+
+@app.function_name(name="http_trigger")
+@app.route(route="http_trigger", auth_level=func.AuthLevel.ANONYMOUS, methods=["POST"])
 @openapi(
     summary="Greet user",
     route="/api/http_trigger",
     request_model={"name": "string"},
     response_model={"message": "string"},
-    tags=["Example"]
+    tags=["Example"],
 )
-@app.function_name(name="http_trigger")
-@app.route(route="/api/http_trigger", auth_level=func.AuthLevel.ANONYMOUS, methods=["POST"])
-def main(req: func.HttpRequest) -> func.HttpResponse:
-    try:
-        data = req.get_json()
-        name = data.get("name", "world")
-        return func.HttpResponse(
-            json.dumps({"message": f"Hello, {name}!"}),
-            mimetype="application/json"
-        )
-    except Exception as e:
-        return func.HttpResponse(f"Error: {str(e)}", status_code=400)
+def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
+    data = req.get_json()
+    name = data.get("name", "world")
+    return func.HttpResponse(
+        json.dumps({"message": f"Hello, {name}!"}),
+        mimetype="application/json",
+    )
+
 
 @app.function_name(name="openapi_json")
-@app.route(route="/api/openapi.json", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
+@app.route(route="openapi.json", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
 def openapi_json(req: func.HttpRequest) -> func.HttpResponse:
     return get_openapi_json()
 
+
 @app.function_name(name="openapi_yaml")
-@app.route(route="/api/openapi.yaml", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
+@app.route(route="openapi.yaml", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
 def openapi_yaml(req: func.HttpRequest) -> func.HttpResponse:
     return get_openapi_yaml()
 
+
 @app.function_name(name="swagger_ui")
-@app.route(route="/api/docs", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
+@app.route(route="docs", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
 def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
     return render_swagger_ui()
 ```
->  Swagger UI (`/docs`) is now supported via `render_swagger_ui()` helper.
 
-4. Run locally:
+Run locally with Azure Functions Core Tools:
+
 ```bash
 func start
 ```
 
-- OpenAPI JSON: http://localhost:7071/api/openapi.json
-- Swagger UI: http://localhost:7071/api/docs
-
-5. Deploy:
-```bash
-func azure functionapp publish <FUNCTION-APP-NAME> --python
-```
-
-- OpenAPI JSON: https://<FUNCTION-APP-NAME>.azurewebsites.net/api/openapi.json
-
-A partial example of the generated `/api/openapi.json`:
-
-```json
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "API",
-    "version": "1.0.0",
-    "description": "Auto-generated OpenAPI documentation. Markdown supported in descriptions (CommonMark)."
-  },
-  "paths": {
-    "/api/http_trigger": {
-      "get": {
-        "summary": "HTTP Trigger with name parameter",
-        "description": "Returns a greeting using the **name** from query or body.",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "query",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "Name to greet"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response with greeting",
-            "content": {
-              "application/json": {
-                "examples": {
-                  "sample": {
-                    "summary": "Example greeting",
-                    "value": {
-                      "message": "Hello, Azure!"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": { "description": "Invalid request" }
-        }
-      }
-    }
-  }
-}
-```
-
-- Swagger UI: https://<FUNCTION-APP-NAME>.azurewebsites.net/api/docs
-
-Swagger UI will look once you set up the routes:
-
-![Swagger UI Example](./docs/assets/hello_openapi_swagger_ui_preview.png)
-
----
-
-## Example with Pydantic
-
-```python
-from pydantic import BaseModel
-from azure_functions_openapi.decorator import openapi
-
-class RequestModel(BaseModel):
-    name: str
-
-class ResponseModel(BaseModel):
-    message: str
-
-@openapi(
-    summary="Greet user (Pydantic)",
-    route="/api/http_trigger",
-    request_model=RequestModel,
-    response_model=ResponseModel,
-    tags=["Example"]
-)
-def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
-    ...
-```
-
->  Supports both Pydantic v1 and v2.
-Schema inference will work automatically with either version.
-
----
-
-## CLI Tool
-
-The package includes a powerful CLI tool for various operations:
-
-```bash
-# Generate OpenAPI specification
-azure-functions-openapi generate --title "My API" --version "1.0.0"
-
-# Generate OpenAPI spec
-azure-functions-openapi generate --output openapi.json --format json
-
-# Validate OpenAPI specification (external validator)
-openapi-spec-validator openapi.json
-```
-
-See [CLI Guide](docs/cli.md) for complete documentation.
-
 ## Documentation
 
 - Full docs: [yeongseon.github.io/azure-functions-openapi](https://yeongseon.github.io/azure-functions-openapi/)
-- [Quickstart](docs/usage.md)
-- [Contribution Guide](docs/contributing.md)
-- [Security Guide](docs/security.md)
+- [Installation Guide](docs/installation.md)
+- [Usage Guide](docs/usage.md)
+- [API Reference](docs/api.md)
 - [CLI Guide](docs/cli.md)
-
----
 
 ## License
 
-MIT © 2025 Yeongseon Choe
+MIT

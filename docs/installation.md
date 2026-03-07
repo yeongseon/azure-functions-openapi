@@ -1,66 +1,27 @@
 # Installation
 
-This project supports Python-based Azure Functions using the **Programming Model v2**.
-
----
-
-## Table of Contents
-
-- Requirements
-- Installation
-- Azure Functions Core Tools (Platform Notes)
-- Local Development
-
----
+This project supports the **Azure Functions Python v2 programming model**.
 
 ## Requirements
 
-- Python **3.10+** (3.10–3.12 tested)
-- [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
-- Azure Functions Python Programming Model **v2**
+- Python 3.10+
+- Azure Functions Core Tools
+- Azure Functions Python **v2** (`func.FunctionApp` with decorators)
 
-> This library is not compatible with the legacy v1 model.
+> This library is not compatible with the legacy `function.json`-based v1 model.
 
----
-
-## Installation
-
-Install the package via pip:
+## Install the Package
 
 ```bash
 pip install azure-functions-openapi
 ```
 
-Then ensure your `requirements.txt` includes:
+Then ensure your Function App dependencies include:
 
-```
+```text
 azure-functions
 azure-functions-openapi
 ```
-
-If you're developing locally:
-
-```bash
-pip install -e .[dev]
-```
-
----
-
-## Azure Functions Core Tools (Platform Notes)
-
-Install Azure Functions Core Tools using the official instructions:
-
-- Windows: https://learn.microsoft.com/azure/azure-functions/functions-run-local
-- macOS: https://learn.microsoft.com/azure/azure-functions/functions-run-local
-- Linux: https://learn.microsoft.com/azure/azure-functions/functions-run-local
-
-Verify installation:
-
-```bash
-func --version
-```
-
----
 
 ## Local Development
 
@@ -69,3 +30,11 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -e .[dev]
 ```
+
+## Azure Functions Core Tools
+
+Install Azure Functions Core Tools using the official Microsoft instructions:
+
+- Windows: https://learn.microsoft.com/azure/azure-functions/functions-run-local
+- macOS: https://learn.microsoft.com/azure/azure-functions/functions-run-local
+- Linux: https://learn.microsoft.com/azure/azure-functions/functions-run-local
