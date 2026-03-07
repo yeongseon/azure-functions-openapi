@@ -1,6 +1,16 @@
 # tests/test_decorator.py
 
+import azure.functions as func
+from azure.functions.decorators.function_app import FunctionBuilder
+
+import azure_functions_openapi.decorator as decorator_module
 from azure_functions_openapi.decorator import get_openapi_registry, openapi
+from azure_functions_openapi.openapi import generate_openapi_spec
+
+
+def _clear_registry() -> None:
+    with decorator_module._registry_lock:
+        decorator_module._openapi_registry.clear()
 
 
 def test_openapi_registers_metadata() -> None:
@@ -74,3 +84,38 @@ def test_openapi_registers_security_metadata() -> None:
 
     registry = get_openapi_registry()
     assert registry["secured_dummy"]["security"] == [{"BearerAuth": []}]
+
+
+def test_openapi_accepts_function_builder_when_decorator_is_outermost() -> None:
+    _clear_registry()
+    app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+
+    @openapi(summary="Hello", description="Returns plain text.")
+    @app.route(route="hello")
+    def hello(req: func.HttpRequest) -> func.HttpResponse:
+        return func.HttpResponse("Hello", status_code=200)
+
+    assert isinstance(hello, FunctionBuilder)
+
+    registry = get_openapi_registry()
+    assert registry["hello"]["summary"] == "Hello"
+    assert registry["hello"]["description"] == "Returns plain text."
+
+    spec = generate_openapi_spec()
+    assert "/hello" in spec["paths"]
+
+
+def test_openapi_keeps_function_builder_chain_intact() -> None:
+    _clear_registry()
+    app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+
+    @app.function_name(name="hello_alias")
+    @openapi(summary="Hello")
+    @app.route(route="hello")
+    def hello(req: func.HttpRequest) -> func.HttpResponse:
+        return func.HttpResponse("Hello", status_code=200)
+
+    assert isinstance(hello, FunctionBuilder)
+    built = app._function_builders[0].build(app.auth_level)
+
+    assert built.get_function_name() == "hello_alias"

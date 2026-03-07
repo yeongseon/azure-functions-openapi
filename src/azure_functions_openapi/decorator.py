@@ -3,8 +3,9 @@ from __future__ import annotations
 
 import logging
 import threading
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, TypeVar, cast
 
+from azure.functions.decorators.function_app import FunctionBuilder
 from pydantic import BaseModel
 
 from azure_functions_openapi.utils import sanitize_operation_id, validate_route_path
@@ -17,6 +18,17 @@ _openapi_registry: dict[str, dict[str, Any]] = {}
 _registry_lock = threading.RLock()
 
 logger = logging.getLogger(__name__)
+
+
+def _resolve_metadata_target(func: Any) -> tuple[Any, Callable[..., Any]]:
+    """Return the original decorated object and the underlying callable used for metadata."""
+    if isinstance(func, FunctionBuilder):
+        return func, func._function._func
+
+    if not callable(func):
+        raise TypeError(f"Unsupported decorated object: {type(func).__name__}")
+
+    return func, cast(Callable[..., Any], func)
 
 
 def openapi(
@@ -125,23 +137,28 @@ def openapi(
     """
 
     def decorator(func: F) -> F:
+        original_func: Any = func
+        metadata_func: Callable[..., Any] = cast(Callable[..., Any], func)
+
         try:
+            original_func, metadata_func = _resolve_metadata_target(func)
+
             # Enhanced input validation and sanitization
-            validated_route = _validate_and_sanitize_route(route, func.__name__)
+            validated_route = _validate_and_sanitize_route(route, metadata_func.__name__)
             sanitized_operation_id = _validate_and_sanitize_operation_id(
-                operation_id, func.__name__
+                operation_id, metadata_func.__name__
             )
-            validated_parameters = _validate_parameters(parameters, func.__name__)
-            validated_security = _validate_security(security, func.__name__)
-            validated_tags = _validate_tags(tags, func.__name__)
+            validated_parameters = _validate_parameters(parameters, metadata_func.__name__)
+            validated_security = _validate_security(security, metadata_func.__name__)
+            validated_tags = _validate_tags(tags, metadata_func.__name__)
 
             # Validate request/response models
-            _validate_models(request_model, response_model, func.__name__)
+            _validate_models(request_model, response_model, metadata_func.__name__)
 
-            function_id = f"{func.__module__}.{func.__qualname__}"
+            function_id = f"{metadata_func.__module__}.{metadata_func.__qualname__}"
 
             with _registry_lock:
-                registry_key = func.__name__
+                registry_key = metadata_func.__name__
                 existing = _openapi_registry.get(registry_key)
                 if existing and existing.get("_function_id") != function_id:
                     existing_id = existing.get("_function_id")
@@ -164,24 +181,26 @@ def openapi(
                     "request_body": request_body,
                     "response_model": response_model,
                     "response": response or {},
-                    "function_name": func.__name__,
+                    "function_name": metadata_func.__name__,
                     "_function_id": function_id,
                 }
 
-            logger.debug(f"Registered OpenAPI metadata for function '{func.__name__}'")
-            return func
+            logger.debug(f"Registered OpenAPI metadata for function '{metadata_func.__name__}'")
+            return cast(F, original_func)
 
         except ValueError as e:
             logger.error(
-                f"Failed to register OpenAPI metadata for function '{func.__name__}': {str(e)}"
+                f"Failed to register OpenAPI metadata for function "
+                f"'{metadata_func.__name__}': {str(e)}"
             )
             raise
         except Exception as e:
             logger.error(
-                f"Failed to register OpenAPI metadata for function '{func.__name__}': {str(e)}"
+                f"Failed to register OpenAPI metadata for function "
+                f"'{metadata_func.__name__}': {str(e)}"
             )
             raise RuntimeError(
-                f"Failed to register OpenAPI metadata for function '{func.__name__}': {e}"
+                f"Failed to register OpenAPI metadata for function '{metadata_func.__name__}': {e}"
             ) from e
 
     return decorator
