@@ -23,14 +23,10 @@ Type "cd /vhs"
 Enter
 Sleep 700ms
 
-Type "/tmp/openapi-demo-venv/bin/python -m azure_functions_openapi.cli --help"
-Enter
-Sleep 2s
-
-Type "/tmp/openapi-demo-venv/bin/python -m azure_functions_openapi.cli generate --format yaml --title DemoAPI --version 1.2.0 --output /tmp/openapi.yaml"
+Type "/tmp/openapi-demo-venv/bin/python demo/render_hello_openapi_spec.py > /tmp/openapi.yaml"
 Enter
 Sleep 1600ms
 
-Type "sed -n '1,12p' /tmp/openapi.yaml"
+Type "sed -n '1,18p' /tmp/openapi.yaml"
 Enter
 Sleep 2500ms
