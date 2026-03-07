@@ -14,6 +14,18 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 
+def _expand_swagger_ui(html: str) -> str:
+    expanded_layout = (
+        "layout: 'BaseLayout',\n"
+        "            docExpansion: 'full',\n"
+        "            defaultModelsExpandDepth: -1,"
+    )
+    return html.replace(
+        "layout: 'BaseLayout',",
+        expanded_layout,
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-dir", required=True)
@@ -38,7 +50,10 @@ def main() -> None:
     )
 
     (output_dir / "openapi.json").write_text(openapi_json, encoding="utf-8")
-    (output_dir / "index.html").write_bytes(swagger_response.get_body())
+    (output_dir / "index.html").write_text(
+        _expand_swagger_ui(swagger_response.get_body().decode("utf-8")),
+        encoding="utf-8",
+    )
 
 
 if __name__ == "__main__":
