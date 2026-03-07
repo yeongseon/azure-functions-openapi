@@ -4,6 +4,7 @@ PIP := $(VENV_DIR)/bin/pip
 HATCH := $(VENV_DIR)/bin/hatch
 PACKAGE_INIT := $(shell find src -mindepth 2 -maxdepth 2 -name "__init__.py" | head -n1)
 DEMO_TAPE := demo/openapi-cli.tape
+DEMO_IMAGE := azure-functions-openapi-demo-vhs
 PLAYWRIGHT_VERSION := 1.54.1
 PLAYWRIGHT_BROWSERS_PATH := $(CURDIR)/.cache/ms-playwright
 SWAGGER_PREVIEW_DIR := demo/.preview/swagger-ui
@@ -192,10 +193,14 @@ docs-serve: ensure-hatch
 .PHONY: demo
 demo: demo-cli demo-swagger
 
+.PHONY: demo-image
+demo-image:
+	@docker build -t $(DEMO_IMAGE) -f demo/Dockerfile.vhs .
+
 .PHONY: demo-cli
-demo-cli:
+demo-cli: demo-image
 	@mkdir -p docs/assets demo/output
-	@docker run --rm -v "$(CURDIR):/workspace" -w /workspace ghcr.io/charmbracelet/vhs $(DEMO_TAPE)
+	@docker run --rm -v "$(CURDIR):/workspace" -w /workspace $(DEMO_IMAGE) $(DEMO_TAPE)
 
 .PHONY: demo-swagger
 demo-swagger: ensure-hatch
