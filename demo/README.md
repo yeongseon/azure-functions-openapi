@@ -1,10 +1,7 @@
 # Demo Assets
 
-The README demo is generated from `openapi-cli.tape` with VHS.
-It renders a real OpenAPI document from the representative `hello_openapi` example.
+The README demo assets are generated from code:
 
-Generate the GIF locally with:
-
-```bash
-make demo
-```
+- `openapi-cli.tape` renders the terminal GIF with VHS.
+- `render_hello_openapi_swagger_site.py` builds a static Swagger UI preview site from the representative `hello_openapi` example.
+- `make demo` regenerates both the terminal GIF and the Swagger UI preview image.

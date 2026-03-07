@@ -4,6 +4,10 @@ PIP := $(VENV_DIR)/bin/pip
 HATCH := $(VENV_DIR)/bin/hatch
 PACKAGE_INIT := $(shell find src -mindepth 2 -maxdepth 2 -name "__init__.py" | head -n1)
 DEMO_TAPE := demo/openapi-cli.tape
+PLAYWRIGHT_VERSION := 1.54.1
+PLAYWRIGHT_BROWSERS_PATH := $(CURDIR)/.cache/ms-playwright
+SWAGGER_PREVIEW_DIR := demo/.preview/swagger-ui
+SWAGGER_PREVIEW_PORT := 8123
 
 .PHONY: bootstrap
 bootstrap:
@@ -186,9 +190,31 @@ docs-serve: ensure-hatch
 	@$(HATCH) run docs
 
 .PHONY: demo
-demo:
+demo: demo-cli demo-swagger
+
+.PHONY: demo-cli
+demo-cli:
 	@mkdir -p docs/assets demo/output
 	@docker run --rm -v "$(CURDIR):/vhs" -w /vhs ghcr.io/charmbracelet/vhs $(DEMO_TAPE)
+
+.PHONY: demo-swagger
+demo-swagger: ensure-hatch
+	@rm -rf $(SWAGGER_PREVIEW_DIR)
+	@mkdir -p $(SWAGGER_PREVIEW_DIR) docs/assets
+	@$(HATCH) run python demo/render_hello_openapi_swagger_site.py --output-dir $(SWAGGER_PREVIEW_DIR)
+	@PLAYWRIGHT_BROWSERS_PATH="$(PLAYWRIGHT_BROWSERS_PATH)" npx -y playwright@$(PLAYWRIGHT_VERSION) install chromium > /dev/null
+	@python3 -m http.server $(SWAGGER_PREVIEW_PORT) --directory $(SWAGGER_PREVIEW_DIR) > /tmp/openapi-swagger-preview.log 2>&1 & \
+	SERVER_PID=$$!; \
+	trap 'kill $$SERVER_PID 2>/dev/null || true' EXIT; \
+	sleep 2; \
+	PLAYWRIGHT_BROWSERS_PATH="$(PLAYWRIGHT_BROWSERS_PATH)" npx -y playwright@$(PLAYWRIGHT_VERSION) screenshot \
+		--device="Desktop Chrome" \
+		--wait-for-selector ".opblock" \
+		--wait-for-timeout 2000 \
+		"http://127.0.0.1:$(SWAGGER_PREVIEW_PORT)/index.html" \
+		"docs/assets/hello_openapi_swagger_ui_preview.png" > /dev/null; \
+	kill $$SERVER_PID 2>/dev/null || true; \
+	wait $$SERVER_PID 2>/dev/null || true
 
 .PHONY: doctor
 doctor:

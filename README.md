@@ -45,7 +45,7 @@ It shows the generated YAML file and the resulting `paths` entry for the example
 
 ### Swagger UI Result
 
-The web preview below shows the same example rendered in Swagger UI.
+The web preview below is generated from the same representative example and captured automatically from a rendered Swagger UI page.
 
 ![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
 
