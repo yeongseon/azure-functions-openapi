@@ -18,7 +18,9 @@ def _expand_swagger_ui(html: str) -> str:
     expanded_layout = (
         "layout: 'BaseLayout',\n"
         "            docExpansion: 'full',\n"
-        "            defaultModelsExpandDepth: -1,"
+        "            defaultModelsExpandDepth: -1,\n"
+        "            tryItOutEnabled: false,\n"
+        "            supportedSubmitMethods: [],"
     )
     return html.replace(
         "layout: 'BaseLayout',",

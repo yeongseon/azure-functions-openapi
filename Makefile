@@ -209,7 +209,7 @@ demo-swagger: ensure-hatch
 	sleep 2; \
 	PLAYWRIGHT_BROWSERS_PATH="$(PLAYWRIGHT_BROWSERS_PATH)" npx -y playwright@$(PLAYWRIGHT_VERSION) screenshot \
 		--device="Desktop Chrome" \
-		--wait-for-selector ".opblock" \
+		--wait-for-selector ".opblock.is-open" \
 		--wait-for-timeout 2000 \
 		"http://127.0.0.1:$(SWAGGER_PREVIEW_PORT)/index.html" \
 		"docs/assets/hello_openapi_swagger_ui_preview.png" > /dev/null; \
