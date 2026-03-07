@@ -25,8 +25,12 @@ Sleep 700ms
 
 Type "/tmp/openapi-demo-venv/bin/python demo/render_hello_openapi_spec.py > /tmp/openapi.yaml"
 Enter
-Sleep 1600ms
+Sleep 1800ms
 
-Type "sed -n '1,18p' /tmp/openapi.yaml"
+Type "ls -lh /tmp/openapi.yaml"
+Enter
+Sleep 1200ms
+
+Type "sed -n '/paths:/,/responses:/p' /tmp/openapi.yaml | sed -n '1,18p'"
 Enter
 Sleep 2500ms
