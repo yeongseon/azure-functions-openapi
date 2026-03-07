@@ -26,7 +26,7 @@ dev = [
     "pre-commit",
     "pytest",
     "pytest-cov",
-    "ruff==0.14.14",
+    "ruff==0.15.5",
     "types-PyYAML",
 ]
 docs = [
