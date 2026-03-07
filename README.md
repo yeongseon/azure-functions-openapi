@@ -30,10 +30,14 @@ This package does **not** support the legacy `function.json`-based v1 programmin
 
 ## Demo
 
-The demo below is generated from [`demo/openapi-cli.tape`](demo/openapi-cli.tape) with VHS.
+The CLI demo below is generated from [`demo/openapi-cli.tape`](demo/openapi-cli.tape) with VHS.
 It shows a real OpenAPI YAML document generated from the representative `hello_openapi` example.
 
 ![OpenAPI CLI demo](docs/assets/openapi-cli-demo.gif)
+
+The web result below shows the same representative example rendered in Swagger UI.
+
+![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
 
 ## Installation
 
