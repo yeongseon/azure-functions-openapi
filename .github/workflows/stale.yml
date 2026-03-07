@@ -145,6 +145,7 @@ jobs:
           script: |
             const branchName = context.payload.pull_request.head.ref;
             const validPatterns = [
+              /^dependabot\/.+$/,
               /^feat\/.+$/,
               /^fix\/.+$/,
               /^docs\/.+$/,
@@ -158,6 +159,7 @@ jobs:
             
             if (!isValid) {
               core.setFailed(`Invalid branch name: ${branchName}. Please use one of the following naming conventions:
+                - dependabot/<ecosystem>/<dependency>
                 - feat/<description>
                 - fix/<description>
                 - docs/<description>
