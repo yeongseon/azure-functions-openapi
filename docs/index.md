@@ -30,3 +30,8 @@ def hello(req: func.HttpRequest) -> func.HttpResponse:
 ```
 
 See the Installation and Usage guides for the full setup, including the OpenAPI JSON, YAML, and Swagger UI routes.
+
+## Examples
+
+- Representative: `examples/hello_openapi`
+- Complex: `examples/todo_crud_api`

@@ -106,6 +106,7 @@ func start
 ## Documentation
 
 - Full docs: [yeongseon.github.io/azure-functions-openapi](https://yeongseon.github.io/azure-functions-openapi/)
+- Smoke-tested examples: `examples/`
 - [Installation Guide](docs/installation.md)
 - [Usage Guide](docs/usage.md)
 - [API Reference](docs/api.md)
