@@ -30,6 +30,32 @@ class TestMain:
                 main()
             assert exc_info.value.code == 2  # argparse exits with code 2 for errors
 
+    def test_parse_args_unknown_command_path_returns_1(self) -> None:
+        """Test explicit unknown command branch after parse_args."""
+        args = mock.Mock(command="mystery")
+
+        with mock.patch("argparse.ArgumentParser.parse_args", return_value=args):
+            with mock.patch("builtins.print") as mock_print:
+                result = main()
+
+        assert result == 1
+        mock_print.assert_called_with("Unknown command: mystery")
+
+    def test_main_returns_1_when_handle_generate_raises(self) -> None:
+        """Test main() error branch when generate handler raises."""
+        args = mock.Mock(command="generate")
+
+        with mock.patch("argparse.ArgumentParser.parse_args", return_value=args):
+            with mock.patch(
+                "azure_functions_openapi.cli.handle_generate",
+                side_effect=RuntimeError("boom"),
+            ):
+                with mock.patch("builtins.print") as mock_print:
+                    result = main()
+
+        assert result == 1
+        mock_print.assert_called_with("Error: boom", file=sys.stderr)
+
 
 class TestHandleGenerate:
     """Tests for handle_generate() command."""
@@ -149,6 +175,52 @@ class TestHandleGenerate:
         assert result == 0
         output = mock_print.call_args[0][0]
         assert "openapi: 3.1.0" in output or "openapi: '3.1.0'" in output
+
+    def test_generate_json_failure_returns_1(self) -> None:
+        """Test JSON generation failure path."""
+        args = mock.Mock(
+            title="Broken API",
+            version="1.0.0",
+            format="json",
+            output=None,
+            pretty=False,
+            openapi_version="3.0",
+        )
+
+        with mock.patch(
+            "azure_functions_openapi.cli.get_openapi_json",
+            side_effect=RuntimeError("boom"),
+        ):
+            with mock.patch("builtins.print") as mock_print:
+                result = handle_generate(args)
+
+        assert result == 1
+        mock_print.assert_called_with(
+            "Failed to generate OpenAPI specification: boom",
+            file=sys.stderr,
+        )
+
+    def test_generate_output_file_failure_returns_1(self) -> None:
+        """Test output file write failure path."""
+        args = mock.Mock(
+            title="Broken API",
+            version="1.0.0",
+            format="json",
+            output="broken.json",
+            pretty=False,
+            openapi_version="3.0",
+        )
+
+        with mock.patch("azure_functions_openapi.cli.get_openapi_json", return_value="{}"):
+            with mock.patch.object(Path, "write_text", side_effect=OSError("disk full")):
+                with mock.patch("builtins.print") as mock_print:
+                    result = handle_generate(args)
+
+        assert result == 1
+        mock_print.assert_called_with(
+            "Failed to generate OpenAPI specification: disk full",
+            file=sys.stderr,
+        )
 
 
 class TestCLIIntegration:

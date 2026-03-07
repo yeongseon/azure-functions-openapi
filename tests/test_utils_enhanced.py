@@ -6,6 +6,9 @@ from unittest.mock import patch
 from pydantic import BaseModel, Field
 
 from azure_functions_openapi.utils import (
+    _collect_schemas,
+    _resolve_name_collision,
+    _rewrite_refs_with_map,
     model_to_schema,
     sanitize_operation_id,
     validate_route_path,
@@ -109,6 +112,103 @@ class TestModelToSchema:
                 assert "definitions" not in registered
                 assert registered["items"]["$ref"] == "#/components/schemas/Item"
                 assert "Item" in components["schemas"]
+
+    def test_model_to_schema_initializes_components_when_missing(self) -> None:
+        schema = model_to_schema(SampleModel, None)
+
+        assert schema == {"$ref": "#/components/schemas/SampleModel"}
+
+    def test_model_to_schema_resolves_name_collisions(self) -> None:
+        with patch("azure_functions_openapi.utils.PYDANTIC_V2", True):
+            with patch.object(SampleModel, "model_json_schema") as mock_schema:
+                mock_schema.return_value = {
+                    "type": "object",
+                    "properties": {"child": {"$ref": "#/components/schemas/Child"}},
+                    "$defs": {
+                        "Child": {
+                            "type": "object",
+                            "properties": {"id": {"type": "integer"}},
+                        }
+                    },
+                }
+
+                components: Dict[str, Dict[str, Any]] = {
+                    "schemas": {
+                        "SampleModel": {
+                            "type": "object",
+                            "properties": {"name": {"type": "string"}},
+                        },
+                        "Child": {"type": "object", "properties": {"legacy": {"type": "string"}}},
+                    }
+                }
+                schema = model_to_schema(SampleModel, components)
+
+                assert schema == {"$ref": "#/components/schemas/SampleModel_2"}
+                assert "SampleModel_2" in components["schemas"]
+                assert "Child_2" in components["schemas"]
+                child_ref = components["schemas"]["SampleModel_2"]["properties"]["child"]["$ref"]
+                assert child_ref == "#/components/schemas/Child_2"
+
+
+class TestUtilsInternals:
+    def test_collect_schemas_skips_non_dict_definitions_and_hoists_nested_defs(self) -> None:
+        normalized, collected = _collect_schemas(
+            {
+                "type": "array",
+                "items": {"$ref": "#/$defs/Item"},
+                "$defs": {
+                    "Item": {
+                        "type": "object",
+                        "properties": {"child": {"$ref": "#/$defs/Nested"}},
+                        "$defs": {"Nested": {"type": "string"}},
+                    },
+                    "Ignored": "not-a-dict",
+                },
+            }
+        )
+
+        assert normalized["items"]["$ref"] == "#/components/schemas/Item"
+        assert "Item" in collected
+        assert "Nested" in collected
+        assert "Ignored" not in collected
+
+    def test_resolve_name_collision_uses_suffix_and_reuses_identical_schema(self) -> None:
+        existing = {
+            "Thing": {"type": "object", "properties": {"id": {"type": "integer"}}},
+            "Thing_2": {"type": "object", "properties": {"legacy": {"type": "string"}}},
+        }
+
+        assert _resolve_name_collision("Thing", existing["Thing"], existing) == "Thing"
+        assert (
+            _resolve_name_collision(
+                "Thing",
+                {"type": "object", "properties": {"legacy": {"type": "string"}}},
+                existing,
+            )
+            == "Thing_2"
+        )
+        assert (
+            _resolve_name_collision(
+                "Thing",
+                {"type": "object", "properties": {"name": {"type": "string"}}},
+                existing,
+            )
+            == "Thing_3"
+        )
+
+    def test_rewrite_refs_with_map_handles_lists_and_empty_map(self) -> None:
+        payload: Dict[str, Any] = {
+            "items": [
+                {"$ref": "#/components/schemas/Thing"},
+                {"nested": {"$ref": "#/components/schemas/Other"}},
+            ]
+        }
+
+        assert _rewrite_refs_with_map(payload, {}) == payload
+
+        rewritten = _rewrite_refs_with_map(payload, {"Thing": "Thing_2", "Other": "Other_2"})
+        assert rewritten["items"][0]["$ref"] == "#/components/schemas/Thing_2"
+        assert rewritten["items"][1]["nested"]["$ref"] == "#/components/schemas/Other_2"
 
 
 class TestValidateRoutePath:
