@@ -1,61 +1,49 @@
 # DESIGN.md
 
-Design Principles & Anti-Goals
+Design Principles for `azure-functions-openapi`
 
 ## Purpose
 
-This document defines the **design philosophy** of this library.
+This document defines the architectural boundaries and design principles of the project.
 
-It exists to:
+## Design Goals
 
-* Prevent accidental over-engineering
-* Keep APIs stable and predictable
-* Serve as a guardrail for AI-assisted development
+- Generate OpenAPI documents for Azure Functions Python v2 handlers.
+- Keep the decorator model explicit and predictable.
+- Preserve Azure Functions runtime behavior instead of abstracting it away.
+- Provide Swagger UI and CLI tooling without turning the package into a framework.
 
----
+## Non-Goals
 
-## Goals
+This project does not aim to:
 
-* Provide **small, composable utilities** for Azure Functions
-* Favor **explicit behavior over implicit magic**
-* Keep runtime overhead minimal
-* Remain easy to understand, debug, and remove
+- Replace Azure Functions routing or hosting behavior
+- Hide the `func.FunctionApp()` programming model
+- Become a general web framework
+- Own deployment, infrastructure, or application lifecycle concerns
 
----
+## Design Principles
 
-## Anti-Goals
+- Explicit metadata is preferred over magic inference.
+- Decorators should collect metadata, not change core handler semantics.
+- OpenAPI generation and UI rendering should remain separate concerns.
+- Public APIs should evolve conservatively.
+- Example applications should demonstrate supported patterns, not internal shortcuts.
 
-This library intentionally does **NOT** aim to:
+## Integration Boundaries
 
-* Be a framework
-* Hide or abstract Azure Functions runtime behavior
-* Manage deployment, infrastructure, or configuration
-* Introduce global state or hidden side effects
-
----
-
-## API Design Principles
-
-* Explicit is better than implicit
-* No global mutable state
-* Context must be **passed explicitly**, never inferred
-* Public APIs are stable and conservative
-* Breaking changes are avoided unless strictly necessary
-
----
+- Runtime validation belongs to `azure-functions-validation`.
+- Diagnostics belong to `azure-functions-doctor`.
+- This repository owns OpenAPI metadata capture, document generation, and documentation UI helpers.
 
 ## Compatibility Policy
 
-* Minimum supported Python version: **3.10**
-* Public APIs follow **Semantic Versioning**
-* Experimental APIs may change without notice
+- Minimum supported Python version: `3.10`
+- Supported runtime target: Azure Functions Python v2 programming model
+- Public APIs follow semantic versioning expectations
 
----
+## Change Discipline
 
-## Experimental APIs
-
-* Experimental APIs must be clearly documented
-* Experimental APIs are **not protected by SemVer guarantees**
-* Promotion from experimental → stable is explicit and intentional
-
-Experimental APIs must be labeled in docs with **(Experimental)**.
+- Changes to decorator behavior require strong regression coverage.
+- Changes to generated spec defaults must be treated as user-facing behavior changes.
+- Experimental APIs must be clearly labeled in code and docs.

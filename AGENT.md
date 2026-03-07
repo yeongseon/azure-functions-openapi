@@ -1,171 +1,94 @@
 # AGENT.md
 
-Azure Functions Python Libraries – Standard Agent Rules (v1)
+Azure Functions Python Libraries - Repository Rules
 
-## 0. Purpose
+## Purpose
 
-This document defines **non-negotiable rules** for developing and maintaining this repository.
+This document defines the repository-level rules for contributors and coding agents.
 
-This project is developed using **AI-assisted “vibe coding”**, therefore:
+This repository is part of a multi-project Azure Functions Python ecosystem, so automation,
+structure, and terminology must stay aligned across repositories.
 
-* Consistency > flexibility
-* Automation > memory
-* Rules are enforced by tools, not humans
+## Repository Identity
 
-Any contribution (human or AI) **must follow this document**.
+- Project: `azure-functions-openapi`
+- Project type: Python library
+- Runtime scope: Azure Functions Python v2 programming model
+- Minimum supported Python: `3.10`
+- Packaging: `pyproject.toml` with Hatch
 
----
+## Root vs Docs
 
-## 1. Repository Identity
+Use the repository root for engineering and planning documents:
 
-* Project type: Python library for Azure Functions
-* Runtime environment: Azure Functions (Python)
-* Minimum supported Python: **3.10**
-* Development Python: Latest stable (e.g. 3.12) is allowed
-* Packaging: `pyproject.toml` (PEP 621)
-* Build backend: Hatch
+- `AGENT.md`: contribution and automation rules
+- `DESIGN.md`: architecture and design principles
+- `PRD.md`: product scope and user-facing goals
 
-**Core rule**
+Use `docs/` for user-facing documentation only:
 
-Runtime compatibility is defined by the **minimum supported Python version (3.10)**.
-Development may use newer Python versions, but **no runtime syntax, behavior, or typing
-may exceed Python 3.10 compatibility**.
+- installation
+- usage
+- API reference
+- examples
+- diagnostics and guides
 
----
+If a change materially affects behavior, architecture, or project positioning, update the
+relevant root document in the same pull request or commit series.
 
-## 2. Golden Commands (Single Entry Points)
+## Golden Commands
 
-All development, CI, and debugging **must use Makefile commands only**.
+Use Makefile entry points only.
 
-| Purpose           | Command          |
-| ----------------- | ---------------- |
-| Environment setup | `make install`   |
-| Code formatting   | `make format`    |
-| Lint check        | `make lint`      |
-| Type check        | `make typecheck` |
-| Unit tests        | `make test`      |
-| Coverage          | `make cov`       |
-| Lint + type       | `make check`     |
-| Full validation   | `make check-all` |
-| Docs preview      | `make docs`      |
-| Build package     | `make build`     |
+| Purpose | Command |
+| --- | --- |
+| Environment setup | `make install` |
+| Format code | `make format` |
+| Lint | `make lint` |
+| Type check | `make typecheck` |
+| Tests | `make test` |
+| Coverage | `make cov` |
+| Full validation | `make check-all` |
+| Docs build | `make docs` |
+| Package build | `make build` |
 
-❌ Do NOT call ruff / mypy / pytest directly
-❌ Do NOT bypass the Makefile in CI
+Do not bypass the Makefile in CI or contributor guidance.
 
----
+## Compatibility Rules
 
-## 3. Minimum Python Version Discipline (Critical)
+- Runtime code must remain compatible with Python `3.10`.
+- Public APIs must be fully typed.
+- Avoid silent behavior changes.
+- Breaking changes require explicit documentation and versioning discussion.
 
-This repository supports **Python 3.10+**.
+## Testing Rules
 
-* You may develop using newer Python versions, but **all runtime code must remain compatible
-  with Python 3.10**.
-* Do not use Python 3.11/3.12-only syntax, stdlib APIs, or typing features in production code.
+- Public APIs require tests.
+- Bug fixes require regression tests.
+- Representative and complex examples must remain smoke-tested.
+- `make check-all` is the minimum merge gate.
 
-Examples (not exhaustive):
+## Commit Rules
 
-* ❌ `type X = ...` (Python 3.12)
-* ❌ `except*` (Python 3.11)
-* ❌ `tomllib` (Python 3.11) unless guarded or backported
+Use Conventional Commits:
 
-CI must validate:
-
-* tests on Python 3.10 (minimum)
-* tests on latest supported Python
-
----
-
-## 4. Code Style & Quality Rules
-
-### Formatting & Linting
-
-* Formatter: Ruff
-* Linter: Ruff
-* Rules are defined in `pyproject.toml`
-
-### Type Checking
-
-* Type checker: mypy
-* Mode: strict
-* All public APIs must be fully typed
-* `# type: ignore` without justification is forbidden
-
-### Testing
-
-* Framework: pytest
-* Public APIs must have tests
-* Bug fixes must include regression tests
-
----
-
-## 5. Error Logging & Exception Handling (Principles Only)
-
-This repository is a **library**, not an application.
-
-### Principles
-
-* Do not swallow exceptions silently
-* Prefer raising exceptions over logging-only behavior
-* Log errors only when **additional context is added**
-* Always preserve the original exception (exception chaining)
-
-This library must not:
-
-* Enforce a logging framework
-* Decide log output format or destination
-
-### Conceptual Log Structure
-
-When logging an error, logs should conceptually include:
-
-* event (stable identifier)
-* error_type
-* message
-* context
-
-Exact field names and APIs are intentionally not enforced.
-
----
-
-## 6. Git & Commit Rules
-
-* Conventional Commits are required
-
-Format:
-
-```
+```text
 <type>: <short imperative summary>
 ```
 
 Allowed types:
 `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `ci`
 
----
+## Agent Rules
 
-## 7. AI / Vibe Coding Rules (Critical)
+When using AI-assisted development:
 
-When AI is used:
-
-* Prefer small, incremental changes
-* Do not introduce silent behavior changes
-* Do not introduce untyped public APIs
-* If uncertain, ask — do not guess
-
----
-
-## 8. Consistency Across Repositories
-
-This repository is part of a **multi-repository ecosystem**.
-
-AGENT.md, tooling, CI structure, and documentation layout
-**must remain consistent across all related repositories**.
-
-Related docs: DESIGN.md, SUPPORT.md.
-
----
+- Prefer small, reviewable changes.
+- Do not guess about behavior that can be verified.
+- Keep repository structure aligned with sibling repositories.
+- Update docs, examples, and tests together when behavior changes.
 
 ## Final Rule
 
-If it is not automated, it does not exist.
-If it is not documented here, it is not allowed.
+If it is not automated, it will drift.
+If it is not documented, it is not a stable rule.
