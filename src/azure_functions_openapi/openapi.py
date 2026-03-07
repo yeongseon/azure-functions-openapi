@@ -135,11 +135,17 @@ def generate_openapi_spec(
                         logger.warning(
                             f"Failed to generate response schema for {func_name}: {str(e)}"
                         )
-                        if "200" not in responses:
+                        if not responses:
                             responses["200"] = {
                                 "description": "Successful Response",
                                 "content": {"application/json": {"schema": {"type": "object"}}},
                             }
+
+                if not responses:
+                    responses["200"] = {
+                        "description": "Successful Response",
+                        "content": {"application/json": {"schema": {"type": "object"}}},
+                    }
 
                 # operation object ------------------------------------------------
                 op: dict[str, Any] = {

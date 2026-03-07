@@ -270,3 +270,38 @@ def test_generate_openapi_spec_with_security() -> None:
 
     op = generate_openapi_spec()["paths"]["/secure"]["get"]
     assert op["security"] == [{"BearerAuth": []}]
+
+
+def test_generate_openapi_spec_adds_default_200_response_when_missing() -> None:
+    @openapi(
+        route="/default-response",
+        method="post",
+        summary="Default response",
+        request_body={
+            "type": "object",
+            "properties": {"name": {"type": "string"}},
+        },
+    )
+    def default_response_func() -> None:
+        pass
+
+    responses = generate_openapi_spec()["paths"]["/default-response"]["post"]["responses"]
+    assert responses["200"] == {
+        "description": "Successful Response",
+        "content": {"application/json": {"schema": {"type": "object"}}},
+    }
+
+
+def test_generate_openapi_spec_keeps_explicit_non_200_responses_without_adding_200() -> None:
+    @openapi(
+        route="/created-response",
+        method="post",
+        summary="Created response",
+        response={201: {"description": "Created"}},
+    )
+    def created_response_func() -> None:
+        pass
+
+    responses = generate_openapi_spec()["paths"]["/created-response"]["post"]["responses"]
+    assert "200" not in responses
+    assert responses["201"] == {"description": "Created"}
