@@ -195,7 +195,7 @@ demo: demo-cli demo-swagger
 .PHONY: demo-cli
 demo-cli:
 	@mkdir -p docs/assets demo/output
-	@docker run --rm -v "$(CURDIR):/vhs" -w /vhs ghcr.io/charmbracelet/vhs $(DEMO_TAPE)
+	@docker run --rm -v "$(CURDIR):/workspace" -w /workspace ghcr.io/charmbracelet/vhs $(DEMO_TAPE)
 
 .PHONY: demo-swagger
 demo-swagger: ensure-hatch

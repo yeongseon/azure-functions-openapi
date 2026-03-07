@@ -13,13 +13,13 @@ Type "python3 -m venv /tmp/openapi-demo-venv"
 Enter
 Type "/tmp/openapi-demo-venv/bin/pip install -q --upgrade pip"
 Enter
-Type "/tmp/openapi-demo-venv/bin/pip install -q -e /vhs"
+Type "/tmp/openapi-demo-venv/bin/pip install -q -e /workspace"
 Enter
 Type "clear"
 Enter
 Show
 
-Type "cd /vhs"
+Type "cd /workspace"
 Enter
 Sleep 700ms
 
