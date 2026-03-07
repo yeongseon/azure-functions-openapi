@@ -30,12 +30,22 @@ This package does **not** support the legacy `function.json`-based v1 programmin
 
 ## Demo
 
-The CLI demo below is generated from [`demo/openapi-cli.tape`](demo/openapi-cli.tape) with VHS.
-It shows a real OpenAPI YAML document generated from the representative `hello_openapi` example.
+The representative `hello_openapi` example shows the full outcome of adopting this library:
+
+- You annotate an Azure Functions v2 HTTP handler with `@openapi`.
+- The package generates a real OpenAPI document for that route.
+- The same route is rendered in Swagger UI for browser-based inspection.
+
+### Generated OpenAPI Output
+
+The terminal demo below is generated from [`demo/openapi-cli.tape`](demo/openapi-cli.tape) with VHS.
+It shows the generated YAML file and the resulting `paths` entry for the example endpoint.
 
 ![OpenAPI CLI demo](docs/assets/openapi-cli-demo.gif)
 
-The web result below shows the same representative example rendered in Swagger UI.
+### Swagger UI Result
+
+The web preview below shows the same example rendered in Swagger UI.
 
 ![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
 
