@@ -148,6 +148,34 @@ def test_generate_openapi_spec_with_route_and_method() -> None:
     assert "post" in spec["paths"]["/custom-path"]
 
 
+def test_generate_openapi_spec_normalizes_route_without_leading_slash() -> None:
+    @openapi(
+        route="hello",
+        method="post",
+        summary="Route normalization",
+        response={200: {"description": "OK"}},
+    )
+    def hello() -> None:
+        pass
+
+    spec = generate_openapi_spec()
+    assert "/hello" in spec["paths"]
+    assert "hello" not in spec["paths"]
+    assert "post" in spec["paths"]["/hello"]
+
+
+def test_generate_openapi_spec_normalizes_default_function_path() -> None:
+    @openapi(
+        summary="Default route normalization",
+        response={200: {"description": "OK"}},
+    )
+    def default_path_func() -> None:
+        pass
+
+    spec = generate_openapi_spec()
+    assert "/default_path_func" in spec["paths"]
+
+
 def test_generate_spec_with_pydantic_models() -> None:
     class RequestModel(BaseModel):
         username: str

@@ -101,7 +101,7 @@ def generate_openapi_spec(
             try:
                 logical_name = meta.get("function_name") or func_name
                 # route & method --------------------------------------------------
-                path = meta.get("route") or f"/{logical_name}"
+                path = f"/{(meta.get('route') or logical_name).lstrip('/')}"
                 method = (meta.get("method") or "get").lower()
 
                 # responses -------------------------------------------------------
