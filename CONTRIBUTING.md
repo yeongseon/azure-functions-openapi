@@ -1,72 +1,36 @@
 # Contributing Guide
 
-We welcome contributions to the `azure-functions-openapi` project!
+We welcome contributions to the `azure-functions-openapi` project.
 
 ## Branch Strategy
 
-We use **GitHub Flow** with standardized branch names.
+Use GitHub Flow and branch from `main`.
 
-### Branch Types
+Recommended branch prefixes:
 
-| Branch Type | Purpose | Naming Convention |
-|-------------|---------|-------------------|
-| `main` | Production-ready code | `main` |
-| `feat/*` | New features | `feat/security-parameter` |
-| `fix/*` | Bug fixes | `fix/issue-81-security` |
-| `docs/*` | Documentation-only changes | `docs/deployment-runbook` |
-| `chore/*` | Tooling, maintenance, dependency updates | `chore/update-actions` |
-| `ci/*` | CI/CD workflow changes | `ci/manual-deploy-trigger` |
-
-### Development Flow
-
-1. **Development**: Create branch from `main`
-2. **Testing**: Push branch → Automatic CI tests
-3. **Production**: PR merge → Automatic deployment
+- `feat/` for new features
+- `fix/` for bug fixes
+- `docs/` for documentation-only changes
+- `chore/` for tooling and maintenance
+- `ci/` for workflow updates
 
 ## Development Workflow
 
-### 1. Create Feature Branch
-```bash
-git checkout main
-git pull origin main
-git checkout -b feat/your-feature-name
-```
-
-### 2. Write Code & Tests
-```bash
-make format      # Format code with black
-make lint        # Lint with ruff
-make typecheck   # Type check with mypy
-make test        # Run tests
-make cov         # Run tests with coverage
-```
-
-### 3. Push and Create Pull Request
-```bash
-git push origin feat/your-feature-name
-# Create PR on GitHub
-```
-
-### Branch Naming Validation
-
-PRs are validated by `.github/workflows/stale.yml` using these patterns:
-
-- `feat/<description>`
-- `fix/<description>`
-- `docs/<description>`
-- `chore/<description>`
-- `ci/<description>`
-
-If your branch does not match, rename it before requesting review.
-
-### Docs and Release Branch Guidance
-
-- Use `docs/<topic>` only for documentation changes.
-- Use `fix/<topic>` for urgent hotfixes and coordinate patch releases with project maintainers.
-
-### 4. Automatic Production Deployment
-- PR이 main에 병합되면 자동으로 production에 배포됨
-- PR 댓글에서 배포 상태 확인 가능
+1. Create a branch from `main`.
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b feat/your-feature-name
+   ```
+2. Write code and tests.
+3. Run the local quality gate.
+   ```bash
+   make check-all
+   ```
+4. Push and create a pull request.
+   ```bash
+   git push origin feat/your-feature-name
+   ```
 
 ## Project Commands
 
@@ -76,23 +40,21 @@ make lint        # Lint with ruff
 make typecheck   # Type check with mypy
 make test        # Run tests
 make cov         # Run tests with coverage
+make check-all   # Run the full local gate
 ```
+
+## Example Coverage Policy
+
+Examples are part of the supported API experience and should stay verified.
+
+- Keep one representative example for the minimal OpenAPI workflow.
+- Keep one complex example for multi-endpoint and schema-heavy behavior.
+- Add or update smoke tests whenever an example changes.
+- Prefer lightweight smoke coverage over infrastructure-heavy end-to-end tests.
 
 ## Commit Message Guidelines
 
 We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
-
-### Prefix Types
-
-| Type        | Description                               |
-|-------------|-------------------------------------------|
-| `feat:`     | New feature                               |
-| `fix:`      | Bug fix                                   |
-| `docs:`     | Documentation changes only                |
-| `style:`    | Code formatting, no logic changes         |
-| `refactor:` | Code refactoring without behavior changes |
-| `test:`     | Adding or modifying tests                 |
-| `chore:`    | Tooling, dependencies, CI/CD, versioning  |
 
 ### Examples
 
@@ -104,15 +66,12 @@ git commit -m "refactor: extract schema builder logic"
 git commit -m "chore: update dev dependencies"
 ```
 
-> ✅ Use imperative present tense ("add", not "added").
-> ✅ Keep the message concise and relevant to the change.
+Use imperative present tense and keep the message concise.
 
 ## Deployment
 
-### Automatic Production Deployment
-- **Trigger**: PR merge to main
-- **URL**: `https://production-{repo-name}.azurewebsites.net`
-- **Process**: Automatic deployment after PR approval
+- A merge to `main` triggers the production deployment workflow.
+- Deployment status can be tracked from the related GitHub Actions run.
 
 ## Code of Conduct
 
