@@ -31,7 +31,7 @@ jobs:
           pip install hatch
           make install
 
-      - name: Run full quality checks (lint, typecheck, test, coverage)
+      - name: Run full quality checks
         run: make check-all
 
       - name: Verify coverage output

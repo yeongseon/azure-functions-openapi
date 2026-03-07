@@ -1,40 +1,43 @@
 repos:
-  # Format code using Black (PEP8-compliant, compatible with Python 3.10)
   - repo: https://github.com/psf/black
-    rev: 25.1.0  # Latest stable release
+    rev: 26.1.0
     hooks:
       - id: black
+        exclude: "^examples/"
 
-  # Lint and auto-fix style using Ruff (Python 3.10 compatible)
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.13  # Latest stable version
+    rev: v0.14.14
     hooks:
       - id: ruff
         args: ["--fix"]
-        exclude: "^tests/"
+        exclude: "^(tests/|examples/)"
 
-  # Static type checking using mypy (ensure Python 3.10 environment is activated)
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0  # Latest stable compatible with Python 3.10
+    rev: v1.19.1
     hooks:
       - id: mypy
         language: python
+        files: "^src/"
         args:
           [
             "--config-file=pyproject.toml",
             "--install-types",
             "--non-interactive"
           ]
-        additional_dependencies:
-          - types-requests
-          - typer
-          - requests
 
-  # Run static security checks using Bandit (scan src/ only)
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.8.3  # Latest stable version
+    rev: 1.9.3
     hooks:
       - id: bandit
         args: ["-c", "pyproject.toml"]
         additional_dependencies: ["bandit[toml]"]
         files: "^src/"
+
+  - repo: local
+    hooks:
+      - id: forbid-korean
+        name: Forbid Korean Characters
+        entry: bash -c 'if grep -RIl --exclude-dir=.venv --exclude-dir=.git -n "[가-힣]" docs src README.md CHANGELOG.md; then echo "Korean characters detected. Please use English only."; exit 1; fi'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]

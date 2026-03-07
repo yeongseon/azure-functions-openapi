@@ -1,4 +1,3 @@
-# codecov.yml  (repo root)
 codecov:
   require_ci_to_pass: true
 
