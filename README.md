@@ -73,7 +73,6 @@ def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
         mimetype="application/json",
     )
 
-
 @app.function_name(name="openapi_json")
 @app.route(route="openapi.json", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
 def openapi_json(req: func.HttpRequest) -> func.HttpResponse:
