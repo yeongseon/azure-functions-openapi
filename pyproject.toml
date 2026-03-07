@@ -32,6 +32,7 @@ dev = [
 docs = [
     "mkdocs",
     "mkdocs-material",
+    "mkdocstrings[python]",
 ]
 
 [project.scripts]
