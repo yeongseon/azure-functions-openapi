@@ -1,8 +1,8 @@
-name: 'Stale branch and issue management'
+name: "Stale branch and issue management"
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
   workflow_dispatch:
   pull_request:
     types: [opened, edited, synchronize]
@@ -13,18 +13,18 @@ jobs:
   stale-issues:
     runs-on: ubuntu-latest
     if: github.repository == 'yeongseon/azure-functions-openapi'
-    
+
     steps:
-      - name: 'Stale issues and PRs'
+      - name: "Stale issues and PRs"
         uses: actions/stale@b5d41d4e1d5dceea10e7104786b73624c18a190f # v10.2.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          stale-issue-message: 'This issue has been marked as stale because it has not had recent activity. It will be closed in 7 days if no further activity occurs. Please reopen if this is still relevant.'
-          stale-pr-message: 'This pull request has been marked as stale because it has not had recent activity. It will be closed in 14 days if no further activity occurs. Please reopen if this is still relevant.'
-          stale-issue-label: 'stale'
-          stale-pr-label: 'stale'
-          exempt-issue-labels: 'pinned,security,enhancement,bug,documentation'
-          exempt-pr-labels: 'pinned,security,enhancement,bug,documentation,wip'
+          stale-issue-message: "This issue has been marked as stale because it has not had recent activity. It will be closed in 7 days if no further activity occurs. Please reopen if this is still relevant."
+          stale-pr-message: "This pull request has been marked as stale because it has not had recent activity. It will be closed in 14 days if no further activity occurs. Please reopen if this is still relevant."
+          stale-issue-label: "stale"
+          stale-pr-label: "stale"
+          exempt-issue-labels: "pinned,security,enhancement,bug,documentation"
+          exempt-pr-labels: "pinned,security,enhancement,bug,documentation,wip"
           days-before-stale: 60
           days-before-close: 7
           close-issue: true
@@ -33,15 +33,15 @@ jobs:
   stale-branches:
     runs-on: ubuntu-latest
     if: github.repository == 'yeongseon/azure-functions-openapi'
-    
+
     steps:
-      - name: 'Checkout code'
+      - name: "Checkout code"
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: 'Delete stale branches'
+      - name: "Delete stale branches"
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -49,13 +49,13 @@ jobs:
             const { owner, repo } = context.repo;
             const cutoffDate = new Date();
             cutoffDate.setDate(cutoffDate.getDate() - 90);
-            
+
             const { data: branches } = await github.rest.repos.listBranches({
               owner,
               repo,
               per_page: 100
             });
-            
+
             const { data: closedPullRequests } = await github.rest.pulls.list({
               owner,
               repo,
@@ -70,27 +70,27 @@ jobs:
                 mergedBranches.set(pr.head.ref, new Date(pr.merged_at));
               }
             });
-            
+
             const { data: pullRequests } = await github.rest.pulls.list({
               owner,
               repo,
               state: 'open',
               per_page: 100
             });
-            
+
             const branchesToKeep = new Set(['main']);
-            
+
             pullRequests.forEach(pr => {
               if (pr.head.ref) {
                 branchesToKeep.add(pr.head.ref);
               }
             });
-            
+
             for (const branch of branches) {
               if (branchesToKeep.has(branch.name)) {
                 continue;
               }
-              
+
               const { data: branchCommit } = await github.rest.repos.getCommit({
                 owner,
                 repo,
@@ -99,9 +99,9 @@ jobs:
               const branchDate = new Date(branchCommit.commit.committer.date);
               if (branchDate < cutoffDate && branch.name !== 'main') {
                 console.log(`Checking stale branch for deletion: ${branch.name} (last updated: ${branchDate.toISOString()})`);
-                
+
                 try {
-                  const { data: protectedBranch } = await github.rest.repos.getBranchProtection({
+                  await github.rest.repos.getBranchProtection({
                     owner,
                     repo,
                     branch: branch.name
@@ -111,7 +111,7 @@ jobs:
                 } catch (error) {
                   if (error.status === 404) {
                     console.log(`Branch ${branch.name} is not protected, proceeding with deletion`);
-                    
+
                     const mergedAt = mergedBranches.get(branch.name);
                     const isMergedStale = mergedAt && mergedAt < cutoffDate;
                     if (branch.name !== 'main' && !branchesToKeep.has(branch.name) && isMergedStale) {
@@ -130,14 +130,14 @@ jobs:
   branch-naming-validation:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    
+
     steps:
-      - name: 'Checkout code'
+      - name: "Checkout code"
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
 
-      - name: 'Validate branch naming convention'
+      - name: "Validate branch naming convention"
         id: validate-branch
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
@@ -151,12 +151,13 @@ jobs:
               /^docs\/.+$/,
               /^chore\/.+$/,
               /^ci\/.+$/,
+              /^codex\/.+$/,
               /^main$/
             ];
-            
+
             const isValid = validPatterns.some(pattern => pattern.test(branchName));
             core.setOutput('isValid', String(isValid));
-            
+
             if (!isValid) {
               core.setFailed(`Invalid branch name: ${branchName}. Please use one of the following naming conventions:
                 - dependabot/<ecosystem>/<dependency>
@@ -165,14 +166,15 @@ jobs:
                 - docs/<description>
                 - chore/<description>
                 - ci/<description>
+                - codex/<description>
                 - main`);
             } else {
               core.info(`Branch name validation passed: ${branchName}`);
             }
-            
+
             return { isValid };
 
-      - name: 'Add comment with validation result'
+      - name: "Add comment with validation result"
         if: steps.validate-branch.outputs.isValid == 'false'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
@@ -181,10 +183,10 @@ jobs:
             const { owner, repo } = context.repo;
             const prNumber = context.payload.pull_request.number;
             const branchName = context.payload.pull_request.head.ref;
-            
+
             await github.rest.issues.createComment({
               owner,
               repo,
               issue_number: prNumber,
-              body: '⚠️ Branch naming validation failed\n\nYour branch name `' + branchName + '` does not follow our naming conventions.\n\nPlease rename your branch to follow one of these patterns:\n- `feat/<description>` for new features\n- `fix/<description>` for bug fixes  \n- `docs/<description>` for documentation changes\n- `chore/<description>` for maintenance tasks\n- `ci/<description>` for CI/CD changes\n\nTo rename your branch:\n1. `git checkout ' + branchName + '`\n2. `git branch -m feat/your-new-branch-name`\n3. `git push origin --delete ' + branchName + '`\n4. `git push origin feat/your-new-branch-name`\n\nOnce you\\'ve renamed the branch, please update the PR head branch.'
+              body: 'Warning: branch naming validation failed\n\nYour branch name `' + branchName + '` does not follow our naming conventions.\n\nPlease rename your branch to follow one of these patterns:\n- `feat/<description>` for new features\n- `fix/<description>` for bug fixes\n- `docs/<description>` for documentation changes\n- `chore/<description>` for maintenance tasks\n- `ci/<description>` for CI/CD changes\n- `codex/<description>` for Codex-generated changes\n\nTo rename your branch:\n1. `git checkout ' + branchName + '`\n2. `git branch -m feat/your-new-branch-name`\n3. `git push origin --delete ' + branchName + '`\n4. `git push origin feat/your-new-branch-name`\n\nOnce you have renamed the branch, please update the PR head branch.'
             });

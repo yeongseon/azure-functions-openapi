@@ -18,6 +18,7 @@ repos:
       - id: mypy
         language: python
         files: "^src/"
+        pass_filenames: false
         args:
           [
             "--config-file=pyproject.toml",
