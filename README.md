@@ -43,6 +43,10 @@ It shows the generated YAML file and the resulting `paths` entry for the example
 
 ![OpenAPI CLI demo](docs/assets/openapi-cli-demo.gif)
 
+The final terminal state is also captured as a static image for quick inspection.
+
+![OpenAPI CLI final output](docs/assets/openapi-cli-demo-final.png)
+
 ### Swagger UI Result
 
 The web preview below is generated from the same representative example and captured automatically from a rendered Swagger UI page.

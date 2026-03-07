@@ -5,6 +5,8 @@ HATCH := $(VENV_DIR)/bin/hatch
 PACKAGE_INIT := $(shell find src -mindepth 2 -maxdepth 2 -name "__init__.py" | head -n1)
 DEMO_TAPE := demo/openapi-cli.tape
 DEMO_IMAGE := azure-functions-openapi-demo-vhs
+DEMO_GIF := docs/assets/openapi-cli-demo.gif
+DEMO_FINAL_PNG := docs/assets/openapi-cli-demo-final.png
 PLAYWRIGHT_VERSION := 1.54.1
 PLAYWRIGHT_BROWSERS_PATH := $(CURDIR)/.cache/ms-playwright
 SWAGGER_PREVIEW_DIR := demo/.preview/swagger-ui
@@ -201,6 +203,10 @@ demo-image:
 demo-cli: demo-image
 	@mkdir -p docs/assets demo/output
 	@docker run --rm -v "$(CURDIR):/workspace" -w /workspace $(DEMO_IMAGE) $(DEMO_TAPE)
+	@TMP_DIR=$$(mktemp -d); \
+	ffmpeg -y -i $(DEMO_GIF) $$TMP_DIR/frame%03d.png >/dev/null 2>&1; \
+	cp "$$TMP_DIR/$$(ls $$TMP_DIR | sort | tail -n 1)" $(DEMO_FINAL_PNG); \
+	rm -rf $$TMP_DIR
 
 .PHONY: demo-swagger
 demo-swagger: ensure-hatch
