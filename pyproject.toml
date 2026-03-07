@@ -16,7 +16,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "bandit==1.9.3",
+    "bandit==1.9.4",
     "black==26.1.0",
     "build",
     "coverage",
