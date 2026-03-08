@@ -3,9 +3,6 @@ PYTHON := $(VENV_DIR)/bin/python
 PIP := $(VENV_DIR)/bin/pip
 HATCH := $(VENV_DIR)/bin/hatch
 PACKAGE_INIT := $(shell find src -mindepth 2 -maxdepth 2 -name "__init__.py" | head -n1)
-DEMO_TAPE := demo/openapi-cli.tape
-DEMO_IMAGE := azure-functions-openapi-demo-vhs
-DEMO_GIF := docs/assets/openapi-cli-demo.gif
 SPEC_PREVIEW_PNG := docs/assets/hello_openapi_spec_preview.png
 PLAYWRIGHT_VERSION := 1.54.1
 PLAYWRIGHT_BROWSERS_PATH := $(CURDIR)/.cache/ms-playwright
@@ -195,16 +192,7 @@ docs-serve: ensure-hatch
 	@$(HATCH) run docs
 
 .PHONY: demo
-demo: demo-cli demo-swagger
-
-.PHONY: demo-image
-demo-image:
-	@docker build -t $(DEMO_IMAGE) -f demo/Dockerfile.vhs .
-
-.PHONY: demo-cli
-demo-cli: demo-image
-	@mkdir -p docs/assets demo/output
-	@docker run --rm -v "$(CURDIR):/workspace" -w /workspace $(DEMO_IMAGE) $(DEMO_TAPE)
+demo: demo-swagger
 
 .PHONY: demo-swagger
 demo-swagger: ensure-hatch

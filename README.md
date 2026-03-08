@@ -36,13 +36,6 @@ The representative `hello_openapi` example shows the full outcome of adopting th
 - The package generates a real OpenAPI document for that route.
 - The same route is rendered in Swagger UI for browser-based inspection.
 
-### Generated OpenAPI Output
-
-The terminal demo below is generated from [`demo/openapi-cli.tape`](demo/openapi-cli.tape) with VHS.
-It installs the package, runs the representative `examples/hello_openapi` example flow, writes the generated OpenAPI files, and shows the resulting YAML output.
-
-![OpenAPI CLI demo](docs/assets/openapi-cli-demo.gif)
-
 ### Generated Spec Result
 
 The generated OpenAPI file is captured as a static preview from the same example run, so the README shows the actual document produced by the representative function.
