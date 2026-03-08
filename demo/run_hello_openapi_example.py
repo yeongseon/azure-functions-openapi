@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from html import escape
 from importlib import import_module, reload
 from pathlib import Path
 import sys
@@ -28,6 +29,93 @@ def _expand_swagger_ui(html: str) -> str:
         "layout: 'BaseLayout',",
         expanded_layout,
     )
+
+
+def _build_spec_preview_html(openapi_yaml: str) -> str:
+    highlighted_yaml = escape(openapi_yaml.strip())
+    return f"""<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hello OpenAPI Spec Preview</title>
+    <style>
+      :root {{
+        color-scheme: dark;
+      }}
+      body {{
+        margin: 0;
+        background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+        color: #e5e7eb;
+        font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+      }}
+      main {{
+        padding: 40px;
+      }}
+      .panel {{
+        max-width: 1120px;
+        margin: 0 auto;
+        background: rgba(15, 23, 42, 0.94);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 18px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.45);
+        overflow: hidden;
+      }}
+      .panel-header {{
+        padding: 18px 24px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+        background: rgba(30, 41, 59, 0.85);
+      }}
+      .eyebrow {{
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 13px;
+        color: #bfdbfe;
+        background: rgba(37, 99, 235, 0.22);
+      }}
+      h1 {{
+        margin: 14px 0 8px;
+        font-size: 32px;
+        font-weight: 700;
+      }}
+      p {{
+        margin: 0;
+        color: #cbd5e1;
+        font-size: 16px;
+        line-height: 1.5;
+      }}
+      pre {{
+        margin: 0;
+        padding: 28px 32px 36px;
+        font-size: 18px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: #e2e8f0;
+      }}
+      .comment {{
+        color: #94a3b8;
+      }}
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel">
+        <div class="panel-header">
+          <span class="eyebrow">Generated from examples/hello_openapi</span>
+          <h1>OpenAPI Output</h1>
+          <p>
+            The representative example produces this OpenAPI document before
+            Swagger UI renders it.
+          </p>
+        </div>
+        <pre>{highlighted_yaml}</pre>
+      </section>
+    </main>
+  </body>
+</html>
+"""
 
 
 def _build_preview(spec: dict[str, object]) -> dict[str, object]:
@@ -81,7 +169,9 @@ def main() -> None:
 
     output_dir = args.output_dir.resolve()
     swagger_dir = output_dir / "swagger-ui"
+    spec_dir = output_dir / "spec-preview"
     swagger_dir.mkdir(parents=True, exist_ok=True)
+    spec_dir.mkdir(parents=True, exist_ok=True)
 
     with decorator_module._registry_lock:
         decorator_module._openapi_registry.clear()
@@ -104,6 +194,10 @@ def main() -> None:
 
     (output_dir / "openapi.yaml").write_text(openapi_yaml, encoding="utf-8")
     (output_dir / "openapi.json").write_text(openapi_json, encoding="utf-8")
+    (spec_dir / "index.html").write_text(
+        _build_spec_preview_html(openapi_yaml),
+        encoding="utf-8",
+    )
     (swagger_dir / "openapi.json").write_text(openapi_json, encoding="utf-8")
     (swagger_dir / "index.html").write_text(
         _expand_swagger_ui(swagger_response.get_body().decode("utf-8")),
@@ -119,6 +213,7 @@ def main() -> None:
 
     print("Representative example: examples/hello_openapi/function_app.py")
     print(f"Generated: {output_dir / 'openapi.yaml'}")
+    print(f"Generated: {spec_dir / 'index.html'}")
     print(f"Generated: {swagger_dir / 'index.html'}")
     print()
     print(preview)

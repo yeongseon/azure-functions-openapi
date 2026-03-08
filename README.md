@@ -47,6 +47,12 @@ The final terminal state is also captured as a static image for quick inspection
 
 ![OpenAPI CLI final output](docs/assets/openapi-cli-demo-final.png)
 
+### Generated Spec Result
+
+The generated OpenAPI file is captured as a static preview from the same example run, so the README shows the actual document produced by the representative function.
+
+![OpenAPI spec preview](docs/assets/hello_openapi_spec_preview.png)
+
 ### Swagger UI Result
 
 The web preview below is generated from the same representative example and captured automatically from the rendered Swagger UI page produced by that example flow.

@@ -7,10 +7,13 @@ DEMO_TAPE := demo/openapi-cli.tape
 DEMO_IMAGE := azure-functions-openapi-demo-vhs
 DEMO_GIF := docs/assets/openapi-cli-demo.gif
 DEMO_FINAL_PNG := docs/assets/openapi-cli-demo-final.png
+SPEC_PREVIEW_PNG := docs/assets/hello_openapi_spec_preview.png
 PLAYWRIGHT_VERSION := 1.54.1
 PLAYWRIGHT_BROWSERS_PATH := $(CURDIR)/.cache/ms-playwright
 SWAGGER_PREVIEW_DIR := demo/.preview/swagger-ui
+SPEC_PREVIEW_DIR := demo/.preview/spec-preview
 SWAGGER_PREVIEW_PORT := 8123
+SPEC_PREVIEW_PORT := 8124
 
 .PHONY: bootstrap
 bootstrap:
@@ -211,9 +214,23 @@ demo-cli: demo-image
 .PHONY: demo-swagger
 demo-swagger: ensure-hatch
 	@rm -rf $(SWAGGER_PREVIEW_DIR)
-	@mkdir -p $(SWAGGER_PREVIEW_DIR) docs/assets
+	@rm -rf $(SPEC_PREVIEW_DIR)
+	@mkdir -p $(SWAGGER_PREVIEW_DIR) $(SPEC_PREVIEW_DIR) docs/assets
 	@$(HATCH) run python demo/run_hello_openapi_example.py --output-dir demo/.preview
 	@PLAYWRIGHT_BROWSERS_PATH="$(PLAYWRIGHT_BROWSERS_PATH)" npx -y playwright@$(PLAYWRIGHT_VERSION) install chromium > /dev/null
+	@python3 -m http.server $(SPEC_PREVIEW_PORT) --directory $(SPEC_PREVIEW_DIR) > /tmp/openapi-spec-preview.log 2>&1 & \
+	SPEC_PID=$$!; \
+	trap 'kill $$SPEC_PID 2>/dev/null || true' EXIT; \
+	sleep 2; \
+	PLAYWRIGHT_BROWSERS_PATH="$(PLAYWRIGHT_BROWSERS_PATH)" npx -y playwright@$(PLAYWRIGHT_VERSION) screenshot \
+		--device="Desktop Chrome" \
+		--full-page \
+		--wait-for-selector "pre" \
+		--wait-for-timeout 1500 \
+		"http://127.0.0.1:$(SPEC_PREVIEW_PORT)/index.html" \
+		"$(SPEC_PREVIEW_PNG)" > /dev/null; \
+	kill $$SPEC_PID 2>/dev/null || true; \
+	wait $$SPEC_PID 2>/dev/null || true
 	@python3 -m http.server $(SWAGGER_PREVIEW_PORT) --directory $(SWAGGER_PREVIEW_DIR) > /tmp/openapi-swagger-preview.log 2>&1 & \
 	SERVER_PID=$$!; \
 	trap 'kill $$SERVER_PID 2>/dev/null || true' EXIT; \
