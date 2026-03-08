@@ -127,6 +127,8 @@ ifndef VERSION
 	$(error VERSION is not set. Usage: make release VERSION=1.0.1)
 endif
 	@$(HATCH) version $(VERSION)
+	@git add "$(PACKAGE_INIT)" && \
+	 git commit -m "build: bump version to $(VERSION)"
 	@$(MAKE) release-core VERSION=$(VERSION)
 
 .PHONY: release-core
