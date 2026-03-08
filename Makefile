@@ -103,8 +103,8 @@ build: ensure-hatch
 	@$(HATCH) build
 
 .PHONY: changelog
-changelog:
-	@git-cliff -o CHANGELOG.md
+changelog: ensure-hatch
+	@$(HATCH) run git-cliff -o CHANGELOG.md
 	@echo "Changelog generated."
 
 .PHONY: commit-changelog
@@ -117,6 +117,7 @@ tag-release:
 ifndef VERSION
 	$(error VERSION is not set. Usage: make tag-release VERSION=1.0.1)
 endif
+	@git push origin HEAD
 	@git tag -a v$(VERSION) -m "Release v$(VERSION)"
 	@git push origin v$(VERSION)
 	@echo "Tagged release v$(VERSION)"
