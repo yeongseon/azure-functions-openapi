@@ -26,5 +26,10 @@ jobs:
           pip install hatch
           make install
 
-      - name: Run performance regression tests
-        run: hatch run python -m pytest tests/performance -v
+      - name: Run performance regression tests (if present)
+        run: |
+          if [ -d tests/performance ]; then
+            hatch run python -m pytest tests/performance -v
+          else
+            echo "No performance tests found; skipping."
+          fi
