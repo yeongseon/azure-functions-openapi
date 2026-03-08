@@ -21,11 +21,15 @@ Type "python -m pip install -q -e ."
 Enter
 Sleep 3200ms
 
-Type "python demo/preview.py --output /tmp/openapi.yaml"
+Type "python demo/run_hello_openapi_example.py --output-dir /tmp/openapi-demo"
 Enter
 Sleep 2600ms
 
-Type "ls -lh /tmp/openapi.yaml"
+Type "sed -n '1,20p' /tmp/openapi-demo/openapi.yaml"
+Enter
+Sleep 1800ms
+
+Type "ls -lh /tmp/openapi-demo/swagger-ui/index.html"
 Enter
 Sleep 1800ms
 

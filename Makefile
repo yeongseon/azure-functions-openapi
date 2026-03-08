@@ -212,7 +212,7 @@ demo-cli: demo-image
 demo-swagger: ensure-hatch
 	@rm -rf $(SWAGGER_PREVIEW_DIR)
 	@mkdir -p $(SWAGGER_PREVIEW_DIR) docs/assets
-	@$(HATCH) run python demo/render_hello_openapi_swagger_site.py --output-dir $(SWAGGER_PREVIEW_DIR)
+	@$(HATCH) run python demo/run_hello_openapi_example.py --output-dir demo/.preview
 	@PLAYWRIGHT_BROWSERS_PATH="$(PLAYWRIGHT_BROWSERS_PATH)" npx -y playwright@$(PLAYWRIGHT_VERSION) install chromium > /dev/null
 	@python3 -m http.server $(SWAGGER_PREVIEW_PORT) --directory $(SWAGGER_PREVIEW_DIR) > /tmp/openapi-swagger-preview.log 2>&1 & \
 	SERVER_PID=$$!; \

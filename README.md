@@ -39,7 +39,7 @@ The representative `hello_openapi` example shows the full outcome of adopting th
 ### Generated OpenAPI Output
 
 The terminal demo below is generated from [`demo/openapi-cli.tape`](demo/openapi-cli.tape) with VHS.
-It shows the generated YAML file and the resulting `paths` entry for the example endpoint.
+It installs the package, runs the representative `examples/hello_openapi` example flow, writes the generated OpenAPI files, and shows the resulting YAML output.
 
 ![OpenAPI CLI demo](docs/assets/openapi-cli-demo.gif)
 
@@ -49,7 +49,7 @@ The final terminal state is also captured as a static image for quick inspection
 
 ### Swagger UI Result
 
-The web preview below is generated from the same representative example and captured automatically from a rendered Swagger UI page.
+The web preview below is generated from the same representative example and captured automatically from the rendered Swagger UI page produced by that example flow.
 
 ![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
 
