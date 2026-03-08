@@ -43,10 +43,6 @@ It installs the package, runs the representative `examples/hello_openapi` exampl
 
 ![OpenAPI CLI demo](docs/assets/openapi-cli-demo.gif)
 
-The final terminal state is also captured as a static image for quick inspection.
-
-![OpenAPI CLI final output](docs/assets/openapi-cli-demo-final.png)
-
 ### Generated Spec Result
 
 The generated OpenAPI file is captured as a static preview from the same example run, so the README shows the actual document produced by the representative function.
