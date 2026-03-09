@@ -350,7 +350,8 @@ def _validate_models(
             )
         if not isinstance(request_model, type) or not issubclass(request_model, BaseModel):
             raise ValueError(
-                f"request_model must be a Pydantic BaseModel subclass, got {type(request_model).__name__}"
+                "request_model must be a Pydantic BaseModel subclass, "
+                f"got {type(request_model).__name__}"
             )
 
     if response_model is not None:
@@ -361,5 +362,6 @@ def _validate_models(
             )
         if not isinstance(response_model, type) or not issubclass(response_model, BaseModel):
             raise ValueError(
-                f"response_model must be a Pydantic BaseModel subclass, got {type(response_model).__name__}"
+                "response_model must be a Pydantic BaseModel subclass, "
+                f"got {type(response_model).__name__}"
             )
