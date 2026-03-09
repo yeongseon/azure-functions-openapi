@@ -81,16 +81,11 @@ app = func.FunctionApp()
 @openapi(
     summary="Greet user",
     route="/api/http_trigger",
+    method="post",
     request_body={
-        "content": {
-            "application/json": {
-                "schema": {
-                    "type": "object",
-                    "properties": {"name": {"type": "string"}},
-                    "required": ["name"],
-                }
-            }
-        }
+        "type": "object",
+        "properties": {"name": {"type": "string"}},
+        "required": ["name"],
     },
     response={
         200: {
