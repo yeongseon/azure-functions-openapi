@@ -119,3 +119,71 @@ def test_openapi_keeps_function_builder_chain_intact() -> None:
     built = app._function_builders[0].build(app.auth_level)
 
     assert built.get_function_name() == "hello_alias"
+
+
+def test_openapi_raises_error_for_dict_request_model() -> None:
+    """Test that passing a dict to request_model raises ValueError with helpful message."""
+    import pytest
+
+    with pytest.raises(ValueError) as exc_info:
+        @openapi(
+            summary="Test with invalid request_model",
+            request_model={"name": "string"},  # type: ignore[arg-type]
+        )
+        def invalid_request_model_func() -> None:
+            pass
+
+    assert "request_model must be a Pydantic BaseModel class, not a dict" in str(exc_info.value)
+    assert "request_body" in str(exc_info.value)
+
+
+def test_openapi_raises_error_for_dict_response_model() -> None:
+    """Test that passing a dict to response_model raises ValueError with helpful message."""
+    import pytest
+
+    with pytest.raises(ValueError) as exc_info:
+        @openapi(
+            summary="Test with invalid response_model",
+            response_model={"message": "string"},  # type: ignore[arg-type]
+        )
+        def invalid_response_model_func() -> None:
+            pass
+
+    assert "response_model must be a Pydantic BaseModel class, not a dict" in str(exc_info.value)
+    assert "response" in str(exc_info.value)
+
+
+def test_openapi_raises_error_for_non_basemodel_request_model() -> None:
+    """Test that passing a non-BaseModel class to request_model raises ValueError."""
+    import pytest
+
+    class NotAModel:
+        pass
+
+    with pytest.raises(ValueError) as exc_info:
+        @openapi(
+            summary="Test with non-BaseModel",
+            request_model=NotAModel,  # type: ignore[arg-type]
+        )
+        def non_basemodel_request_func() -> None:
+            pass
+
+    assert "request_model must be a Pydantic BaseModel subclass" in str(exc_info.value)
+
+
+def test_openapi_raises_error_for_non_basemodel_response_model() -> None:
+    """Test that passing a non-BaseModel class to response_model raises ValueError."""
+    import pytest
+
+    class NotAModel:
+        pass
+
+    with pytest.raises(ValueError) as exc_info:
+        @openapi(
+            summary="Test with non-BaseModel",
+            response_model=NotAModel,  # type: ignore[arg-type]
+        )
+        def non_basemodel_response_func() -> None:
+            pass
+
+    assert "response_model must be a Pydantic BaseModel subclass" in str(exc_info.value)

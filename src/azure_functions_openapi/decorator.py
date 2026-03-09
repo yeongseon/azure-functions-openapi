@@ -336,9 +336,32 @@ def _validate_models(
     response_model: type[BaseModel] | None,
     func_name: str,
 ) -> None:
-    """Validate Pydantic models."""
-    if request_model and not issubclass(request_model, BaseModel):
-        raise ValueError("Request model must be a Pydantic BaseModel subclass")
+    """Validate Pydantic models.
 
-    if response_model and not issubclass(response_model, BaseModel):
-        raise ValueError("Response model must be a Pydantic BaseModel subclass")
+    Raises:
+        ValueError: If request_model or response_model is not a Pydantic BaseModel subclass.
+            Provides helpful error messages when dict is passed instead of a model.
+    """
+    if request_model is not None:
+        if isinstance(request_model, dict):
+            raise ValueError(
+                "request_model must be a Pydantic BaseModel class, not a dict. "
+                "To use a dict schema, use 'request_body' parameter instead."
+            )
+        if not isinstance(request_model, type) or not issubclass(request_model, BaseModel):
+            raise ValueError(
+                "request_model must be a Pydantic BaseModel subclass, "
+                f"got {type(request_model).__name__}"
+            )
+
+    if response_model is not None:
+        if isinstance(response_model, dict):
+            raise ValueError(
+                "response_model must be a Pydantic BaseModel class, not a dict. "
+                "To use a dict schema, use 'response' parameter instead."
+            )
+        if not isinstance(response_model, type) or not issubclass(response_model, BaseModel):
+            raise ValueError(
+                "response_model must be a Pydantic BaseModel subclass, "
+                f"got {type(response_model).__name__}"
+            )

@@ -44,6 +44,9 @@ class TodoResponse(BaseModel):
     done: bool
 ```
 
+**Note:** `request_model` and `response_model` require Pydantic `BaseModel` classes. To use raw dict schemas instead, use `request_body` and `response` parameters respectively.
+
+
 ## Routing
 
 Pair `@openapi` with Azure Functions v2 route decorators:
