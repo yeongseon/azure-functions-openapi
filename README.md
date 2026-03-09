@@ -67,6 +67,7 @@ azure-functions-openapi
 import json
 
 import azure.functions as func
+from pydantic import BaseModel
 
 from azure_functions_openapi.decorator import openapi
 from azure_functions_openapi.openapi import get_openapi_json, get_openapi_yaml
@@ -76,35 +77,22 @@ from azure_functions_openapi.swagger_ui import render_swagger_ui
 app = func.FunctionApp()
 
 
+class HelloRequest(BaseModel):
+    name: str
+
+
+class HelloResponse(BaseModel):
+    message: str
+
+
 @app.function_name(name="http_trigger")
 @app.route(route="http_trigger", auth_level=func.AuthLevel.ANONYMOUS, methods=["POST"])
 @openapi(
     summary="Greet user",
     route="/api/http_trigger",
-    request_body={
-        "content": {
-            "application/json": {
-                "schema": {
-                    "type": "object",
-                    "properties": {"name": {"type": "string"}},
-                    "required": ["name"],
-                }
-            }
-        }
-    },
-    response={
-        200: {
-            "description": "Successful greeting",
-            "content": {
-                "application/json": {
-                    "schema": {
-                        "type": "object",
-                        "properties": {"message": {"type": "string"}},
-                    }
-                }
-            },
-        }
-    },
+    method="post",
+    request_model=HelloRequest,
+    response_model=HelloResponse,
     tags=["Example"],
 )
 def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
