@@ -81,8 +81,8 @@ app = func.FunctionApp()
 @openapi(
     summary="Greet user",
     route="/api/http_trigger",
-    request_model={"name": "string"},
-    response_model={"message": "string"},
+    request_body={"name": "string"},
+    response={"200": "content": {"application/json":{"schema":"type":"string"}}},
     tags=["Example"],
 )
 def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
