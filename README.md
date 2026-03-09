@@ -87,7 +87,19 @@ app = func.FunctionApp()
         "properties": {"name": {"type": "string"}},
         "required": ["name"],
     },
-    response={200: {"description": "Successful greeting"}},
+    response={
+        200: {
+            "description": "Successful greeting",
+            "content": {
+                "application/json": {
+                    "schema": {
+                        "type": "object",
+                        "properties": {"message": {"type": "string"}},
+                    }
+                }
+            },
+        }
+    },
     tags=["Example"],
 )
 def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
