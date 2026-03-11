@@ -5,7 +5,7 @@ from typing import Any
 import azure.functions as func
 
 import azure_functions_openapi.decorator as decorator_module
-from examples.todo_crud_api import function_app as todo_function_app
+from examples.todo_crud import function_app as todo_function_app
 
 
 def _load_example_module() -> Any:

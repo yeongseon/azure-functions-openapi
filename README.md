@@ -30,7 +30,7 @@ This package does **not** support the legacy `function.json`-based v1 programmin
 
 ## Demo
 
-The representative `hello_openapi` example shows the full outcome of adopting this library:
+The representative `hello` example shows the full outcome of adopting this library:
 
 - You annotate an Azure Functions v2 HTTP handler with `@openapi`.
 - The package generates a real OpenAPI document for that route.

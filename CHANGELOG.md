@@ -26,7 +26,7 @@ All notable changes to this project will be documented in this file.
 - Add repository planning documents and align root documentation
 - Add representative and complex example coverage guidance
 - Replace the README demo with generated spec and Swagger UI previews
-- Generate README preview assets from the representative `hello_openapi` example
+- Generate README preview assets from the representative `hello` example
 - Improve development and release guidance
 
 ### 🧪 Testing

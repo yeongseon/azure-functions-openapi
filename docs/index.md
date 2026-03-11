@@ -33,5 +33,6 @@ See the Installation and Usage guides for the full setup, including the OpenAPI 
 
 ## Examples
 
-- Representative: `examples/hello_openapi`
-- Complex: `examples/todo_crud_api`
+- Representative: `examples/hello`
+- Complex: `examples/todo_crud`
+- Integration: `examples/with_validation`

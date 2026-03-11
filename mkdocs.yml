@@ -23,8 +23,9 @@ nav:
   - CLI: cli.md
   - Architecture: architecture.md
   - Examples:
-      - Hello OpenAPI: examples/hello_openapi.md
-      - Todo API: examples/todo_crud_api.md
+      - Hello OpenAPI: examples/hello.md
+      - Todo API: examples/todo_crud.md
+      - With Validation: examples/with_validation.md
   - Troubleshooting: troubleshooting.md
   - Security: security.md
   - Release Process: release_process.md

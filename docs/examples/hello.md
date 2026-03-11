@@ -1,12 +1,12 @@
 # Hello OpenAPI Example
 
-The `hello_openapi` example demonstrates the most minimal usage of the `@openapi` decorator.
+The `hello` example demonstrates the most minimal usage of the `@openapi` decorator.
 
 ### Files
 
-- `examples/hello_openapi/function_app.py`
-- `examples/hello_openapi/host.json`
-- `examples/hello_openapi/requirements.txt`
+- `examples/hello/function_app.py`
+- `examples/hello/host.json`
+- `examples/hello/requirements.txt`
 
 ### Requirements
 

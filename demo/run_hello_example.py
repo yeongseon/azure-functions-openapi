@@ -103,7 +103,7 @@ def _build_spec_preview_html(openapi_yaml: str) -> str:
     <main>
       <section class="panel">
         <div class="panel-header">
-          <span class="eyebrow">Generated from examples/hello_openapi</span>
+          <span class="eyebrow">Generated from examples/hello</span>
           <h1>OpenAPI Output</h1>
           <p>
             The representative example produces this OpenAPI document before
@@ -162,7 +162,7 @@ def _build_preview(spec: dict[str, object]) -> dict[str, object]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Run the representative hello_openapi example and generate demo assets."
+        description="Run the representative hello example and generate demo assets."
     )
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
@@ -176,7 +176,7 @@ def main() -> None:
     with decorator_module._registry_lock:
         decorator_module._openapi_registry.clear()
 
-    module = import_module("examples.hello_openapi.function_app")
+    module = import_module("examples.hello.function_app")
     reload(module)
 
     openapi_yaml = get_openapi_yaml(
@@ -211,7 +211,7 @@ def main() -> None:
         default_flow_style=False,
     ).strip()
 
-    print("Representative example: examples/hello_openapi/function_app.py")
+    print("Representative example: examples/hello/function_app.py")
     print(f"Generated: {output_dir / 'openapi.yaml'}")
     print(f"Generated: {spec_dir / 'index.html'}")
     print(f"Generated: {swagger_dir / 'index.html'}")
