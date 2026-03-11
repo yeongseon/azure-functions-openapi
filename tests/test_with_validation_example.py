@@ -2,9 +2,8 @@ import importlib
 import json
 from typing import Any
 
-import pytest
-
 import azure.functions as func
+import pytest
 
 try:
     import azure_functions_openapi.decorator as decorator_module
