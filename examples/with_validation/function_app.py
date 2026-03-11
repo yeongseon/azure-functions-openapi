@@ -1,6 +1,6 @@
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 import azure.functions as func
 from pydantic import BaseModel, Field
@@ -59,9 +59,10 @@ def create_user(req: func.HttpRequest, body: CreateUserRequest) -> UserResponse:
         The created user.
     """
     logging.info("Creating a new user")
-    user = {"id": len(USERS) + 1, "name": body.name, "email": body.email}
+    user_id = len(USERS) + 1
+    user = {"id": user_id, "name": body.name, "email": body.email}
     USERS.append(user)
-    return UserResponse(**user)
+    return UserResponse(id=user_id, name=body.name, email=body.email)
 
 
 @app.function_name(name="get_user")
@@ -97,7 +98,7 @@ def create_user(req: func.HttpRequest, body: CreateUserRequest) -> UserResponse:
     },
 )
 @validate_http(query=UserQuery, response_model=UserResponse)
-def get_user(req: func.HttpRequest, query: UserQuery):
+def get_user(req: func.HttpRequest, query: UserQuery) -> Union[UserResponse, func.HttpResponse]:
     """
     Get a user by ID.
 
@@ -117,7 +118,7 @@ def get_user(req: func.HttpRequest, query: UserQuery):
     if query.include_profile:
         logging.info("include_profile query option enabled")
 
-    return UserResponse(**user)
+    return UserResponse(id=user["id"], name=user["name"], email=user["email"])
 
 
 @app.route(route="openapi.json", auth_level=func.AuthLevel.ANONYMOUS)

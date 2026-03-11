@@ -101,6 +101,10 @@ exclude = "examples/"
 show_error_codes = true
 pretty = true
 
+[[tool.mypy.overrides]]
+module = "examples.*"
+follow_imports = "skip"
+
 [tool.pytest.ini_options]
 addopts = "--cov=src/azure_functions_openapi --cov-report=xml --cov-report=term-missing -ra -q"
 testpaths = ["tests"]
