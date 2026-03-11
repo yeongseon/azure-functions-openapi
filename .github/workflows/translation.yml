@@ -1,0 +1,69 @@
+name: Co-op Translator
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.md'
+      - '!translations/**'
+
+  workflow_dispatch:
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Co-op Translator
+        run: pip install co-op-translator
+
+      - name: Run Co-op Translator
+        env:
+          PYTHONIOENCODING: utf-8
+          # Azure OpenAI credentials
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_MODEL_NAME: ${{ secrets.AZURE_OPENAI_MODEL_NAME }}
+          AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT_NAME }}
+          AZURE_OPENAI_API_VERSION: ${{ secrets.AZURE_OPENAI_API_VERSION }}
+          # OpenAI credentials (alternative)
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_ORG_ID: ${{ secrets.OPENAI_ORG_ID }}
+          OPENAI_CHAT_MODEL_ID: ${{ secrets.OPENAI_CHAT_MODEL_ID }}
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+        run: |
+          translate -l "ko ja zh es" -md -y
+
+      - name: Create Pull Request with translations
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: update translations via Co-op Translator"
+          title: "docs: update translations (ko, ja, zh, es)"
+          body: |
+            Automated translation update via [Co-op Translator](https://github.com/Azure/co-op-translator).
+
+            ### Changes
+            - Updated translated Markdown files in `translations/` directory
+            - Target languages: Korean, Japanese, Chinese (Simplified), Spanish
+          branch: update-translations
+          base: main
+          labels: documentation, automated-pr
+          delete-branch: true
+          add-paths: |
+            translations/
