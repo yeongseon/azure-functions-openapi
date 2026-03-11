@@ -9,6 +9,14 @@
 [![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-openapi/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+### Multi-Language Support
+
+#### Supported by [Co-op Translator](https://github.com/Azure/Co-op-Translator)
+
+<!-- CO-OP TRANSLATOR LANGUAGES TABLE START -->
+[Korean](./translations/ko/README.md) | [Japanese](./translations/ja/README.md) | [Chinese (Simplified)](./translations/zh/README.md) | [Spanish](./translations/es/README.md)
+<!-- CO-OP TRANSLATOR LANGUAGES TABLE END -->
+
 OpenAPI (Swagger) documentation and Swagger UI for the **Azure Functions Python v2 programming model**.
 
 ## Scope
