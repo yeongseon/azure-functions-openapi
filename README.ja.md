@@ -1,6 +1,6 @@
 # azure-functions-openapi
 
-Translations: [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
+言語: [English](README.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
 
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-openapi.svg)](https://pypi.org/project/azure-functions-openapi/)
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-openapi/)
@@ -11,44 +11,44 @@ Translations: [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中
 [![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-openapi/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-OpenAPI (Swagger) documentation and Swagger UI for the **Azure Functions Python v2 programming model**.
+**Azure Functions Python v2 プログラミング モデル**向けの OpenAPI（Swagger）ドキュメント生成と Swagger UI を提供します。
 
 ## Scope
 
-- Azure Functions Python **v2 programming model**
-- Decorator-based `func.FunctionApp()` applications
-- HTTP-triggered functions documented with `@openapi`
-- Optional Pydantic schema generation (supports both Pydantic v1 and v2)
+- Azure Functions Python **v2 プログラミング モデル**
+- decorator ベースの `func.FunctionApp()` アプリケーション
+- `@openapi` で文書化された HTTP トリガー関数
+- オプションの Pydantic スキーマ生成（Pydantic v1 と v2 の両方をサポート）
 
-This package does **not** support the legacy `function.json`-based v1 programming model.
+このパッケージは従来の `function.json` ベースの v1 プログラミング モデルには対応していません。
 
 ## Features
 
-- `@openapi` decorator for operation metadata
-- `/openapi.json`, `/openapi.yaml`, and `/docs` endpoints
-- Query, path, header, body, and response schema support
-- Swagger UI helper with security defaults
-- CLI tooling for generation and validation workflows
+- operation メタデータ用の `@openapi` decorator
+- `/openapi.json`, `/openapi.yaml`, `/docs` エンドポイント
+- query, path, header, body, response スキーマのサポート
+- セキュアなデフォルトを備えた Swagger UI helper
+- 生成および検証ワークフローのための CLI ツール
 
 ## Demo
 
-The representative `hello` example shows the full outcome of adopting this library:
+代表的な `hello` サンプルは、このライブラリを導入したときの結果全体を示します。
 
-- You annotate an Azure Functions v2 HTTP handler with `@openapi`.
-- The package generates a real OpenAPI document for that route.
-- The same route is rendered in Swagger UI for browser-based inspection.
+- Azure Functions v2 の HTTP ハンドラーに `@openapi` を付与します。
+- パッケージがそのルートに対する実際の OpenAPI ドキュメントを生成します。
+- 同じルートがブラウザ確認用に Swagger UI でレンダリングされます。
 
 ### Generated Spec Result
 
-The generated OpenAPI file is captured as a static preview from the same example run, so the README shows the actual document produced by the representative function.
+生成された OpenAPI ファイルは、同じサンプル実行から静的プレビューとして取得されています。そのため、この README には代表的な関数が実際に生成したドキュメントが表示されます。
 
-![OpenAPI spec preview](docs/assets/hello_openapi_spec_preview.png)
+![OpenAPI spec preview](/root/Github/azure-functions/azure-functions-openapi/docs/assets/hello_openapi_spec_preview.png)
 
 ### Swagger UI Result
 
-The web preview below is generated from the same representative example and captured automatically from the rendered Swagger UI page produced by that example flow.
+以下の Web プレビューも同じ代表サンプルから生成されており、そのフローで作られた Swagger UI ページを自動的にレンダリングして取得したものです。
 
-![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
+![OpenAPI Swagger UI preview](/root/Github/azure-functions/azure-functions-openapi/docs/assets/hello_openapi_swagger_ui_preview.png)
 
 ## Installation
 
@@ -56,7 +56,7 @@ The web preview below is generated from the same representative example and capt
 pip install azure-functions-openapi
 ```
 
-Your Function App dependencies should include:
+Function App の依存関係には次を含めてください。
 
 ```text
 azure-functions
@@ -136,7 +136,7 @@ def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
     return render_swagger_ui()
 ```
 
-Run locally with Azure Functions Core Tools:
+ローカルでは Azure Functions Core Tools で実行できます。
 
 ```bash
 func start
@@ -144,8 +144,8 @@ func start
 
 ## Documentation
 
-- Full docs: [yeongseon.github.io/azure-functions-openapi](https://yeongseon.github.io/azure-functions-openapi/)
-- Smoke-tested examples: `examples/`
+- 全ドキュメント: [yeongseon.github.io/azure-functions-openapi](https://yeongseon.github.io/azure-functions-openapi/)
+- スモークテスト済みサンプル: `examples/`
 - [Installation Guide](docs/installation.md)
 - [Usage Guide](docs/usage.md)
 - [API Reference](docs/api.md)
@@ -153,10 +153,9 @@ func start
 
 ## Disclaimer
 
-This project is an independent community project and is not affiliated with,
-endorsed by, or maintained by Microsoft.
+このプロジェクトは独立したコミュニティプロジェクトであり、Microsoft と提携・承認・保守関係にはありません。
 
-Azure and Azure Functions are trademarks of Microsoft Corporation.
+Azure および Azure Functions は Microsoft Corporation の商標です。
 
 ## License
 
