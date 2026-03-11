@@ -2,11 +2,21 @@ import importlib
 import json
 from typing import Any
 
+import pytest
+
 import azure.functions as func
 
-import azure_functions_openapi.decorator as decorator_module
-from examples.with_validation import function_app as validation_function_app
+try:
+    import azure_functions_openapi.decorator as decorator_module
+    from examples.with_validation import function_app as validation_function_app
+    HAS_VALIDATION = True
+except ImportError:
+    HAS_VALIDATION = False
 
+pytestmark = pytest.mark.skipif(
+    not HAS_VALIDATION,
+    reason="azure-functions-validation not installed",
+)
 
 def _load_example_module() -> Any:
     with decorator_module._registry_lock:
