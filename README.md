@@ -149,14 +149,13 @@ func start
 - [API Reference](docs/api.md)
 - [CLI Guide](docs/cli.md)
 
-## License
-
-MIT
-
-
 ## Disclaimer
 
 This project is an independent community project and is not affiliated with,
 endorsed by, or maintained by Microsoft.
 
 Azure and Azure Functions are trademarks of Microsoft Corporation.
+
+## License
+
+MIT
