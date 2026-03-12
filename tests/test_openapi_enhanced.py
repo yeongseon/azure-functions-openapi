@@ -186,7 +186,14 @@ class TestGetOpenAPIJSONEnhanced:
             assert (
                 result == '{\n  "openapi": "3.0.0",\n  "info": {\n    "title": "Test API"\n  }\n}'
             )
-            mock_generate.assert_called_once_with("Test API", "1.0.0", "3.0.0")
+            mock_generate.assert_called_once_with(
+                "Test API",
+                "1.0.0",
+                "3.0.0",
+                description="Auto-generated OpenAPI documentation. "
+                "Markdown supported in descriptions (CommonMark).",
+                security_schemes=None,
+            )
 
     def test_get_openapi_json_error(self) -> None:
         """Test JSON generation with error."""
@@ -207,7 +214,11 @@ class TestGetOpenAPIJSONEnhanced:
             get_openapi_json("Test API", "1.0.0", description="Custom description")
 
             mock_generate.assert_called_once_with(
-                "Test API", "1.0.0", "3.0.0", description="Custom description"
+                "Test API",
+                "1.0.0",
+                "3.0.0",
+                description="Custom description",
+                security_schemes=None,
             )
 
     def test_get_openapi_json_logging(self) -> None:
@@ -236,7 +247,14 @@ class TestGetOpenAPIYAMLEnhanced:
 
             assert "openapi: 3.0.0" in result
             assert "title: Test API" in result
-            mock_generate.assert_called_once_with("Test API", "1.0.0", "3.0.0")
+            mock_generate.assert_called_once_with(
+                "Test API",
+                "1.0.0",
+                "3.0.0",
+                description="Auto-generated OpenAPI documentation. "
+                "Markdown supported in descriptions (CommonMark).",
+                security_schemes=None,
+            )
 
     def test_get_openapi_yaml_error(self) -> None:
         """Test YAML generation with error."""
@@ -257,7 +275,11 @@ class TestGetOpenAPIYAMLEnhanced:
             get_openapi_yaml("Test API", "1.0.0", description="Custom description")
 
             mock_generate.assert_called_once_with(
-                "Test API", "1.0.0", "3.0.0", description="Custom description"
+                "Test API",
+                "1.0.0",
+                "3.0.0",
+                description="Custom description",
+                security_schemes=None,
             )
 
     def test_get_openapi_yaml_logging(self) -> None:
