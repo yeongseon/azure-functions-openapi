@@ -6,24 +6,24 @@ All notable changes to this project will be documented in this file.
 
 ## [0.13.0] - 2026-03-12
 
-### 🚀 Features
+### Features
 
 - Add `security_scheme` parameter to `@openapi` decorator for declaring `components.securitySchemes` (#81)
 - Add `security_schemes` parameter to `generate_openapi_spec()`, `get_openapi_json()`, and `get_openapi_yaml()` for central scheme definitions
 - Per-decorator and central security schemes are merged automatically
 
-### 📚 Documentation
+### Documentation
 
 - Document security scheme usage patterns in `docs/usage.md`
 ## [0.12.0] - 2026-03-08
 
 > Note: Version `0.11.0` was published to PyPI on February 10, 2026, but its Git tag and GitHub release metadata were not preserved. Repository releases resume from `0.12.0`.
 
-### 🚀 Features
+### Features
 
 - Allow custom OpenAPI info description
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - Support `FunctionBuilder` inputs in the decorator
 - Normalize generated route paths
@@ -31,7 +31,7 @@ All notable changes to this project will be documented in this file.
 - Limit the default `200` response fallback to operations with no explicit responses
 - Allow `codex/` branch names in maintenance workflows
 
-### 📚 Documentation
+### Documentation
 
 - Position the project for the Azure Functions Python v2 programming model
 - Add repository planning documents and align root documentation
@@ -40,12 +40,12 @@ All notable changes to this project will be documented in this file.
 - Generate README preview assets from the representative `hello` example
 - Improve development and release guidance
 
-### 🧪 Testing
+### Testing
 
 - Add smoke coverage for the representative example and the todo CRUD example
 - Raise coverage for CLI and utility paths
 
-### ⚙️ Miscellaneous Tasks
+### Miscellaneous Tasks
 
 - Align tooling, maintenance workflows, and docs dependencies
 - Apply remaining dependency updates
@@ -54,11 +54,11 @@ All notable changes to this project will be documented in this file.
 
 ## [0.10.0] - 2026-02-09
 
-### 🚀 Features
+### Features
 
 - Resolve deployment and OpenAPI security issue backlog
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - *(ci)* Resolve lint and deploy workflow validation errors
 - *(test)* Satisfy mypy type for security validation case
@@ -70,16 +70,16 @@ All notable changes to this project will be documented in this file.
 - *(openapi)* Drop error utilities
 - *(decorator)* Preserve validation errors
 
-### 💼 Other
+### Other
 
 - Bump version to `0.10.0`
 
-### 🚜 Refactor
+### Refactor
 
 - Simplify branch strategy to GitHub Flow
 - Harden registry and runtime state handling
 
-### 📚 Documentation
+### Documentation
 
 - Add governance, design principles, and LSP configuration
 - Fix CI badge workflow and tool versions
@@ -101,7 +101,7 @@ All notable changes to this project will be documented in this file.
 - Fix MkDocs navigation and links
 - Update changelog
 
-### ⚙️ Miscellaneous Tasks
+### Miscellaneous Tasks
 
 - Add security policies and incident response (#68)
 - Add performance monitoring and regression testing (#69)
@@ -123,37 +123,37 @@ All notable changes to this project will be documented in this file.
 
 ## [0.8.0] - 2026-01-22
 
-### 🚀 Features
+### Features
 
 - Add optional OpenAPI 3.1 output support (#30)
 
-### 📚 Documentation
+### Documentation
 
 - Improve the security policy with GitHub Security Advisory guidance
 
-### 🧪 Testing
+### Testing
 
 - Fix test naming and add missing module tests (#28)
 
-### ⚙️ Miscellaneous Tasks
+### Miscellaneous Tasks
 
 - Bump version to `0.8.0` and update `CHANGELOG`
 
 ## [0.7.0] - 2026-01-22
 
-### 🚀 Features
+### Features
 
 - Add Python 3.13 and 3.14 support (#29)
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - Correct coverage measurement configuration (#19)
 
-### 📚 Documentation
+### Documentation
 
 - Add community files to the repository root (#24)
 
-### ⚙️ Miscellaneous Tasks
+### Miscellaneous Tasks
 
 - Add GitHub issue templates
 - Align pre-commit hooks with `pyproject.toml` settings (#20)
@@ -165,29 +165,29 @@ All notable changes to this project will be documented in this file.
 
 ## [0.6.1] - 2026-01-22
 
-### 💼 Other
+### Other
 
 - Bump version to `0.6.1`
 
-### 🚜 Refactor
+### Refactor
 
 - Adopt Python 3.10 type hint syntax (PEP 604/585) (#9)
 
-### 📚 Documentation
+### Documentation
 
 - Update changelog
 
 ## [0.6.0] - 2026-01-21
 
-### 💼 Other
+### Other
 
 - Bump version to `0.6.0`
 
-### 📚 Documentation
+### Documentation
 
 - Update changelog
 
-### 🎨 Styling
+### Styling
 
 - Format code with Ruff and Black
 - Resolve lint issues

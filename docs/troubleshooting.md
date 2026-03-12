@@ -2,7 +2,7 @@
 
 This guide helps you diagnose and resolve common issues with azure-functions-openapi.
 
-## 🚨 Common Issues
+## Common Issues
 
 ### 1. Import Errors
 
@@ -38,10 +38,10 @@ ModuleNotFoundError: No module named 'azure_functions_openapi'
 #### Problem: Import from wrong module
 
 ```python
-# ❌ Wrong
+# Wrong
 from azure_functions_doctor import openapi
 
-# ✅ Correct
+# Correct
 from azure_functions_openapi.decorator import openapi
 ```
 
@@ -58,7 +58,7 @@ def my_function(req):
 **Solutions:**
 1. **Check decorator order:**
    ```python
-   # ✅ Correct order
+   # Correct order
    @app.route(route="test", auth_level=func.AuthLevel.ANONYMOUS)
    @openapi(summary="Test")
    def my_function(req):
@@ -82,19 +82,19 @@ ValueError: Invalid route path: <script>alert('xss')</script>
 **Solutions:**
 1. **Use safe route paths:**
    ```python
-   # ❌ Dangerous
+   # Dangerous
    @openapi(route="<script>alert('xss')</script>")
    
-   # ✅ Safe
+   # Safe
    @openapi(route="/api/users")
    ```
 
 2. **Check parameter validation:**
    ```python
-   # ❌ Invalid parameters
+   # Invalid parameters
    @openapi(parameters="not_a_list")
    
-   # ✅ Valid parameters
+   # Valid parameters
    @openapi(parameters=[
        {"name": "id", "in": "path", "required": True, "schema": {"type": "integer"}}
    ])
@@ -139,12 +139,12 @@ RuntimeError: Failed to generate OpenAPI specification
 **Solutions:**
 1. **Check Pydantic models:**
    ```python
-   # ❌ Invalid model
+   # Invalid model
    class InvalidModel:
        def __init__(self):
            self.name = "test"
    
-   # ✅ Valid Pydantic model
+   # Valid Pydantic model
    from pydantic import BaseModel
    
    class ValidModel(BaseModel):
@@ -255,7 +255,7 @@ openapi-spec-validator openapi.json
    openapi-spec-validator spec.yaml
    ```
 
-## 🔍 Debugging Techniques
+## Debugging Techniques
 
 ### 1. Enable Debug Logging
 
@@ -295,7 +295,7 @@ except Exception as e:
 ```
 
 
-## 📞 Getting Help
+## Getting Help
 
 ### 1. Check Documentation
 
@@ -325,7 +325,7 @@ When reporting issues, include:
 - [GitHub Issues](https://github.com/yeongseon/azure-functions-openapi/issues)
 - [GitHub Discussions](https://github.com/yeongseon/azure-functions-openapi/discussions)
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 

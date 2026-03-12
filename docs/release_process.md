@@ -4,7 +4,7 @@ This document outlines the steps to release a new version of **azure-functions-o
 
 ---
 
-## 🧾 Step 1: Bump Version and Generate Changelog
+## Step 1: Bump Version and Generate Changelog
 
 Use Makefile targets to bump the version and update the changelog:
 
@@ -25,13 +25,13 @@ Each command will:
 
 ---
 
-## 📝 Changelog Generation
+## Changelog Generation
 
 The changelog is generated automatically by [git-cliff](https://git-cliff.org/) from conventional commit messages.
 
 ### Configuration
 
-- `cliff.toml` — defines commit grouping, emoji categories, and output format
+- `cliff.toml` — defines commit grouping, categories, and output format
 - `Makefile` — `make changelog` runs `git-cliff -o CHANGELOG.md`
 
 ### Commit Message Convention
@@ -40,15 +40,15 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/) for proper c
 
 | Prefix | Changelog Category |
 |--------|--------------------|
-| `feat:` | 🚀 Features |
-| `fix:` | 🐛 Bug Fixes |
-| `docs:` | 📚 Documentation |
-| `refactor:` | 🚜 Refactor |
-| `style:` | 🎨 Styling |
-| `test:` | 🧪 Testing |
-| `perf:` | ⚡ Performance |
-| `ci:` / `chore:` | ⚙️ Miscellaneous Tasks |
-| `build:` | 💼 Other |
+| `feat:` | Features |
+| `fix:` | Bug Fixes |
+| `docs:` | Documentation |
+| `refactor:` | Refactor |
+| `style:` | Styling |
+| `test:` | Testing |
+| `perf:` | Performance |
+| `ci:` / `chore:` | Miscellaneous Tasks |
+| `build:` | Other |
 
 Use scopes for more context: `fix(openapi): preserve explicit 200 response`
 
@@ -61,7 +61,7 @@ make commit-changelog    # Stage and commit the updated changelog
 
 ---
 
-## 📦 Step 2: Build and Test the Package
+## Step 2: Build and Test the Package
 
 ```bash
 make build
@@ -75,7 +75,7 @@ pip install dist/azure_functions_openapi-<version>-py3-none-any.whl
 
 ---
 
-## 🚀 Step 3: Publish to PyPI
+## Step 3: Publish to PyPI
 
 ```bash
 make publish-pypi
@@ -86,7 +86,7 @@ make publish-pypi
 
 ---
 
-## 🔁 Step 4: (Optional) Publish to TestPyPI
+## Step 4: (Optional) Publish to TestPyPI
 
 ```bash
 make publish-test
@@ -100,7 +100,7 @@ pip install --index-url https://test.pypi.org/simple/ azure-functions-openapi
 
 ---
 
-## ✅ Summary of Makefile Commands
+## Summary of Makefile Commands
 
 | Task | Command |
 |------|---------|
@@ -113,7 +113,7 @@ pip install --index-url https://test.pypi.org/simple/ azure-functions-openapi
 
 ---
 
-## 🔗 Related
+## Related
 
 - [CHANGELOG.md](https://github.com/yeongseon/azure-functions-openapi/blob/main/CHANGELOG.md)
 - [Development Guide](development.md)

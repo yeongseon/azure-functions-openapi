@@ -19,14 +19,14 @@ filter_unconventional = false
 tag_pattern = "v[0-9]*"
 sort_commits = "newest"
 commit_parsers = [
-    { message = "^feat", group = "🚀 Features" },
-    { message = "^fix", group = "🐛 Bug Fixes" },
-    { message = "^docs", group = "📚 Documentation" },
-    { message = "^refactor", group = "🚜 Refactor" },
-    { message = "^style", group = "🎨 Styling" },
-    { message = "^test", group = "🧪 Testing" },
-    { message = "^perf", group = "⚡ Performance" },
-    { message = "^ci", group = "⚙️ Miscellaneous Tasks" },
-    { message = "^chore", group = "⚙️ Miscellaneous Tasks" },
-    { message = "^build", group = "💼 Other" },
+    { message = "^feat", group = "Features" },
+    { message = "^fix", group = "Bug Fixes" },
+    { message = "^docs", group = "Documentation" },
+    { message = "^refactor", group = "Refactor" },
+    { message = "^style", group = "Styling" },
+    { message = "^test", group = "Testing" },
+    { message = "^perf", group = "Performance" },
+    { message = "^ci", group = "Miscellaneous Tasks" },
+    { message = "^chore", group = "Miscellaneous Tasks" },
+    { message = "^build", group = "Other" },
 ]

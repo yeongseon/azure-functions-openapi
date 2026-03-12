@@ -2,7 +2,7 @@
 
 This document provides an overview of the azure-functions-openapi library architecture, design decisions, and internal components.
 
-## 🏗️ System Architecture
+## System Architecture
 
 ### High-Level Overview
 
@@ -31,7 +31,7 @@ This document provides an overview of the azure-functions-openapi library archit
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## 🔧 Core Components
+## Core Components
 
 ### 1. Decorator System (`decorator.py`)
 
@@ -94,7 +94,7 @@ response = render_swagger_ui(
 
 This library focuses on OpenAPI generation and documentation rendering.
 
-## 🔄 Data Flow
+## Data Flow
 
 ### 1. Function Registration
 
@@ -114,7 +114,7 @@ Registry → Schema Generation → JSON/YAML Output
 Request → Security Validation → HTML Generation → Security Headers → Response
 ```
 
-## 🛡️ Security Architecture
+## Security Architecture
 
 ### Input Validation Pipeline
 
@@ -129,9 +129,9 @@ User Input → Sanitization → Validation → Processing → Response
 - **X-XSS-Protection**: XSS filtering
 - **X-Content-Type-Options**: MIME type sniffing protection
 
-## 🔧 Extension Points
+## Extension Points
 
-## 🚀 Deployment Architecture
+## Deployment Architecture
 
 ### Azure Functions Integration
 
