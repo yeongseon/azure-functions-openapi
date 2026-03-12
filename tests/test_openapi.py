@@ -410,7 +410,12 @@ def test_generate_openapi_spec_merges_security_schemes() -> None:
         security=[{"OAuth2": ["read"]}],
         security_scheme={"OAuth2": {
             "type": "oauth2",
-            "flows": {"implicit": {"authorizationUrl": "https://example.com/auth", "scopes": {"read": "Read"}}},
+            "flows": {
+                "implicit": {
+                    "authorizationUrl": "https://example.com/auth",
+                    "scopes": {"read": "Read"},
+                },
+            },
         }},
         response={200: {"description": "OK"}},
     )
