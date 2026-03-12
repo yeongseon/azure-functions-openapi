@@ -38,6 +38,20 @@ This document provides an overview of the azure-functions-openapi library archit
 The `@openapi` decorator is the heart of the system:
 
 ```python
+import azure.functions as func
+from pydantic import BaseModel
+
+from azure_functions_openapi import openapi
+
+
+class RequestModel(BaseModel):
+    name: str
+
+
+class ResponseModel(BaseModel):
+    message: str
+
+
 @openapi(
     summary="API endpoint",
     description="Detailed description",
@@ -46,7 +60,8 @@ The `@openapi` decorator is the heart of the system:
     response_model=ResponseModel
 )
 def my_function(req: func.HttpRequest) -> func.HttpResponse:
-    # Function implementation
+    _ = req
+    return func.HttpResponse("OK", status_code=200)
 ```
 
 **Key Features:**

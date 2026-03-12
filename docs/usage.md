@@ -56,7 +56,8 @@ Pair `@openapi` with Azure Functions v2 route decorators:
 @app.route(route="create_todo", methods=["POST"])
 @openapi(route="/api/create_todo", method="post", summary="Create todo")
 def create_todo(req: func.HttpRequest) -> func.HttpResponse:
-    ...
+    _ = req
+    return func.HttpResponse("Created", status_code=201)
 ```
 
 ## Exposing Documentation Endpoints

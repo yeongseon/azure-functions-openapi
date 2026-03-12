@@ -7,10 +7,18 @@ The `with_validation` example demonstrates how to use `@openapi` and `@validate_
 Both decorators receive the **same** Pydantic model class. `@openapi` uses it to generate the OpenAPI schema, while `@validate_http` uses it to parse and validate the request at runtime.
 
 ```python
-@openapi(request_model=CreateUserRequest, response_model=UserResponse, ...)
+@openapi(
+    summary="Create user",
+    description="Create a user with request validation.",
+    route="/api/users",
+    method="post",
+    request_model=CreateUserRequest,
+    response_model=UserResponse,
+)
 @validate_http(body=CreateUserRequest, response_model=UserResponse)
-def create_user(req: HttpRequest, body: CreateUserRequest) -> UserResponse:
-    ...
+def create_user(req: func.HttpRequest, body: CreateUserRequest) -> func.HttpResponse:
+    _ = (req, body)
+    return func.HttpResponse("User created", status_code=201)
 ```
 
 ### Files

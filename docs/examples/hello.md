@@ -22,10 +22,11 @@ The `hello` example demonstrates the most minimal usage of the `@openapi` decora
 ### Sample
 
 ```python
-@app.route(route="hello", ...)
+@app.route(route="hello", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 @openapi(summary="Hello", description="Returns a greeting.", response_model=HelloResponse)
-def hello(req: HttpRequest) -> HttpResponse:
-    ...
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    _ = req
+    return func.HttpResponse("Hello from Azure Functions", status_code=200)
 ```
 
 ### Local Setup
