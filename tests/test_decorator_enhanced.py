@@ -12,6 +12,7 @@ from azure_functions_openapi.decorator import (
     _validate_models,
     _validate_parameters,
     _validate_security,
+    _validate_security_scheme,
     _validate_tags,
     get_openapi_registry,
     openapi,
@@ -332,3 +333,51 @@ class TestOpenAPIDecoratorErrorHandling:
                     pass
 
             assert "Failed to register OpenAPI metadata" in str(exc_info.value)
+
+
+class TestValidateSecurityScheme:
+    """Tests for _validate_security_scheme."""
+
+    def test_validate_security_scheme_valid(self) -> None:
+        scheme = {"BearerAuth": {"type": "http", "scheme": "bearer"}}
+        result = _validate_security_scheme(scheme, "test_func")
+        assert result == scheme
+
+    def test_validate_security_scheme_none(self) -> None:
+        result = _validate_security_scheme(None, "test_func")
+        assert result == {}
+
+    def test_validate_security_scheme_invalid_type(self) -> None:
+        with pytest.raises(ValueError):
+            _validate_security_scheme(cast(Any, "not_a_dict"), "test_func")
+
+    def test_validate_security_scheme_missing_type_field(self) -> None:
+        with pytest.raises(ValueError, match="valid 'type' field"):
+            _validate_security_scheme({"BadScheme": {"scheme": "bearer"}}, "test_func")
+
+    def test_validate_security_scheme_invalid_type_value(self) -> None:
+        with pytest.raises(ValueError, match="valid 'type' field"):
+            _validate_security_scheme({"BadScheme": {"type": "invalid"}}, "test_func")
+
+    def test_validate_security_scheme_invalid_definition(self) -> None:
+        with pytest.raises(ValueError, match="must be a dictionary"):
+            _validate_security_scheme(cast(Any, {"BadScheme": "not_a_dict"}), "test_func")
+
+    def test_validate_security_scheme_empty_name(self) -> None:
+        with pytest.raises(ValueError, match="non-empty string"):
+            _validate_security_scheme({"  ": {"type": "http", "scheme": "bearer"}}, "test_func")
+
+    def test_validate_security_scheme_apikey(self) -> None:
+        scheme = {"ApiKey": {"type": "apiKey", "in": "header", "name": "X-API-Key"}}
+        result = _validate_security_scheme(scheme, "test_func")
+        assert result == scheme
+
+    def test_validate_security_scheme_oauth2(self) -> None:
+        scheme = {"OAuth2": {"type": "oauth2", "flows": {}}}
+        result = _validate_security_scheme(scheme, "test_func")
+        assert result == scheme
+
+    def test_validate_security_scheme_openidconnect(self) -> None:
+        scheme = {"OIDC": {"type": "openIdConnect", "openIdConnectUrl": "https://example.com"}}
+        result = _validate_security_scheme(scheme, "test_func")
+        assert result == scheme

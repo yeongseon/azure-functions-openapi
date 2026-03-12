@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+## [0.13.0] - 2026-03-12
+
+### 🚀 Features
+
+- Add `security_scheme` parameter to `@openapi` decorator for declaring `components.securitySchemes` (#81)
+- Add `security_schemes` parameter to `generate_openapi_spec()`, `get_openapi_json()`, and `get_openapi_yaml()` for central scheme definitions
+- Per-decorator and central security schemes are merged automatically
+
+### 📚 Documentation
+
+- Document security scheme usage patterns in `docs/usage.md`
 ## [0.12.0] - 2026-03-08
 
 > Note: Version `0.11.0` was published to PyPI on February 10, 2026, but its Git tag and GitHub release metadata were not preserved. Repository releases resume from `0.12.0`.

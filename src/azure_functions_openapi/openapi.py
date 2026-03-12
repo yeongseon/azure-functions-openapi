@@ -78,6 +78,7 @@ def generate_openapi_spec(
     version: str = "1.0.0",
     openapi_version: str = OPENAPI_VERSION_3_0,
     description: str = DEFAULT_OPENAPI_INFO_DESCRIPTION,
+    security_schemes: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """
     Compile an OpenAPI specification from the registry.
@@ -87,6 +88,8 @@ def generate_openapi_spec(
         version: API version
         openapi_version: OpenAPI specification version ("3.0.0" or "3.1.0")
         description: Description for the OpenAPI info object
+        security_schemes: Security scheme definitions for components.securitySchemes.
+            Example: {"BearerAuth": {"type": "http", "scheme": "bearer"}}
 
     Returns:
         OpenAPI specification dictionary
@@ -218,9 +221,23 @@ def generate_openapi_spec(
         if openapi_version == OPENAPI_VERSION_3_1:
             spec["info"]["summary"] = title
 
+        # Merge security schemes: explicit param + per-operation schemes from registry
+        all_security_schemes: dict[str, dict[str, Any]] = {}
+        if security_schemes:
+            all_security_schemes.update(security_schemes)
+        for _fn, meta in registry.items():
+            scheme = meta.get("security_scheme")
+            if isinstance(scheme, dict):
+                all_security_schemes.update(scheme)
+
+        if all_security_schemes:
+            components["securitySchemes"] = all_security_schemes
+
         if components.get("schemas"):
             if openapi_version == OPENAPI_VERSION_3_1:
                 components["schemas"] = _convert_schemas_to_3_1(components["schemas"])
+
+        if components.get("schemas") or components.get("securitySchemes"):
             spec["components"] = components
 
         logger.info(
@@ -239,6 +256,7 @@ def get_openapi_json(
     version: str = "1.0.0",
     openapi_version: str = OPENAPI_VERSION_3_0,
     description: str = DEFAULT_OPENAPI_INFO_DESCRIPTION,
+    security_schemes: dict[str, dict[str, Any]] | None = None,
 ) -> str:
     """Return the spec as pretty-printed JSON (UTF-8).
 
@@ -247,15 +265,17 @@ def get_openapi_json(
         version: API version
         openapi_version: OpenAPI specification version ("3.0.0" or "3.1.0")
         description: Description for the OpenAPI info object
+        security_schemes: Security scheme definitions for components.securitySchemes.
 
     Returns:
         OpenAPI spec in JSON format.
     """
     try:
-        if description == DEFAULT_OPENAPI_INFO_DESCRIPTION:
-            spec = generate_openapi_spec(title, version, openapi_version)
-        else:
-            spec = generate_openapi_spec(title, version, openapi_version, description=description)
+        spec = generate_openapi_spec(
+            title, version, openapi_version,
+            description=description,
+            security_schemes=security_schemes,
+        )
         return json.dumps(spec, indent=2, ensure_ascii=False)
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI JSON: {str(e)}")
@@ -267,6 +287,7 @@ def get_openapi_yaml(
     version: str = "1.0.0",
     openapi_version: str = OPENAPI_VERSION_3_0,
     description: str = DEFAULT_OPENAPI_INFO_DESCRIPTION,
+    security_schemes: dict[str, dict[str, Any]] | None = None,
 ) -> str:
     """Return the spec as YAML.
 
@@ -275,15 +296,17 @@ def get_openapi_yaml(
         version: API version
         openapi_version: OpenAPI specification version ("3.0.0" or "3.1.0")
         description: Description for the OpenAPI info object
+        security_schemes: Security scheme definitions for components.securitySchemes.
 
     Returns:
         OpenAPI spec in YAML format.
     """
     try:
-        if description == DEFAULT_OPENAPI_INFO_DESCRIPTION:
-            spec = generate_openapi_spec(title, version, openapi_version)
-        else:
-            spec = generate_openapi_spec(title, version, openapi_version, description=description)
+        spec = generate_openapi_spec(
+            title, version, openapi_version,
+            description=description,
+            security_schemes=security_schemes,
+        )
         return yaml.safe_dump(spec, sort_keys=False, allow_unicode=True)
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI YAML: {str(e)}")

@@ -354,3 +354,91 @@ def test_generate_openapi_spec_keeps_explicit_non_200_responses_without_adding_2
     responses = generate_openapi_spec()["paths"]["/created-response"]["post"]["responses"]
     assert "200" not in responses
     assert responses["201"] == {"description": "Created"}
+
+
+def test_generate_openapi_spec_with_security_schemes_param() -> None:
+    """Test that security_schemes param adds components.securitySchemes."""
+    @openapi(
+        route="/secure-param",
+        summary="Secured with param",
+        security=[{"BearerAuth": []}],
+        response={200: {"description": "OK"}},
+    )
+    def secure_param_endpoint() -> None:
+        pass
+
+    spec = generate_openapi_spec(
+        security_schemes={"BearerAuth": {"type": "http", "scheme": "bearer"}},
+    )
+    assert "components" in spec
+    assert "securitySchemes" in spec["components"]
+    assert spec["components"]["securitySchemes"]["BearerAuth"] == {
+        "type": "http",
+        "scheme": "bearer",
+    }
+    op = spec["paths"]["/secure-param"]["get"]
+    assert op["security"] == [{"BearerAuth": []}]
+
+
+def test_generate_openapi_spec_with_decorator_security_scheme() -> None:
+    """Test that security_scheme in @openapi decorator adds components.securitySchemes."""
+    @openapi(
+        route="/secure-decorator",
+        summary="Secured with decorator scheme",
+        security=[{"ApiKeyAuth": []}],
+        security_scheme={"ApiKeyAuth": {"type": "apiKey", "in": "header", "name": "X-API-Key"}},
+        response={200: {"description": "OK"}},
+    )
+    def secure_decorator_endpoint() -> None:
+        pass
+
+    spec = generate_openapi_spec()
+    assert "components" in spec
+    assert "securitySchemes" in spec["components"]
+    assert spec["components"]["securitySchemes"]["ApiKeyAuth"] == {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+    }
+
+
+def test_generate_openapi_spec_merges_security_schemes() -> None:
+    """Test that security schemes from both param and decorators are merged."""
+    @openapi(
+        route="/secure-merged",
+        summary="Merged schemes",
+        security=[{"OAuth2": ["read"]}],
+        security_scheme={"OAuth2": {
+            "type": "oauth2",
+            "flows": {"implicit": {"authorizationUrl": "https://example.com/auth", "scopes": {"read": "Read"}}},
+        }},
+        response={200: {"description": "OK"}},
+    )
+    def secure_merged_endpoint() -> None:
+        pass
+
+    spec = generate_openapi_spec(
+        security_schemes={"BearerAuth": {"type": "http", "scheme": "bearer"}},
+    )
+    schemes = spec["components"]["securitySchemes"]
+    assert "BearerAuth" in schemes
+    assert "OAuth2" in schemes
+
+
+def test_security_schemes_in_json_output() -> None:
+    """Test that security schemes appear in JSON output."""
+    @openapi(
+        route="/secure-json",
+        summary="Secured JSON",
+        security=[{"BearerAuth": []}],
+        security_scheme={"BearerAuth": {"type": "http", "scheme": "bearer"}},
+        response={200: {"description": "OK"}},
+    )
+    def secure_json_endpoint() -> None:
+        pass
+
+    json_str = get_openapi_json(
+        security_schemes={"BearerAuth": {"type": "http", "scheme": "bearer"}},
+    )
+    spec = json.loads(json_str)
+    assert "securitySchemes" in spec.get("components", {})

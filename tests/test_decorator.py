@@ -187,3 +187,18 @@ def test_openapi_raises_error_for_non_basemodel_response_model() -> None:
             pass
 
     assert "response_model must be a Pydantic BaseModel subclass" in str(exc_info.value)
+
+
+def test_openapi_registers_security_scheme_metadata() -> None:
+    @openapi(
+        summary="Secured with scheme",
+        security=[{"BearerAuth": []}],
+        security_scheme={"BearerAuth": {"type": "http", "scheme": "bearer"}},
+    )
+    def secured_scheme_dummy() -> None:
+        pass
+
+    registry = get_openapi_registry()
+    assert registry["secured_scheme_dummy"]["security_scheme"] == {
+        "BearerAuth": {"type": "http", "scheme": "bearer"}
+    }

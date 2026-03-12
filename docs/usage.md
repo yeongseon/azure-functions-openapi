@@ -88,6 +88,68 @@ def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
     return render_swagger_ui()
 ```
 
+## Security Schemes
+
+Use the `security` and `security_scheme` parameters on `@openapi` to declare
+operation-level security requirements and register the corresponding
+`components.securitySchemes` entry in the generated spec.
+
+### Per-Decorator (Distributed)
+
+Attach the scheme definition directly alongside the security requirement:
+
+```python
+@openapi(
+    summary="List items",
+    route="/api/items",
+    method="get",
+    security=[{"BearerAuth": []}],
+    security_scheme={
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+    },
+)
+```
+
+### Central (Explicit)
+
+Pass `security_schemes` to the spec-generation functions when you prefer a
+single source of truth:
+
+```python
+SCHEMES = {
+    "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+    }
+}
+
+@app.function_name(name="openapi_spec")
+@app.route(route="openapi.json", methods=["GET"])
+def openapi_spec(req: func.HttpRequest) -> func.HttpResponse:
+    return get_openapi_json(
+        title="My API",
+        security_schemes=SCHEMES,
+    )
+```
+
+Both approaches can be combined — per-decorator and central schemes are
+merged automatically. If the same scheme name appears in both, the central
+definition takes precedence.
+
+### Supported Scheme Types
+
+| `type` value | Description |
+| --- | --- |
+| `apiKey` | API key (header, query, or cookie) |
+| `http` | HTTP authentication (Bearer, Basic, etc.) |
+| `oauth2` | OAuth 2.0 flows |
+| `openIdConnect` | OpenID Connect Discovery |
+
 ## Output Routes
 
 | Route | Format | Description |

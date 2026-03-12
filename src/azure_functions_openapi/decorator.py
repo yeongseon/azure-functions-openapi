@@ -42,6 +42,7 @@ def openapi(
     method: str | None = None,
     parameters: list[dict[str, Any]] | None = None,
     security: list[dict[str, list[str]]] | None = None,
+    security_scheme: dict[str, dict[str, Any]] | None = None,
     # ── request / response schema ───────────────────────────────
     request_model: type[BaseModel] | None = None,
     request_body: dict[str, Any] | None = None,
@@ -121,6 +122,9 @@ def openapi(
     security:
         List of OpenAPI Security Requirement Objects.
         Example: [{"BearerAuth": []}]
+    security_scheme:
+        Security scheme definitions to include in components.securitySchemes.
+        Example: {"BearerAuth": {"type": "http", "scheme": "bearer"}}
     request_model:
         Pydantic model used to derive requestBody schema.
     request_body:
@@ -150,6 +154,9 @@ def openapi(
             )
             validated_parameters = _validate_parameters(parameters, metadata_func.__name__)
             validated_security = _validate_security(security, metadata_func.__name__)
+            validated_security_scheme = _validate_security_scheme(
+                security_scheme, metadata_func.__name__
+            )
             validated_tags = _validate_tags(tags, metadata_func.__name__)
 
             # Validate request/response models
@@ -166,17 +173,18 @@ def openapi(
                         _openapi_registry[existing_id] = existing
 
                 _openapi_registry[registry_key] = {
-                    # ── basic metadata ────────────────────────────────
+                    # ── basic metadata ────────────────────────────────────────
                     "summary": summary,
                     "description": description,
                     "tags": validated_tags,
                     "operation_id": sanitized_operation_id,
-                    # ── routing info ─────────────────────────────────
+                    # ── routing info ─────────────────────────────────────────
                     "route": validated_route,
                     "method": method,
                     "parameters": validated_parameters,
                     "security": validated_security,
-                    # ── request / response schema ────────────────────
+                    "security_scheme": validated_security_scheme,
+                    # ── request / response schema ────────────────────────
                     "request_model": request_model,
                     "request_body": request_body,
                     "response_model": response_model,
@@ -306,6 +314,44 @@ def _validate_security(
         validated_security.append(validated_requirement)
 
     return validated_security
+
+
+def _validate_security_scheme(
+    security_scheme: dict[str, dict[str, Any]] | None, func_name: str
+) -> dict[str, dict[str, Any]]:
+    """Validate OpenAPI security scheme definitions.
+
+    Each key is a scheme name and each value must be a dict with at least a 'type' field.
+    Valid types: 'apiKey', 'http', 'oauth2', 'openIdConnect'.
+    """
+    if not security_scheme:
+        return {}
+
+    if not isinstance(security_scheme, dict):
+        raise ValueError("security_scheme must be a dictionary")
+
+    valid_types = {"apiKey", "http", "oauth2", "openIdConnect"}
+    validated: dict[str, dict[str, Any]] = {}
+
+    for scheme_name, scheme_def in security_scheme.items():
+        if not isinstance(scheme_name, str) or not scheme_name.strip():
+            raise ValueError("Security scheme name must be a non-empty string")
+
+        if not isinstance(scheme_def, dict):
+            raise ValueError(
+                f"Security scheme '{scheme_name}' definition must be a dictionary"
+            )
+
+        scheme_type = scheme_def.get("type")
+        if not scheme_type or scheme_type not in valid_types:
+            raise ValueError(
+                f"Security scheme '{scheme_name}' must have a valid 'type' field. "
+                f"Valid types: {', '.join(sorted(valid_types))}"
+            )
+
+        validated[scheme_name] = scheme_def
+
+    return validated
 
 
 def _validate_tags(tags: list[str] | None, func_name: str) -> list[str]:
