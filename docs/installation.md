@@ -1,40 +1,126 @@
 # Installation
 
-This project supports the **Azure Functions Python v2 programming model**.
-
 ## Requirements
 
-- Python 3.10+
-- Azure Functions Core Tools
-- Azure Functions Python **v2** (`func.FunctionApp` with decorators)
+| Dependency | Version |
+| --- | --- |
+| Python | 3.10 -- 3.14 |
+| Azure Functions Core Tools | Latest stable |
+| Azure Functions programming model | v2 (`func.FunctionApp` with decorators) |
 
-> This library is not compatible with the legacy `function.json`-based v1 model.
+This library is **not** compatible with the legacy `function.json`-based v1 model.
 
-## Install the Package
+## Install from PyPI
 
 ```bash
 pip install azure-functions-openapi
 ```
 
-Then ensure your Function App dependencies include:
+### Verify the installation
+
+```bash
+python -c "import azure_functions_openapi; print(azure_functions_openapi.__version__)"
+```
+
+### Optional dependencies
+
+Install the `dev` extras for local development:
+
+```bash
+pip install azure-functions-openapi[dev]
+```
+
+Install the `docs` extras to build the documentation site locally:
+
+```bash
+pip install azure-functions-openapi[docs]
+```
+
+## Add to requirements.txt
+
+Azure Functions reads `requirements.txt` during deployment. Ensure both the runtime
+SDK and this library are listed:
 
 ```text
 azure-functions
 azure-functions-openapi
 ```
 
-## Local Development
+If your endpoints use Pydantic models for request or response schemas, add Pydantic
+as well:
+
+```text
+pydantic>=2.0
+```
+
+## Local Development Setup
+
+Clone the repository and create a virtual environment:
 
 ```bash
+git clone https://github.com/yeongseon/azure-functions-openapi.git
+cd azure-functions-openapi
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e .[dev]
 ```
 
+Or use the Makefile shortcut:
+
+```bash
+make install
+```
+
+This creates the Hatch-managed environment and installs pre-commit hooks.
+
 ## Azure Functions Core Tools
 
-Install Azure Functions Core Tools using the official Microsoft instructions:
+The Core Tools provide the `func` CLI for local development and deployment.
 
-- Windows: https://learn.microsoft.com/azure/azure-functions/functions-run-local
-- macOS: https://learn.microsoft.com/azure/azure-functions/functions-run-local
-- Linux: https://learn.microsoft.com/azure/azure-functions/functions-run-local
+Install using the official Microsoft instructions for your platform:
+
+- **Windows**: [https://learn.microsoft.com/azure/azure-functions/functions-run-local](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
+- **macOS**: `brew tap azure/functions && brew install azure-functions-core-tools@4`
+- **Linux**: [https://learn.microsoft.com/azure/azure-functions/functions-run-local](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
+
+Verify the installation:
+
+```bash
+func --version
+```
+
+## Deployment
+
+### Azure Functions
+
+Deploy with the Azure Functions Core Tools:
+
+```bash
+func azure functionapp publish <app-name>
+```
+
+The `requirements.txt` in your project root is installed automatically during deployment.
+
+### Docker
+
+If you deploy via a custom Docker image, install the package in your Dockerfile:
+
+```dockerfile
+FROM mcr.microsoft.com/azure-functions/python:4-python3.12
+
+COPY requirements.txt /home/site/wwwroot/requirements.txt
+RUN pip install -r /home/site/wwwroot/requirements.txt
+
+COPY . /home/site/wwwroot
+```
+
+## Upgrading
+
+Upgrade to the latest release:
+
+```bash
+pip install --upgrade azure-functions-openapi
+```
+
+Check the [Changelog](changelog.md) for breaking changes before upgrading across
+major or minor versions.
