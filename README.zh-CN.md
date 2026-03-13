@@ -1,4 +1,4 @@
-# azure-functions-openapi
+# Azure Functions OpenAPI
 
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-openapi.svg)](https://pypi.org/project/azure-functions-openapi/)
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-openapi/)
@@ -13,6 +13,10 @@
 其他语言: [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md)
 
 为 **Azure Functions Python v2 编程模型**提供 OpenAPI（Swagger）文档生成和 Swagger UI。
+
+## Why Use It
+
+记录 Azure Functions HTTP API 通常需要手动维护单独的 OpenAPI 规范。`azure-functions-openapi` 可从带装饰器的处理函数自动生成规范，使文档和代码始终保持同步。
 
 ## Scope
 
@@ -30,26 +34,6 @@
 - 支持 query、path、header、body 和 response schema
 - 带有安全默认值的 Swagger UI helper
 - 用于生成和校验工作流的 CLI 工具
-
-## Demo
-
-代表性的 `hello` 示例展示了采用该库后的完整效果：
-
-- 你为 Azure Functions v2 的 HTTP 处理函数添加 `@openapi`。
-- 该包会为该路由生成真实的 OpenAPI 文档。
-- 同一路由会被渲染为 Swagger UI，便于在浏览器中查看。
-
-### Generated Spec Result
-
-生成的 OpenAPI 文件来自同一次示例运行，并被捕获为静态预览。因此，此 README 展示的就是代表性函数实际生成的文档。
-
-![OpenAPI spec preview](docs/assets/hello_openapi_spec_preview.png)
-
-### Swagger UI Result
-
-下面的网页预览也来自同一个代表性示例，并由该示例流程生成的 Swagger UI 页面自动渲染和截图得到。
-
-![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
 
 ## Installation
 
@@ -143,6 +127,26 @@ def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
 func start
 ```
 
+## Demo
+
+代表性的 `hello` 示例展示了采用该库后的完整效果：
+
+- 你为 Azure Functions v2 的 HTTP 处理函数添加 `@openapi`。
+- 该包会为该路由生成真实的 OpenAPI 文档。
+- 同一路由会被渲染为 Swagger UI，便于在浏览器中查看。
+
+### Generated Spec Result
+
+生成的 OpenAPI 文件来自同一次示例运行，并被捕获为静态预览。因此，此 README 展示的就是代表性函数实际生成的文档。
+
+![OpenAPI spec preview](docs/assets/hello_openapi_spec_preview.png)
+
+### Swagger UI Result
+
+下面的网页预览也来自同一个代表性示例，并由该示例流程生成的 Swagger UI 页面自动渲染和截图得到。
+
+![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
+
 ## Documentation
 
 - 完整文档: [yeongseon.github.io/azure-functions-openapi](https://yeongseon.github.io/azure-functions-openapi/)
@@ -151,6 +155,14 @@ func start
 - [Usage Guide](docs/usage.md)
 - [API Reference](docs/api.md)
 - [CLI Guide](docs/cli.md)
+
+## Ecosystem
+
+- [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) — 请求与响应校验
+- [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) — 结构化日志
+- [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) — 诊断 CLI
+- [azure-functions-scaffold](https://github.com/yeongseon/azure-functions-scaffold) — 项目脚手架
+- [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) — 食谱与示例
 
 ## Disclaimer
 

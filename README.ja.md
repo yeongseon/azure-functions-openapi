@@ -1,4 +1,4 @@
-# azure-functions-openapi
+# Azure Functions OpenAPI
 
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-openapi.svg)](https://pypi.org/project/azure-functions-openapi/)
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-openapi/)
@@ -13,6 +13,10 @@
 他の言語: [English](README.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
 
 **Azure Functions Python v2 プログラミング モデル**向けの OpenAPI（Swagger）ドキュメント生成と Swagger UI を提供します。
+
+## Why Use It
+
+Azure Functions の HTTP API をドキュメント化するには、通常、別途 OpenAPI スペックを手作業で管理する必要があります。`azure-functions-openapi` はデコレータ付きハンドラーからスペックを自動生成し、ドキュメントとコードの同期を維持します。
 
 ## Scope
 
@@ -30,26 +34,6 @@
 - query, path, header, body, response スキーマのサポート
 - セキュアなデフォルトを備えた Swagger UI helper
 - 生成および検証ワークフローのための CLI ツール
-
-## Demo
-
-代表的な `hello` サンプルは、このライブラリを導入したときの結果全体を示します。
-
-- Azure Functions v2 の HTTP ハンドラーに `@openapi` を付与します。
-- パッケージがそのルートに対する実際の OpenAPI ドキュメントを生成します。
-- 同じルートがブラウザ確認用に Swagger UI でレンダリングされます。
-
-### Generated Spec Result
-
-生成された OpenAPI ファイルは、同じサンプル実行から静的プレビューとして取得されています。そのため、この README には代表的な関数が実際に生成したドキュメントが表示されます。
-
-![OpenAPI spec preview](docs/assets/hello_openapi_spec_preview.png)
-
-### Swagger UI Result
-
-以下の Web プレビューも同じ代表サンプルから生成されており、そのフローで作られた Swagger UI ページを自動的にレンダリングして取得したものです。
-
-![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
 
 ## Installation
 
@@ -143,6 +127,26 @@ def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
 func start
 ```
 
+## Demo
+
+代表的な `hello` サンプルは、このライブラリを導入したときの結果全体を示します。
+
+- Azure Functions v2 の HTTP ハンドラーに `@openapi` を付与します。
+- パッケージがそのルートに対する実際の OpenAPI ドキュメントを生成します。
+- 同じルートがブラウザ確認用に Swagger UI でレンダリングされます。
+
+### Generated Spec Result
+
+生成された OpenAPI ファイルは、同じサンプル実行から静的プレビューとして取得されています。そのため、この README には代表的な関数が実際に生成したドキュメントが表示されます。
+
+![OpenAPI spec preview](docs/assets/hello_openapi_spec_preview.png)
+
+### Swagger UI Result
+
+以下の Web プレビューも同じ代表サンプルから生成されており、そのフローで作られた Swagger UI ページを自動的にレンダリングして取得したものです。
+
+![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
+
 ## Documentation
 
 - 全ドキュメント: [yeongseon.github.io/azure-functions-openapi](https://yeongseon.github.io/azure-functions-openapi/)
@@ -151,6 +155,14 @@ func start
 - [Usage Guide](docs/usage.md)
 - [API Reference](docs/api.md)
 - [CLI Guide](docs/cli.md)
+
+## Ecosystem
+
+- [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) — リクエストとレスポンスのバリデーション
+- [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) — 構造化ロギング
+- [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) — 診断 CLI
+- [azure-functions-scaffold](https://github.com/yeongseon/azure-functions-scaffold) — プロジェクトスキャフォールディング
+- [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) — レシピとサンプル
 
 ## Disclaimer
 
