@@ -334,9 +334,9 @@ class TestSanitizeOperationId:
 
         for input_id, expected in test_cases:
             result = sanitize_operation_id_any(input_id)
-            assert (
-                result == expected
-            ), f"Operation ID '{input_id}' should be sanitized to '{expected}'"
+            assert result == expected, (
+                f"Operation ID '{input_id}' should be sanitized to '{expected}'"
+            )
 
     def test_sanitize_operation_id_starts_with_number(self) -> None:
         """Test sanitization of operation IDs that start with numbers."""
@@ -381,9 +381,9 @@ class TestSanitizeOperationId:
 
         for input_id, expected in test_cases:
             result = sanitize_operation_id_any(input_id)
-            assert (
-                result == expected
-            ), f"Operation ID '{input_id}' should preserve case as '{expected}'"
+            assert result == expected, (
+                f"Operation ID '{input_id}' should preserve case as '{expected}'"
+            )
 
     def test_sanitize_operation_id_unicode(self) -> None:
         """Test sanitization with Unicode characters."""

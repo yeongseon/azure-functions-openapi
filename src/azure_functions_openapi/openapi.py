@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 OPENAPI_VERSION_3_0 = "3.0.0"
 OPENAPI_VERSION_3_1 = "3.1.0"
 DEFAULT_OPENAPI_INFO_DESCRIPTION = (
-    "Auto-generated OpenAPI documentation. " "Markdown supported in descriptions (CommonMark)."
+    "Auto-generated OpenAPI documentation. Markdown supported in descriptions (CommonMark)."
 )
 
 

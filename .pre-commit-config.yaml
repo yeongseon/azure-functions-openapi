@@ -1,16 +1,10 @@
 repos:
-  - repo: https://github.com/psf/black
-    rev: 26.3.0
-    hooks:
-      - id: black
-        exclude: "^examples/"
-
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.5
     hooks:
+      - id: ruff-format
       - id: ruff
         args: ["--fix"]
-        exclude: "^(tests/|examples/)"
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.19.1

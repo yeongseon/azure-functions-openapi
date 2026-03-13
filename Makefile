@@ -246,7 +246,7 @@ clean:
 clean-all: clean
 	@find . -type d -name "__pycache__" -exec rm -rf {} +
 	@find . -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
-	@rm -rf .mypy_cache .ruff_cache .pytest_cache .coverage coverage.xml htmlcov .DS_Store $(VENV_DIR)
+	@rm -rf .mypy_cache .ruff_cache .pytest_cache .coverage coverage.xml htmlcov .DS_Store $(VENV_DIR) site
 
 .PHONY: help
 help:

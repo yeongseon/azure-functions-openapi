@@ -126,6 +126,7 @@ def test_openapi_raises_error_for_dict_request_model() -> None:
     import pytest
 
     with pytest.raises(ValueError) as exc_info:
+
         @openapi(
             summary="Test with invalid request_model",
             request_model={"name": "string"},  # type: ignore[arg-type]
@@ -142,6 +143,7 @@ def test_openapi_raises_error_for_dict_response_model() -> None:
     import pytest
 
     with pytest.raises(ValueError) as exc_info:
+
         @openapi(
             summary="Test with invalid response_model",
             response_model={"message": "string"},  # type: ignore[arg-type]
@@ -161,6 +163,7 @@ def test_openapi_raises_error_for_non_basemodel_request_model() -> None:
         pass
 
     with pytest.raises(ValueError) as exc_info:
+
         @openapi(
             summary="Test with non-BaseModel",
             request_model=NotAModel,  # type: ignore[arg-type]
@@ -179,6 +182,7 @@ def test_openapi_raises_error_for_non_basemodel_response_model() -> None:
         pass
 
     with pytest.raises(ValueError) as exc_info:
+
         @openapi(
             summary="Test with non-BaseModel",
             response_model=NotAModel,  # type: ignore[arg-type]

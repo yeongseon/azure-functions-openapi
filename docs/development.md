@@ -73,7 +73,7 @@ This project uses pre-commit to ensure consistent code quality across formatting
 
 | Tool   | Version  | Purpose                        |
 |--------|----------|--------------------------------|
-| black  | 26.1.0   | Auto-code formatter            |
+| ruff   | v0.15.5  | Formatter + linter + import sorter |
 | ruff   | v0.14.13 | Linter + import sorter + fixer |
 | mypy   | v1.19.1  | Static type checker            |
 | bandit | 1.9.3    | Security checker on `src/` only |
@@ -122,7 +122,7 @@ Use these as the **golden commands** for local validation and CI parity. Prefer 
 | Target | Description |
 |--------|-------------|
 | `make install` | Create Hatch env and install pre-commit hooks |
-| `make format` | Format code (ruff + black) |
+| `make format` | Format code (ruff) |
 | `make lint` | Run linter (ruff + mypy) |
 | `make typecheck` | Run mypy type checking |
 | `make security` | Run Bandit security scan |
