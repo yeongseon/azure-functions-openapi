@@ -1,4 +1,4 @@
-# azure-functions-openapi
+# Azure Functions OpenAPI
 
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-openapi.svg)](https://pypi.org/project/azure-functions-openapi/)
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-openapi/)
@@ -13,6 +13,10 @@
 Read this in: [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
 
 OpenAPI (Swagger) documentation and Swagger UI for the **Azure Functions Python v2 programming model**.
+
+## Why Use It
+
+Documenting Azure Functions HTTP APIs typically requires maintaining a separate OpenAPI spec by hand. `azure-functions-openapi` generates the spec automatically from decorated handlers, keeping documentation and code in sync.
 
 ## Scope
 
@@ -30,26 +34,6 @@ This package does **not** support the legacy `function.json`-based v1 programmin
 - Query, path, header, body, and response schema support
 - Swagger UI helper with security defaults
 - CLI tooling for generation and validation workflows
-
-## Demo
-
-The representative `hello` example shows the full outcome of adopting this library:
-
-- You annotate an Azure Functions v2 HTTP handler with `@openapi`.
-- The package generates a real OpenAPI document for that route.
-- The same route is rendered in Swagger UI for browser-based inspection.
-
-### Generated Spec Result
-
-The generated OpenAPI file is captured as a static preview from the same example run, so the README shows the actual document produced by the representative function.
-
-![OpenAPI spec preview](docs/assets/hello_openapi_spec_preview.png)
-
-### Swagger UI Result
-
-The web preview below is generated from the same representative example and captured automatically from the rendered Swagger UI page produced by that example flow.
-
-![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
 
 ## Installation
 
@@ -143,6 +127,26 @@ Run locally with Azure Functions Core Tools:
 func start
 ```
 
+## Demo
+
+The representative `hello` example shows the full outcome of adopting this library:
+
+- You annotate an Azure Functions v2 HTTP handler with `@openapi`.
+- The package generates a real OpenAPI document for that route.
+- The same route is rendered in Swagger UI for browser-based inspection.
+
+### Generated Spec Result
+
+The generated OpenAPI file is captured as a static preview from the same example run, so the README shows the actual document produced by the representative function.
+
+![OpenAPI spec preview](docs/assets/hello_openapi_spec_preview.png)
+
+### Swagger UI Result
+
+The web preview below is generated from the same representative example and captured automatically from the rendered Swagger UI page produced by that example flow.
+
+![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
+
 ## Documentation
 
 - Full docs: [yeongseon.github.io/azure-functions-openapi](https://yeongseon.github.io/azure-functions-openapi/)
@@ -151,6 +155,14 @@ func start
 - [Usage Guide](docs/usage.md)
 - [API Reference](docs/api.md)
 - [CLI Guide](docs/cli.md)
+
+## Ecosystem
+
+- [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) — Request and response validation
+- [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) — Structured logging
+- [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) — Diagnostic CLI
+- [azure-functions-scaffold](https://github.com/yeongseon/azure-functions-scaffold) — Project scaffolding
+- [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) — Recipes and examples
 
 ## Disclaimer
 
