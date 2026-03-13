@@ -74,9 +74,8 @@ This project uses pre-commit to ensure consistent code quality across formatting
 | Tool   | Version  | Purpose                        |
 |--------|----------|--------------------------------|
 | ruff   | v0.15.5  | Formatter + linter + import sorter |
-| ruff   | v0.14.13 | Linter + import sorter + fixer |
 | mypy   | v1.19.1  | Static type checker            |
-| bandit | 1.9.3    | Security checker on `src/` only |
+| bandit | 1.9.4    | Security checker on `src/` only |
 
 ### Bandit Configuration
 
