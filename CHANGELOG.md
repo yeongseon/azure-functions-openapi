@@ -2,7 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.13.1] - 2026-03-14
+
+### Bug Fixes
+
+- Fix `pyproject.toml` dependencies placement (was under `[project.urls]` instead of `[project]`), restoring CI
+
+### Documentation
+
+- Comprehensive documentation overhaul (MkDocs site with standardized nav)
+- Translated README files (Korean, Japanese, Chinese)
+- Standardized documentation quality across ecosystem
+
+### Miscellaneous Tasks
+
+- Unified tooling: Ruff (lint + format), pre-commit hooks, standardized Makefile
 
 ## [0.13.0] - 2026-03-12
 
