@@ -6,52 +6,68 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
-  logo: images/logo.png         # optional
-  favicon: images/favicon.ico   # optional
+  logo: images/logo.png
+  favicon: images/favicon.ico
   features:
     - navigation.tabs
+    - navigation.sections
     - content.code.copy
 
 nav:
   - Home: index.md
   - Getting Started:
       - Installation: installation.md
-      - Quickstart: usage.md
-      - Development: development.md
-      - Testing: testing.md
-  - API Reference: api.md
-  - CLI: cli.md
-  - Architecture: architecture.md
+      - Quickstart: getting-started.md
+      - Configuration: configuration.md
+  - User Guide:
+      - Usage: usage.md
+      - CLI: cli.md
+      - Architecture: architecture.md
   - Examples:
       - Hello OpenAPI: examples/hello.md
       - Todo API: examples/todo_crud.md
       - With Validation: examples/with_validation.md
+  - API Reference: api.md
+  - Contributing:
+      - Development: development.md
+      - Testing: testing.md
+      - Guidelines: contributing.md
   - Troubleshooting: troubleshooting.md
+  - FAQ: faq.md
   - Security: security.md
   - Release Process: release_process.md
   - Changelog: changelog.md
-  - Contributing: contributing.md
 
 markdown_extensions:
   - admonition
-  - codehilite
   - toc:
       permalink: true
       toc_depth: 3
   - tables
   - pymdownx.superfences
-  - pymdownx.highlight
-  - pymdownx.tabbed
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.details
   - pymdownx.inlinehilite
 
-
 plugins:
   - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_signature: true
+            show_root_full_path: false
+            merge_init_into_class: true
 
 extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/yeongseon/azure-functions-openapi
   copyright: |
-    © 2025 Yeongseon Choe – MIT Licensed
+    © 2026 Yeongseon Choe – MIT Licensed

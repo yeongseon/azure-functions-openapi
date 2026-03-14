@@ -1,226 +1,150 @@
-# CLI Tool Guide
+# CLI Guide
 
-The Azure Functions OpenAPI CLI tool provides command-line access to various features of the library.
+`azure-functions-openapi` ships with a CLI entry point for generating OpenAPI output from decorated handlers.
 
-## Installation
-
-The CLI tool is automatically installed when you install the package:
+## Install
 
 ```bash
 pip install azure-functions-openapi
 ```
 
-## Usage
-
-### Basic Commands
+Then verify:
 
 ```bash
-# Show help
 azure-functions-openapi --help
-
-# Show command-specific help
-azure-functions-openapi generate --help
 ```
 
-### Generate OpenAPI Specification
+## Command overview
 
-Generate an OpenAPI specification:
+Current command set:
+
+- `generate`: build OpenAPI spec in JSON or YAML
+
+## `generate` command
+
+### Basic usage
 
 ```bash
-# Generate JSON specification
-azure-functions-openapi generate --title "My API" --version "1.0.0"
-
-# Generate YAML specification
-azure-functions-openapi generate --format yaml --title "My API" --version "1.0.0"
-
-# Save to file
-azure-functions-openapi generate --output openapi.json --title "My API" --version "1.0.0"
-
-# Pretty print output
-azure-functions-openapi generate --pretty --title "My API" --version "1.0.0"
+azure-functions-openapi generate
 ```
 
-#### Generate Command Options
+By default this prints JSON to stdout using:
 
-- `--title`: API title (default: "API")
-- `--version`: API version (default: "1.0.0")
-- `--output, -o`: Output file path
-- `--format, -f`: Output format (json or yaml, default: json)
-- `--pretty, -p`: Pretty print output
+- title: `API`
+- version: `1.0.0`
+- OpenAPI version: `3.0.0`
 
-### Validate OpenAPI Specification
+### Common examples
 
-Use external validators to check generated specs:
+Generate JSON to stdout:
 
 ```bash
+azure-functions-openapi generate --title "Todo API" --version "1.2.0"
+```
+
+Generate YAML to stdout:
+
+```bash
+azure-functions-openapi generate --format yaml --title "Todo API"
+```
+
+Write JSON to file:
+
+```bash
+azure-functions-openapi generate --output openapi.json --format json
+```
+
+Write YAML to file:
+
+```bash
+azure-functions-openapi generate --output openapi.yaml --format yaml
+```
+
+Generate OpenAPI 3.1 output:
+
+```bash
+azure-functions-openapi generate --openapi-version 3.1 --output openapi-3.1.json
+```
+
+### Options reference
+
+| Option | Alias | Values | Default | Description |
+| --- | --- | --- | --- | --- |
+| `--title` | - | any string | `API` | OpenAPI `info.title` |
+| `--version` | - | any string | `1.0.0` | OpenAPI `info.version` |
+| `--output` | `-o` | file path | stdout | Write generated content to file |
+| `--format` | `-f` | `json`, `yaml` | `json` | Output serialization format |
+| `--openapi-version` | - | `3.0`, `3.1` | `3.0` | OpenAPI schema version |
+| `--pretty` | `-p` | flag | `false` | Compatibility flag (accepted; output is already formatted) |
+
+!!! note
+    `--pretty` is currently accepted by the CLI parser but does not alter rendering behavior. JSON output is already pretty-printed.
+
+## Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| `0` | Success |
+| `1` | Runtime or generation error |
+| `2` | Invalid CLI arguments (argparse parse error) |
+
+## Validate generated output
+
+Use a validator in local checks and CI:
+
+```bash
+pip install openapi-spec-validator
 openapi-spec-validator openapi.json
 ```
 
-## Examples
-
-### Generate API Documentation
+For YAML:
 
 ```bash
-# Generate comprehensive API documentation
-azure-functions-openapi generate \
-  --title "User Management API" \
-  --version "2.1.0" \
-  --output docs/api-spec.json \
-  --format json \
-  --pretty
+openapi-spec-validator openapi.yaml
 ```
 
-The CLI tool provides one primary command:
-
-- `generate`: Create OpenAPI JSON/YAML output
-
-### CI/CD Integration
+## CI example
 
 ```yaml
-# .github/workflows/api-validation.yml
-name: API Validation
+name: OpenAPI Validation
 
 on: [push, pull_request]
 
 jobs:
-  validate-api:
+  validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: 3.10
-      - name: Install dependencies
-        run: |
-          pip install azure-functions-openapi openapi-spec-validator
-      - name: Generate OpenAPI spec
-        run: |
-          azure-functions-openapi generate --output openapi.json
-      - name: Validate OpenAPI spec
-        run: |
-          openapi-spec-validator openapi.json
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: openapi-spec
-          path: openapi.json
-```
-
-## Exit Codes
-
-The CLI tool uses standard exit codes:
-
-- `0`: Success
-- `1`: General error
-- `2`: Invalid arguments
-
-## Configuration
-
-### Environment Variables
-
-You can configure the CLI tool using environment variables:
-
-```bash
-# Set default output format
-export AZURE_FUNCTIONS_OPENAPI_DEFAULT_FORMAT=yaml
-
-# Set default output directory
-export AZURE_FUNCTIONS_OPENAPI_OUTPUT_DIR=./docs
-```
-
-### Configuration File
-
-Create a configuration file at `~/.azure-functions-openapi/config.json`:
-
-```json
-{
-  "default_format": "json",
-  "default_output_dir": "./docs",
-  "pretty_print": true
-}
-```
-
-## Integration with Other Tools
-
-### jq Integration
-
-Use jq to process JSON output:
-
-```bash
-# Filter OpenAPI info
-azure-functions-openapi generate --format json | jq '.info'
-```
-
-### curl Integration
-
-Use curl to send generated specs to other services:
-
-```bash
-# Generate spec and send to API gateway
-azure-functions-openapi generate --format json | \
-  curl -X POST -H "Content-Type: application/json" \
-  -d @- https://api-gateway.example.com/specs
-```
-
-### Docker Integration
-
-Use the CLI tool in Docker containers:
-
-```dockerfile
-FROM python:3.10-slim
-
-# Install the package
-RUN pip install azure-functions-openapi
-
-# Copy your application
-COPY . /app
-WORKDIR /app
-
-# Use the CLI tool
-CMD ["azure-functions-openapi", "generate", "--output", "/app/openapi.json"]
+          python-version: "3.12"
+      - name: Install tools
+        run: pip install azure-functions-openapi openapi-spec-validator
+      - name: Generate spec
+        run: azure-functions-openapi generate --openapi-version 3.1 --output openapi.json
+      - name: Validate spec
+        run: openapi-spec-validator openapi.json
 ```
 
 ## Troubleshooting
 
-### Common Issues
+### `command not found`
 
-1. **Command not found**
-   ```bash
-   # Make sure the package is installed
-   pip install azure-functions-openapi
-   
-   # Check if the command is in PATH
-   which azure-functions-openapi
-   ```
+- Confirm package installed in active environment
+- Use `python -m azure_functions_openapi.cli --help` as fallback
 
-2. **Permission denied**
-   ```bash
-   # Make sure you have write permissions for output files
-   chmod 755 /path/to/output/directory
-   ```
+### Empty `paths` in output
 
-3. **Invalid JSON/YAML**
-   ```bash
-   # Validate your input files
-   openapi-spec-validator your-file.json
-   ```
+- Ensure app handlers are decorated with `@openapi`
+- Ensure decorated modules are imported before running generation
 
-### Debug Mode
+### Unsupported version error
 
-Enable debug mode for more verbose output:
+- Use only `--openapi-version 3.0` or `--openapi-version 3.1`
 
-```bash
-# Set debug environment variable
-export AZURE_FUNCTIONS_OPENAPI_DEBUG=1
+## Related docs
 
-# Run command with debug output
-azure-functions-openapi generate --title "Debug API"
-```
-
-### Log Files
-
-The CLI tool logs to:
-- Console output (stdout/stderr)
-- System logs (when available)
-- Debug files (when debug mode is enabled)
+- [Usage](usage.md)
+- [Configuration](configuration.md)
+- [API Reference](api.md)
+- [Troubleshooting](troubleshooting.md)

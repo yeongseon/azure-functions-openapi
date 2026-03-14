@@ -1,108 +1,235 @@
-# Usage Guide: azure-functions-openapi
+# Usage Guide
 
-This guide documents **Azure Functions Python v2** applications using `azure-functions-openapi`.
-Examples below assume a decorator-based `func.FunctionApp()` application.
+This guide shows how to document Azure Functions Python v2 HTTP handlers with `azure-functions-openapi` using production-ready patterns.
 
-## `@openapi` Decorator
+## Before you start
 
-Use the `@openapi` decorator to attach OpenAPI metadata to each HTTP function.
-This metadata is used at runtime to generate:
+- Install package: `pip install azure-functions-openapi`
+- Use Azure Functions Python v2 programming model (`func.FunctionApp`)
+- Ensure your app has explicit routes for OpenAPI JSON/YAML and Swagger UI
 
-- `/openapi.json`
-- `/openapi.yaml`
-- `/docs`
+See [Installation](installation.md) and [Getting Started](getting-started.md) first.
+
+## End-to-end baseline
 
 ```python
+import json
+
+import azure.functions as func
+from pydantic import BaseModel
+
+from azure_functions_openapi import get_openapi_json, get_openapi_yaml, openapi, render_swagger_ui
+
+app = func.FunctionApp()
+
+
+class EchoRequest(BaseModel):
+    message: str
+
+
+class EchoResponse(BaseModel):
+    echoed: str
+
+
+@app.function_name(name="echo")
+@app.route(route="echo", methods=["POST"], auth_level=func.AuthLevel.ANONYMOUS)
 @openapi(
-    summary="Create a new todo",
-    description="Add a new todo item with a title.",
-    tags=["Todos"],
-    operation_id="createTodo",
-    route="/api/create_todo",
+    summary="Echo message",
+    description="Returns the same message received in the request body.",
+    tags=["Echo"],
+    operation_id="echoMessage",
+    route="/api/echo",
     method="post",
-    request_model=TodoCreateRequest,
-    response_model=TodoResponse,
-    response={
-        201: {"description": "Todo created"},
-        400: {"description": "Invalid request"},
-    },
+    request_model=EchoRequest,
+    response_model=EchoResponse,
+    response={200: {"description": "Echoed message"}, 400: {"description": "Invalid body"}},
 )
-```
+def echo(req: func.HttpRequest) -> func.HttpResponse:
+    try:
+        data = EchoRequest.model_validate_json(req.get_body())
+    except Exception:
+        return func.HttpResponse("Invalid body", status_code=400)
 
-## Pydantic Models
-
-Request and response models may use **Pydantic v1 or v2**.
-
-```python
-class TodoCreateRequest(BaseModel):
-    title: str
-
-
-class TodoResponse(BaseModel):
-    id: int
-    title: str
-    done: bool
-```
-
-**Note:** `request_model` and `response_model` require Pydantic `BaseModel` classes. To use raw dict schemas instead, use `request_body` and `response` parameters respectively.
-
-
-## Routing
-
-Pair `@openapi` with Azure Functions v2 route decorators:
-
-```python
-@app.function_name(name="create_todo")
-@app.route(route="create_todo", methods=["POST"])
-@openapi(route="/api/create_todo", method="post", summary="Create todo")
-def create_todo(req: func.HttpRequest) -> func.HttpResponse:
-    _ = req
-    return func.HttpResponse("Created", status_code=201)
-```
-
-## Exposing Documentation Endpoints
-
-Add the OpenAPI and Swagger UI endpoints to your v2 `FunctionApp`:
-
-```python
-@app.function_name(name="openapi_spec")
-@app.route(route="openapi.json", methods=["GET"])
-def openapi_spec(req: func.HttpRequest) -> func.HttpResponse:
-    return get_openapi_json(
-        title="Todo API",
-        description="OpenAPI document for the Todo API.",
+    return func.HttpResponse(
+        json.dumps({"echoed": data.message}),
+        mimetype="application/json",
+        status_code=200,
     )
 
 
-@app.function_name(name="openapi_yaml_spec")
-@app.route(route="openapi.yaml", methods=["GET"])
-def openapi_yaml_spec(req: func.HttpRequest) -> func.HttpResponse:
-    return get_openapi_yaml(
-        title="Todo API",
-        description="OpenAPI document for the Todo API.",
+@app.function_name(name="openapi_json")
+@app.route(route="openapi.json", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+def openapi_json(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse(
+        get_openapi_json(title="Echo API", version="1.0.0"),
+        mimetype="application/json",
+    )
+
+
+@app.function_name(name="openapi_yaml")
+@app.route(route="openapi.yaml", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+def openapi_yaml(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse(
+        get_openapi_yaml(title="Echo API", version="1.0.0"),
+        mimetype="application/x-yaml",
     )
 
 
 @app.function_name(name="swagger_ui")
-@app.route(route="docs", methods=["GET"])
+@app.route(route="docs", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
-    return render_swagger_ui()
+    return render_swagger_ui(title="Echo API Docs", openapi_url="/api/openapi.json")
 ```
 
-## Security Schemes
+## Understanding `@openapi`
 
-Use the `security` and `security_scheme` parameters on `@openapi` to declare
-operation-level security requirements and register the corresponding
-`components.securitySchemes` entry in the generated spec.
+`@openapi` captures metadata and stores it in a registry consumed by spec generators.
 
-### Per-Decorator (Distributed)
+### Minimal metadata
 
-Attach the scheme definition directly alongside the security requirement:
+```python
+@openapi(summary="Health check")
+```
+
+### Typical metadata
 
 ```python
 @openapi(
-    summary="List items",
-    route="/api/items",
+    summary="Get order",
+    description="Fetch one order by ID.",
+    tags=["Orders"],
+    operation_id="getOrder",
+    route="/api/orders/{order_id}",
+    method="get",
+)
+```
+
+!!! note
+    If `tags` is omitted, the library defaults to `['default']`.
+
+## Request and response schema styles
+
+Use one of two schema styles depending on your app architecture.
+
+### Style A: Pydantic models
+
+Best when you already validate payloads with Pydantic.
+
+```python
+class CreateOrderRequest(BaseModel):
+    sku: str
+    quantity: int
+
+
+class OrderResponse(BaseModel):
+    id: int
+    sku: str
+    quantity: int
+
+
+@openapi(
+    summary="Create order",
+    method="post",
+    request_model=CreateOrderRequest,
+    response_model=OrderResponse,
+    response={201: {"description": "Created"}},
+)
+```
+
+### Style B: Raw schema dictionaries
+
+Best when you do not use Pydantic.
+
+```python
+@openapi(
+    summary="Create order",
+    method="post",
+    request_body={
+        "type": "object",
+        "properties": {
+            "sku": {"type": "string"},
+            "quantity": {"type": "integer", "minimum": 1},
+        },
+        "required": ["sku", "quantity"],
+    },
+    response={
+        201: {
+            "description": "Created",
+            "content": {
+                "application/json": {
+                    "schema": {
+                        "type": "object",
+                        "properties": {"id": {"type": "integer"}},
+                    }
+                }
+            },
+        }
+    },
+)
+```
+
+!!! warning
+    Do not pass dict schemas to `request_model` or `response_model`. Those parameters require Pydantic `BaseModel` classes.
+
+## Parameters (query/path/header/cookie)
+
+Use OpenAPI Parameter Objects in `parameters`.
+
+```python
+@openapi(
+    summary="Get order",
+    method="get",
+    route="/api/orders/{order_id}",
+    parameters=[
+        {
+            "name": "order_id",
+            "in": "path",
+            "required": True,
+            "schema": {"type": "integer"},
+            "description": "Order identifier",
+        },
+        {
+            "name": "include_items",
+            "in": "query",
+            "required": False,
+            "schema": {"type": "boolean", "default": False},
+        },
+        {
+            "name": "X-Correlation-ID",
+            "in": "header",
+            "required": False,
+            "schema": {"type": "string"},
+        },
+    ],
+)
+```
+
+## Security documentation
+
+You can define security at operation-level and component-level.
+
+### API key example
+
+```python
+@openapi(
+    summary="List invoices",
+    method="get",
+    security=[{"ApiKeyAuth": []}],
+    security_scheme={
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key",
+        }
+    },
+)
+```
+
+### Bearer token example
+
+```python
+@openapi(
+    summary="List invoices",
     method="get",
     security=[{"BearerAuth": []}],
     security_scheme={
@@ -115,53 +242,93 @@ Attach the scheme definition directly alongside the security requirement:
 )
 ```
 
-### Central (Explicit)
+## Multiple endpoints and tags
 
-Pass `security_schemes` to the spec-generation functions when you prefer a
-single source of truth:
+You can annotate each endpoint independently and group by tags.
 
 ```python
-SCHEMES = {
-    "BearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT",
-    }
-}
+@openapi(summary="Create customer", tags=["Customers"], method="post")
+def create_customer(req: func.HttpRequest) -> func.HttpResponse:
+    ...
 
-@app.function_name(name="openapi_spec")
-@app.route(route="openapi.json", methods=["GET"])
-def openapi_spec(req: func.HttpRequest) -> func.HttpResponse:
-    return get_openapi_json(
-        title="My API",
-        security_schemes=SCHEMES,
+
+@openapi(summary="List customers", tags=["Customers"], method="get")
+def list_customers(req: func.HttpRequest) -> func.HttpResponse:
+    ...
+
+
+@openapi(summary="Health", tags=["Operations"], method="get")
+def health(req: func.HttpRequest) -> func.HttpResponse:
+    ...
+```
+
+## Spec generation options
+
+Use these APIs when you need programmatic control.
+
+### Generate dictionary spec
+
+```python
+from azure_functions_openapi import OPENAPI_VERSION_3_1, generate_openapi_spec
+
+spec = generate_openapi_spec(
+    title="Orders API",
+    version="2026.03",
+    description="Order management service",
+    openapi_version=OPENAPI_VERSION_3_1,
+    security_schemes={
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+    },
+)
+```
+
+### Generate JSON/YAML strings
+
+```python
+json_spec = get_openapi_json(title="Orders API", version="2026.03")
+yaml_spec = get_openapi_yaml(title="Orders API", version="2026.03")
+```
+
+## Swagger UI route
+
+```python
+@app.route(route="docs", methods=["GET"])
+def docs(req: func.HttpRequest) -> func.HttpResponse:
+    return render_swagger_ui(
+        title="Orders API Docs",
+        openapi_url="/api/openapi.json",
+        enable_client_logging=False,
     )
 ```
 
-Both approaches can be combined — per-decorator and central schemes are
-merged automatically. If the same scheme name appears in both, the central
-definition takes precedence.
+If your deployment needs stricter or custom CSP:
 
-### Supported Scheme Types
+```python
+custom_csp = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net"
+return render_swagger_ui(custom_csp=custom_csp)
+```
 
-| `type` value | Description |
-| --- | --- |
-| `apiKey` | API key (header, query, or cookie) |
-| `http` | HTTP authentication (Bearer, Basic, etc.) |
-| `oauth2` | OAuth 2.0 flows |
-| `openIdConnect` | OpenID Connect Discovery |
+## Common pitfalls
 
-## Output Routes
+- Missing docs endpoints (`openapi.json`, `openapi.yaml`, `docs`)
+- Passing non-list to `parameters` or `security`
+- Invalid route path with whitespace or dangerous patterns
+- Using unsupported OpenAPI version string
 
-| Route | Format | Description |
-| --- | --- | --- |
-| `/openapi.json` | JSON | Full OpenAPI schema |
-| `/openapi.yaml` | YAML | YAML version of the schema |
-| `/docs` | Swagger UI | Interactive documentation UI |
+See [Troubleshooting](troubleshooting.md) for fixes.
 
-## Notes
+## Validation package integration
 
-- This package is for the Azure Functions Python **v2** programming model.
-- It does not support the legacy `function.json`-based v1 model.
-- Pydantic v1 and v2 support refers to schema generation only, not Azure Functions programming model support.
-- `get_openapi_json()` and `get_openapi_yaml()` accept an optional `description` argument for the top-level OpenAPI `info.description` field.
+`azure-functions-openapi` works well with `azure-functions-validation` when you want runtime payload validation plus generated API docs from the same models.
+
+See [With Validation Example](examples/with_validation.md) for a complete setup.
+
+## Next steps
+
+- Deep-dive decorator options: [Configuration](configuration.md)
+- Auto-generated signatures and docstrings: [API Reference](api.md)
+- Generate specs in CI/CD: [CLI](cli.md)

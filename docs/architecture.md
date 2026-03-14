@@ -1,155 +1,139 @@
-# Architecture Guide
+# Architecture
 
-This document provides an overview of the azure-functions-openapi library architecture, design decisions, and internal components.
+This document explains how `azure-functions-openapi` transforms decorator metadata into OpenAPI output and Swagger UI responses.
 
-## System Architecture
+## High-level design
 
-### High-Level Overview
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Azure Functions App                      │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐                                        │
-│  │   @openapi      │                                        │
-│  │   Decorator     │                                        │
-│  └─────────────────┘                                        │
-│           │                                                  │
-│           ▼                                                  │
-│  ┌─────────────────────────────────────────────────────────┐ │
-│  │              OpenAPI Registry                           │ │
-│  └─────────────────────────────────────────────────────────┘ │
-│           │                                                  │
-│           ▼                                                  │
-│  ┌─────────────────────────────────────────────────────────┐ │
-│  │              OpenAPI Generation                         │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐ │ │
-│  │  │   JSON      │  │   YAML      │  │   Swagger UI    │ │ │
-│  │  │   Spec      │  │   Spec      │  │   Rendering     │ │ │
-│  │  └─────────────┘  └─────────────┘  └─────────────────┘ │ │
-│  └─────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+```text
+Function handlers + @openapi metadata
+            |
+            v
+Thread-safe metadata registry (decorator.py)
+            |
+            v
+Spec compiler (openapi.py)
+   |                     |
+   v                     v
+JSON / YAML strings      Swagger UI HTML response (swagger_ui.py)
 ```
 
-## Core Components
+## Core modules
 
-### 1. Decorator System (`decorator.py`)
+## `decorator.py`
 
-The `@openapi` decorator is the heart of the system:
+Responsibilities:
 
-```python
-import azure.functions as func
-from pydantic import BaseModel
+- provide `@openapi(...)`
+- validate and sanitize decorator inputs
+- store operation metadata in `_openapi_registry`
+- expose `get_openapi_registry()` snapshot accessor
 
-from azure_functions_openapi import openapi
+Key behaviors:
 
+- registry writes are protected by `threading.RLock`
+- tags default to `['default']` when not provided
+- invalid route path or operation ID raises `ValueError`
 
-class RequestModel(BaseModel):
-    name: str
+## `openapi.py`
 
+Responsibilities:
 
-class ResponseModel(BaseModel):
-    message: str
+- compile registry into OpenAPI document (`generate_openapi_spec`)
+- serialize to JSON (`get_openapi_json`) and YAML (`get_openapi_yaml`)
+- support OpenAPI 3.0.0 and 3.1.0 output
 
+Spec generation flow:
 
-@openapi(
-    summary="API endpoint",
-    description="Detailed description",
-    tags=["API"],
-    request_model=RequestModel,
-    response_model=ResponseModel
-)
-def my_function(req: func.HttpRequest) -> func.HttpResponse:
-    _ = req
-    return func.HttpResponse("OK", status_code=200)
-```
+1. Read registry entries
+2. Resolve route and method per operation
+3. Build responses and request body schemas
+4. Convert Pydantic models into `components.schemas`
+5. Merge security schemes (global + per-operation)
+6. Return final `spec` dictionary
 
-**Key Features:**
-- **Metadata Collection**: Stores OpenAPI metadata in a global registry
-- **Input Validation**: Validates and sanitizes all decorator parameters
-- **Type Safety**: Full type hints and validation
+3.1-specific conversion:
 
-### 2. OpenAPI Generation (`openapi.py`)
+- `nullable: true` -> `type: ["<type>", "null"]`
+- `example` -> `examples`
 
-Converts registered metadata into OpenAPI 3.0 specifications:
+## `utils.py`
 
-```python
-# Generate OpenAPI spec
-spec = generate_openapi_spec(title="My API", version="1.0.0")
+Responsibilities:
 
-# Get JSON/YAML formats
-json_spec = get_openapi_json()
-yaml_spec = get_openapi_yaml()
-```
+- Pydantic v1/v2 schema extraction (`model_to_schema`)
+- `$ref` rewriting to `#/components/schemas/...`
+- schema collision resolution for repeated model names
+- route and operation ID validation helpers
 
-**Key Features:**
-- **Schema Generation**: Automatic Pydantic model to JSON Schema conversion
-- **Error Resilience**: Graceful handling of schema generation failures
-- **Validation**: Comprehensive input validation
+Important details:
 
-### 3. Swagger UI (`swagger_ui.py`)
+- nested `$defs`/`definitions` are collected recursively
+- colliding schema names are suffixed (`_2`, `_3`, ...)
 
-Renders interactive API documentation:
+## `swagger_ui.py`
 
-```python
-# Render Swagger UI with enhanced security
-response = render_swagger_ui(
-    title="API Documentation",
-    openapi_url="/api/openapi.json",
-    custom_csp="custom-csp-policy"
-)
-```
+Responsibilities:
 
-**Key Features:**
-- **Security Headers**: CSP, X-Frame-Options, X-XSS-Protection
-- **Input Sanitization**: XSS protection and content validation
-- **Customization**: Configurable CSP policies and UI options
+- render Swagger UI HTML via `render_swagger_ui`
+- apply security headers
+- sanitize title and URL inputs
 
-### 4. Operational Concerns
+Headers added include:
 
-This library focuses on OpenAPI generation and documentation rendering.
+- `Content-Security-Policy`
+- `X-Content-Type-Options`
+- `X-Frame-Options`
+- `Referrer-Policy`
+- cache prevention headers
 
-## Data Flow
+## `cli.py`
 
-### 1. Function Registration
+Responsibilities:
 
-```
-Function Definition → @openapi Decorator → Metadata Validation → Registry Storage
-```
+- parse `azure-functions-openapi generate` command
+- output JSON/YAML to stdout or file
+- choose OpenAPI version (`3.0` or `3.1`)
 
-### 2. OpenAPI Generation
+## Request lifecycle perspective
 
-```
-Registry → Schema Generation → JSON/YAML Output
-```
+At startup:
 
-### 3. Swagger UI Rendering
+1. Python imports function modules
+2. `@openapi` executes and registers metadata
 
-```
-Request → Security Validation → HTML Generation → Security Headers → Response
-```
+At spec request time (`/api/openapi.json` or `/api/openapi.yaml`):
 
-## Security Architecture
+1. endpoint function calls `get_openapi_json()` or `get_openapi_yaml()`
+2. generator compiles current registry
+3. endpoint wraps returned string in `func.HttpResponse`
 
-### Input Validation Pipeline
+At docs request time (`/api/docs`):
 
-```
-User Input → Sanitization → Validation → Processing → Response
-```
+1. endpoint calls `render_swagger_ui(openapi_url=...)`
+2. HTML + security headers are returned
+3. browser fetches OpenAPI document from `openapi_url`
 
-### Security Headers
+## Design constraints
 
-- **CSP**: Content Security Policy for XSS protection
-- **X-Frame-Options**: Clickjacking protection
-- **X-XSS-Protection**: XSS filtering
-- **X-Content-Type-Options**: MIME type sniffing protection
+- no function source parsing; metadata is runtime-decorator driven
+- no persistence layer; registry exists in process memory
+- assumes module import/registration has already happened
 
-## Extension Points
+## Operational considerations
 
-## Deployment Architecture
+- missing imports can lead to empty `paths`
+- inconsistent `@app.route` vs `@openapi(route=...)` leads to doc/runtime mismatch
+- model schema generation is resilient but invalid model usage raises explicit errors
 
-### Azure Functions Integration
+## Extension points
 
-```
-Azure Functions Runtime → Function App → OpenAPI Routes → Documentation
-```
+- customize spec metadata via generator arguments (`title`, `version`, `description`)
+- configure security centrally (`security_schemes`) or per operation (`security_scheme`)
+- customize UI CSP and behavior via `render_swagger_ui(...)`
+
+## Related docs
+
+- [Usage](usage.md)
+- [Configuration](configuration.md)
+- [API Reference](api.md)
+- [Troubleshooting](troubleshooting.md)

@@ -1,338 +1,173 @@
-# Troubleshooting Guide
+# Troubleshooting
 
-This guide helps you diagnose and resolve common issues with azure-functions-openapi.
+Use this guide to diagnose common `azure-functions-openapi` issues in local development and CI.
 
-## Common Issues
+## 1) Swagger UI not loading
 
-### 1. Import Errors
+### Symptoms
 
-#### Problem: ModuleNotFoundError
+- `/api/docs` returns 404
+- page loads but no operations appear
+- browser console shows CSP or fetch errors
 
-```
-ModuleNotFoundError: No module named 'azure_functions_openapi'
-```
+### Checks
 
-**Solutions:**
-1. **Install the package:**
-   ```bash
-   pip install azure-functions-openapi
-   ```
-
-2. **Check virtual environment:**
-   ```bash
-   # Activate your virtual environment
-   source .venv/bin/activate  # Linux/Mac
-   # or
-   .venv\Scripts\activate     # Windows
-   
-   # Install in the correct environment
-   pip install azure-functions-openapi
-   ```
-
-3. **Verify installation:**
-   ```bash
-   pip list | grep azure-functions-openapi
-   python -c "import azure_functions_openapi; print('OK')"
-   ```
-
-#### Problem: Import from wrong module
+1. Confirm docs route exists:
 
 ```python
-# Wrong
-from azure_functions_doctor import openapi
-
-# Correct
-from azure_functions_openapi.decorator import openapi
+@app.route(route="docs", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+def docs(req: func.HttpRequest) -> func.HttpResponse:
+    return render_swagger_ui(openapi_url="/api/openapi.json")
 ```
 
-### 2. Decorator Issues
-
-#### Problem: Decorator not working
-
-```python
-@openapi(summary="Test")
-def my_function(req):
-    return func.HttpResponse("Hello")
-```
-
-**Solutions:**
-1. **Check decorator order:**
-   ```python
-   # Correct order
-   @app.route(route="test", auth_level=func.AuthLevel.ANONYMOUS)
-   @openapi(summary="Test")
-   def my_function(req):
-       return func.HttpResponse("Hello")
-   ```
-
-2. **Verify function registration:**
-   ```python
-   from azure_functions_openapi.decorator import get_openapi_registry
-   
-   registry = get_openapi_registry()
-   print(f"Registered functions: {list(registry.keys())}")
-   ```
-
-#### Problem: Validation errors
-
-```
-ValueError: Invalid route path: <script>alert('xss')</script>
-```
-
-**Solutions:**
-1. **Use safe route paths:**
-   ```python
-   # Dangerous
-   @openapi(route="<script>alert('xss')</script>")
-   
-   # Safe
-   @openapi(route="/api/users")
-   ```
-
-2. **Check parameter validation:**
-   ```python
-   # Invalid parameters
-   @openapi(parameters="not_a_list")
-   
-   # Valid parameters
-   @openapi(parameters=[
-       {"name": "id", "in": "path", "required": True, "schema": {"type": "integer"}}
-   ])
-   ```
-
-### 3. OpenAPI Generation Issues
-
-#### Problem: Empty OpenAPI spec
-
-```json
-{
-  "openapi": "3.0.0",
-  "info": {"title": "API", "version": "1.0.0"},
-  "paths": {}
-}
-```
-
-**Solutions:**
-1. **Check function registration:**
-   ```python
-   from azure_functions_openapi.decorator import get_openapi_registry
-   
-   registry = get_openapi_registry()
-   if not registry:
-       print("No functions registered with @openapi decorator")
-   ```
-
-2. **Verify decorator usage:**
-   ```python
-   # Make sure you're using the decorator correctly
-   @openapi(summary="Test function")
-   def test_function(req):
-       return func.HttpResponse("OK")
-   ```
-
-#### Problem: Schema generation errors
-
-```
-RuntimeError: Failed to generate OpenAPI specification
-```
-
-**Solutions:**
-1. **Check Pydantic models:**
-   ```python
-   # Invalid model
-   class InvalidModel:
-       def __init__(self):
-           self.name = "test"
-   
-   # Valid Pydantic model
-   from pydantic import BaseModel
-   
-   class ValidModel(BaseModel):
-       name: str
-   ```
-
-2. **Handle model errors gracefully:**
-   ```python
-   try:
-       spec = generate_openapi_spec()
-   except RuntimeError as e:
-       print(f"OpenAPI generation failed: {e}")
-   ```
-
-### 4. Swagger UI Issues
-
-#### Problem: Swagger UI not loading
-
-**Solutions:**
-1. **Check route registration:**
-   ```python
-   @app.route(route="docs", auth_level=func.AuthLevel.ANONYMOUS)
-   def swagger_ui(req):
-       return render_swagger_ui()
-   ```
-
-2. **Verify OpenAPI JSON endpoint:**
-   ```python
-   @app.route(route="openapi.json", auth_level=func.AuthLevel.ANONYMOUS)
-   def openapi_json(req):
-       return func.HttpResponse(get_openapi_json(), mimetype="application/json")
-   ```
-
-3. **Check browser console for errors:**
-   - Open browser developer tools
-   - Check for JavaScript errors
-   - Verify network requests to `/api/openapi.json`
-
-#### Problem: CSP (Content Security Policy) errors
-
-```
-Refused to load the script because it violates the following Content Security Policy directive
-```
-
-**Solutions:**
-1. **Use custom CSP policy:**
-   ```python
-   custom_csp = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net"
-   return render_swagger_ui(custom_csp=custom_csp)
-   ```
-
-2. **Disable CSP for development:**
-   ```python
-   # For development only
-   custom_csp = "default-src 'self' 'unsafe-inline' 'unsafe-eval'"
-   return render_swagger_ui(custom_csp=custom_csp)
-   ```
-
-### 5. CLI Tool Issues
-
-#### Problem: CLI command not found
+2. Confirm OpenAPI route is reachable:
 
 ```bash
-azure-functions-openapi: command not found
+curl "http://localhost:7071/api/openapi.json"
 ```
 
-**Solutions:**
-1. **Reinstall the package:**
-   ```bash
-   pip install --upgrade azure-functions-openapi
-   ```
+3. Confirm `openapi_url` in `render_swagger_ui(...)` matches your route.
 
-2. **Check installation:**
-   ```bash
-   pip show azure-functions-openapi
-   ```
+### Fixes
 
-3. **Use Python module syntax:**
-   ```bash
-   python -m azure_functions_openapi.cli --help
-   ```
+- set explicit `openapi_url="/api/openapi.json"`
+- keep docs and spec routes under same host/origin
+- if CSP blocks assets in your environment, pass an explicit `custom_csp`
 
-#### Problem: Spec validation errors
+## 2) Spec not showing all endpoints
 
-```bash
-openapi-spec-validator openapi.json
-```
+### Symptoms
 
-**Solutions:**
-1. **Check OpenAPI spec format:**
-   ```json
-   {
-     "openapi": "3.0.0",
-     "info": {
-       "title": "API",
-       "version": "1.0.0"
-     },
-     "paths": {}
-   }
-   ```
+- `paths` is empty
+- only some operations are present
 
-2. **Use correct file format:**
-   ```bash
-   # For JSON files
-   openapi-spec-validator spec.json
-   
-   # For YAML files
-   openapi-spec-validator spec.yaml
-   ```
+### Root causes
 
-## Debugging Techniques
+- handler missing `@openapi`
+- module containing handlers not imported at startup
+- decorator registration failed due to invalid parameter value
 
-### 1. Enable Debug Logging
+### Checks
 
-```python
-import logging
-
-# Enable debug logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('azure_functions_openapi')
-logger.setLevel(logging.DEBUG)
-```
-
-### 2. Check Registry State
+Inspect registry during runtime:
 
 ```python
 from azure_functions_openapi.decorator import get_openapi_registry
 
-registry = get_openapi_registry()
-print("Registered functions:")
-for func_name, metadata in registry.items():
-    print(f"  {func_name}: {metadata}")
+print(get_openapi_registry().keys())
 ```
 
-### 3. Test OpenAPI Generation
+### Fixes
+
+- add `@openapi` to every operation you want documented
+- ensure all function modules are imported before generating specs
+- correct invalid decorator values (for example invalid route path)
+
+## 3) Pydantic v1 vs v2 issues
+
+### Symptoms
+
+- schema conversion errors
+- model APIs differ (`schema()` vs `model_json_schema()`)
+
+### What the library does
+
+`azure-functions-openapi` supports both v1 and v2. It detects runtime version and uses the correct schema method internally.
+
+### Common mistakes
+
+- passing a dict to `request_model` or `response_model`
+- mixing incompatible Pydantic usage patterns in your own function code
+
+### Fixes
+
+- pass Pydantic classes to `request_model` and `response_model`
+- if you need raw schema dicts, use `request_body` and `response`
+- keep a single Pydantic major version in your environment
+
+## 4) Route mismatch between function and OpenAPI output
+
+### Symptoms
+
+- function route works but docs path is different
+- path parameters not matching runtime route
+
+### Why this happens
+
+`@app.route(route=...)` controls runtime routing.
+`@openapi(route=...)` controls documented path.
+
+If they diverge, behavior and docs diverge.
+
+### Fix
+
+Keep them aligned by design:
 
 ```python
-from azure_functions_openapi.openapi import generate_openapi_spec
-
-try:
-    spec = generate_openapi_spec()
-    print("OpenAPI spec generated successfully")
-    print(f"Paths: {list(spec.get('paths', {}).keys())}")
-except Exception as e:
-    print(f"OpenAPI generation failed: {e}")
-    import traceback
-    traceback.print_exc()
+@app.route(route="users/{user_id}", methods=["GET"])
+@openapi(route="/api/users/{user_id}", method="get")
 ```
 
+!!! tip
+    Documented routes often include `/api/...` while `app.route` may be relative. Be consistent across your app and docs conventions.
 
-## Getting Help
+## 5) Invalid route or operation ID validation errors
 
-### 1. Check Documentation
+### Symptoms
 
-- [API Reference](./api.md)
-- [Security Guide](./security.md)
-- [CLI Guide](./cli.md)
+- `ValueError: Invalid route path ...`
+- `ValueError: Invalid operation ID ...`
 
-### 2. Enable Verbose Logging
+### Fixes
 
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
-```
+- use safe route characters (`a-z`, `A-Z`, digits, `_`, `-`, `/`, `{}`, no spaces)
+- avoid dangerous patterns (`..`, `javascript:`, script snippets)
+- use readable operation IDs (letters, digits, underscore)
 
-### 3. Report Issues
+## 6) CLI generates empty or unexpected output
 
-When reporting issues, include:
+### Symptoms
 
-1. **Python version**: `python --version`
-2. **Package version**: `pip show azure-functions-openapi`
-3. **Error traceback**: Full stack trace
-4. **Code example**: Minimal reproducible example
-5. **Environment**: OS, Azure Functions version, etc.
+- generated spec has no routes
+- wrong output format/version
 
-### 4. Community Support
+### Checks
 
-- [GitHub Issues](https://github.com/yeongseon/azure-functions-openapi/issues)
-- [GitHub Discussions](https://github.com/yeongseon/azure-functions-openapi/discussions)
+- use explicit flags: `--format`, `--openapi-version`
+- confirm decorated modules are imported in process where CLI runs
 
-## Configuration
-
-### Environment Variables
+### Example
 
 ```bash
-# Debug mode
-export AZURE_FUNCTIONS_OPENAPI_DEBUG=1
-
-# Log level
-export AZURE_FUNCTIONS_OPENAPI_LOG_LEVEL=DEBUG
+azure-functions-openapi generate --format json --openapi-version 3.1 --output openapi.json
 ```
+
+## 7) Swagger UI loads but `Try it out` fails
+
+### Symptoms
+
+- operation visible but execution fails in browser
+- CORS/network/auth errors
+
+### Checks
+
+- verify API host and route are reachable from browser
+- verify request headers expected by your function
+- verify auth requirements if endpoint is not anonymous
+
+## 8) Debug checklist
+
+Use this checklist in order:
+
+1. Confirm `@openapi` decorators exist on expected handlers
+2. Confirm `openapi.json` endpoint returns valid JSON
+3. Confirm `docs` endpoint calls `render_swagger_ui(openapi_url="/api/openapi.json")`
+4. Confirm registry has expected function keys
+5. Confirm route/method consistency between Azure route and OpenAPI metadata
+
+## Need more help?
+
+- [Usage Guide](usage.md)
+- [Configuration](configuration.md)
+- [API Reference](api.md)
+- [FAQ](faq.md)
