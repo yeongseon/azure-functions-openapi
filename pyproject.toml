@@ -20,18 +20,18 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-[project.urls]
-Homepage = "https://yeongseon.github.io/azure-functions-openapi/"
-Documentation = "https://yeongseon.github.io/azure-functions-openapi/"
-Repository = "https://github.com/yeongseon/azure-functions-openapi"
-Issues = "https://github.com/yeongseon/azure-functions-openapi/issues"
-
 dependencies = [
     "azure-functions",
     "packaging",
     "pydantic>=1.10,<3.0",
     "PyYAML",
 ]
+
+    [project.urls]
+    Homepage = "https://yeongseon.github.io/azure-functions-openapi/"
+    Documentation = "https://yeongseon.github.io/azure-functions-openapi/"
+    Repository = "https://github.com/yeongseon/azure-functions-openapi"
+Issues = "https://github.com/yeongseon/azure-functions-openapi/issues"
 
 [project.optional-dependencies]
 dev = [
