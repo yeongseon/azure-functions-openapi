@@ -15,10 +15,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@v4
 
       - name: Sync labels from labels.yml
-        uses: EndBug/label-sync@da00f2c11fdb78e4fae44adac2fdd713778ea3e9 # v2
+        uses: EndBug/label-sync@v2
         with:
           config-file: .github/labels.yml
           token: ${{ secrets.GITHUB_TOKEN }}
