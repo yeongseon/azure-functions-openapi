@@ -9,6 +9,7 @@ import pytest
 from azure_functions_openapi.decorator import openapi
 from azure_functions_openapi.openapi import (
     DEFAULT_OPENAPI_INFO_DESCRIPTION,
+    _ensure_default_response,
     generate_openapi_spec,
     get_openapi_json,
     get_openapi_yaml,
@@ -713,3 +714,40 @@ def test_get_openapi_yaml_propagates_value_error() -> None:
                return_value=_make_conflicting_registry()):
         with pytest.raises(ValueError, match="Conflicting security scheme definition"):
             get_openapi_yaml()
+
+
+# ---------------------------------------------------------------------------
+# Unit tests for _ensure_default_response helper
+# ---------------------------------------------------------------------------
+
+
+def test_ensure_default_response_empty_uses_generic_schema() -> None:
+    """Empty responses dict gets a 200 with generic object schema."""
+    responses: dict[str, Any] = {}
+    _ensure_default_response(responses)
+    assert "200" in responses
+    assert responses["200"]["description"] == "Successful Response"
+    assert responses["200"]["content"]["application/json"]["schema"] == {"type": "object"}
+
+
+def test_ensure_default_response_empty_uses_provided_schema() -> None:
+    """Empty responses dict gets a 200 using the supplied schema."""
+    responses: dict[str, Any] = {}
+    schema = {"type": "string", "description": "A plain string"}
+    _ensure_default_response(responses, schema=schema)
+    assert responses["200"]["content"]["application/json"]["schema"] == schema
+
+
+def test_ensure_default_response_noop_when_nonempty() -> None:
+    """Non-empty responses dict is left untouched."""
+    existing = {"200": {"description": "Already here"}}
+    _ensure_default_response(existing)
+    assert existing == {"200": {"description": "Already here"}}
+
+
+def test_ensure_default_response_noop_with_non_200_entry() -> None:
+    """A dict with only non-200 entries is also left untouched."""
+    existing = {"404": {"description": "Not found"}}
+    _ensure_default_response(existing)
+    assert "200" not in existing
+    assert "404" in existing

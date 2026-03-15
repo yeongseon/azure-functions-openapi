@@ -21,6 +21,31 @@ DEFAULT_OPENAPI_INFO_DESCRIPTION = (
 )
 
 
+def _ensure_default_response(
+    responses: dict[str, Any],
+    schema: dict[str, Any] | None = None,
+) -> None:
+    """Ensure *responses* contains at least one entry.
+
+    If *responses* is non-empty this function is a no-op.  When it is empty
+    a generic ``200 Successful Response`` entry is added using *schema* when
+    provided, or a plain ``{type: object}`` schema otherwise.
+
+    Parameters:
+        responses: The responses dict being built for the current operation.
+            Modified **in place**.
+        schema: Optional JSON-Schema dict to embed under
+            ``content.application/json.schema``.  Defaults to
+            ``{"type": "object"}``.
+    """
+    if responses:
+        return
+    resolved_schema: dict[str, Any] = schema if schema is not None else {"type": "object"}
+    responses["200"] = {
+        "description": "Successful Response",
+        "content": {"application/json": {"schema": resolved_schema}},
+    }
+
 
 def _convert_nullable_to_type_array(schema: dict[str, Any]) -> dict[str, Any]:
     """Convert OpenAPI 3.0 nullable to 3.1 type array syntax."""
@@ -145,17 +170,9 @@ def generate_openapi_spec(
                         logger.warning(
                             f"Failed to generate response schema for {func_name}: {str(e)}"
                         )
-                        if not responses:
-                            responses["200"] = {
-                                "description": "Successful Response",
-                                "content": {"application/json": {"schema": {"type": "object"}}},
-                            }
+                        _ensure_default_response(responses)
 
-                if not responses:
-                    responses["200"] = {
-                        "description": "Successful Response",
-                        "content": {"application/json": {"schema": {"type": "object"}}},
-                    }
+                _ensure_default_response(responses)
 
                 # operation object ------------------------------------------------
                 op: dict[str, Any] = {
