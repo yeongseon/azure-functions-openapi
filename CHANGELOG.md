@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.0] - 2026-03-15
+
+### Added
+
+- Separate exceptions into dedicated `exceptions` module
+- `--app` module import option and empty-paths guard to CLI
+
+### Changed
+
+- Extract `_ensure_default_response` helper and add unit tests
+- Extract `_build_spec` helper, sync docs
+
+### Fixed
+
+- Improve OpenAPI spec generation and logging
+- Enhance CLI error handling
+- Improve decorator imports and deepcopy usage
+- Enhance utils validation and error handling
+- Implement `--pretty` flag
+- Use stable action tags in label-sync workflow
+
+
 ## [0.13.1] - 2026-03-14
 
 ### Bug Fixes
