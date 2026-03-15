@@ -8,6 +8,7 @@ from typing import Any
 import yaml
 
 from azure_functions_openapi.decorator import get_openapi_registry
+from azure_functions_openapi.exceptions import OpenAPISpecConfigError
 from azure_functions_openapi.utils import model_to_schema
 
 logger = logging.getLogger(__name__)
@@ -18,6 +19,7 @@ OPENAPI_VERSION_3_1 = "3.1.0"
 DEFAULT_OPENAPI_INFO_DESCRIPTION = (
     "Auto-generated OpenAPI documentation. Markdown supported in descriptions (CommonMark)."
 )
+
 
 
 def _convert_nullable_to_type_array(schema: dict[str, Any]) -> dict[str, Any]:
@@ -95,7 +97,7 @@ def generate_openapi_spec(
         OpenAPI specification dictionary
     """
     if openapi_version not in (OPENAPI_VERSION_3_0, OPENAPI_VERSION_3_1):
-        raise ValueError(
+        raise OpenAPISpecConfigError(
             f"Unsupported OpenAPI version: {openapi_version}. Supported: "
             f"{OPENAPI_VERSION_3_0}, {OPENAPI_VERSION_3_1}"
         )
@@ -174,17 +176,18 @@ def generate_openapi_spec(
                 if security:
                     op["security"] = security
 
-                # requestBody (POST/PUT/PATCH) ------------------------------------
-                if method in {"post", "put", "patch"}:
+                # requestBody (POST/PUT/PATCH/DELETE) --------------------------
+                if method in {"post", "put", "patch", "delete"}:
+                    required = meta.get("request_body_required", True)
                     if meta.get("request_body"):
                         op["requestBody"] = {
-                            "required": True,
+                            "required": required,
                             "content": {"application/json": {"schema": meta["request_body"]}},
                         }
                     elif meta.get("request_model"):
                         try:
                             op["requestBody"] = {
-                                "required": True,
+                                "required": required,
                                 "content": {
                                     "application/json": {
                                         "schema": model_to_schema(meta["request_model"], components)
@@ -196,15 +199,15 @@ def generate_openapi_spec(
                                 f"Failed to generate request schema for {func_name}: {str(e)}"
                             )
                             op["requestBody"] = {
-                                "required": True,
+                                "required": required,
                                 "content": {"application/json": {"schema": {"type": "object"}}},
                             }
 
                 # merge into paths (support multiple methods per route) ----------
                 paths.setdefault(path, {})[method] = op
 
-            except (KeyError, TypeError, ValueError) as e:
-                logger.error(f"Failed to process function {func_name}: {str(e)}")
+            except (KeyError, TypeError, ValueError):
+                logger.exception("Failed to process function %s", func_name)
                 # Continue processing other functions
                 continue
 
@@ -221,14 +224,22 @@ def generate_openapi_spec(
         if openapi_version == OPENAPI_VERSION_3_1:
             spec["info"]["summary"] = title
 
-        # Merge security schemes: explicit param + per-operation schemes from registry
+        # Merge security schemes: explicit param + per-operation schemes from registry.
+        # Raises OpenAPISpecConfigError on collision (same name, different definition).
         all_security_schemes: dict[str, dict[str, Any]] = {}
         if security_schemes:
             all_security_schemes.update(security_schemes)
         for _fn, meta in registry.items():
             scheme = meta.get("security_scheme")
             if isinstance(scheme, dict):
-                all_security_schemes.update(scheme)
+                for name, definition in scheme.items():
+                    if name in all_security_schemes and all_security_schemes[name] != definition:
+                        raise OpenAPISpecConfigError(
+                            f"Conflicting security scheme definition for '{name}': "
+                            f"existing={all_security_schemes[name]!r}, "
+                            f"new={definition!r}"
+                        )
+                    all_security_schemes[name] = definition
 
         if all_security_schemes:
             components["securitySchemes"] = all_security_schemes
@@ -240,30 +251,33 @@ def generate_openapi_spec(
         if components.get("schemas") or components.get("securitySchemes"):
             spec["components"] = components
 
+        spec = _normalize_spec_output(spec)
+
         logger.info(
             f"Generated OpenAPI {openapi_version} spec with {len(paths)} paths "
             f"for {len(registry)} functions"
         )
         return spec
 
+    except OpenAPISpecConfigError:
+        raise
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI specification: {str(e)}")
         raise RuntimeError("Failed to generate OpenAPI specification") from e
 
 
-def _build_spec(
-    title: str,
-    version: str,
-    openapi_version: str,
-    description: str,
-    security_schemes: dict[str, dict[str, Any]] | None,
-) -> dict[str, Any]:
-    """Call generate_openapi_spec with the shared parameter set."""
-    return generate_openapi_spec(
-        title, version, openapi_version,
-        description=description,
-        security_schemes=security_schemes,
-    )
+def _normalize_spec_output(spec: dict[str, Any]) -> dict[str, Any]:
+    """Sort paths, schemas, and securitySchemes for deterministic output."""
+    components = spec.get("components") or {}
+    if "schemas" in components:
+        components["schemas"] = dict(sorted(components["schemas"].items()))
+    if "securitySchemes" in components:
+        components["securitySchemes"] = dict(sorted(components["securitySchemes"].items()))
+    if components:
+        spec["components"] = components
+    if "paths" in spec:
+        spec["paths"] = dict(sorted(spec["paths"].items()))
+    return spec
 
 
 def get_openapi_json(
@@ -286,8 +300,14 @@ def get_openapi_json(
         OpenAPI spec in JSON format.
     """
     try:
-        spec = _build_spec(title, version, openapi_version, description, security_schemes)
+        spec = generate_openapi_spec(
+            title, version, openapi_version,
+            description=description,
+            security_schemes=security_schemes,
+        )
         return json.dumps(spec, indent=2, ensure_ascii=False)
+    except OpenAPISpecConfigError:
+        raise
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI JSON: {str(e)}")
         raise RuntimeError("Failed to generate OpenAPI JSON") from e
@@ -313,8 +333,14 @@ def get_openapi_yaml(
         OpenAPI spec in YAML format.
     """
     try:
-        spec = _build_spec(title, version, openapi_version, description, security_schemes)
+        spec = generate_openapi_spec(
+            title, version, openapi_version,
+            description=description,
+            security_schemes=security_schemes,
+        )
         return yaml.safe_dump(spec, sort_keys=False, allow_unicode=True)
+    except OpenAPISpecConfigError:
+        raise
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI YAML: {str(e)}")
         raise RuntimeError("Failed to generate OpenAPI YAML") from e

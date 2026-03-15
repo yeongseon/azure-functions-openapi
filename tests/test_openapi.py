@@ -1,8 +1,10 @@
 # tests/test_openapi.py
 import json
+from typing import Any
 from unittest.mock import patch
 
 from pydantic import BaseModel
+import pytest
 
 from azure_functions_openapi.decorator import openapi
 from azure_functions_openapi.openapi import (
@@ -592,3 +594,122 @@ def test_malformed_registry_entry_skipped() -> None:
     # Valid endpoint should still be present
     assert "/valid-endpoint" in spec["paths"]
     # Broken endpoint should be skipped (not crash the whole spec generation)
+
+
+def test_security_scheme_collision_raises_value_error() -> None:
+    """Conflicting security scheme definitions across decorators raise ValueError."""
+
+    # Register a function with a well-known scheme name
+    @openapi(
+        route="/collision-a",
+        summary="First",
+        security=[{"SharedAuth": []}],
+        security_scheme={"SharedAuth": {"type": "http", "scheme": "bearer"}},
+        response={200: {"description": "OK"}},
+    )
+    def collision_func_a() -> None:
+        pass
+
+    from azure_functions_openapi.decorator import get_openapi_registry
+    real_registry = get_openapi_registry()
+    conflicting = dict(real_registry)
+    # Inject a second entry that redefines SharedAuth with a *different* definition
+    conflicting["collision_func_b"] = {
+        "route": "/collision-b",
+        "method": "get",
+        "summary": "Second",
+        "description": "",
+        "tags": ["default"],
+        "operation_id": None,
+        "parameters": [],
+        "security": [{"SharedAuth": []}],
+        "security_scheme": {"SharedAuth": {"type": "apiKey", "in": "header", "name": "X-Key"}},
+        "request_model": None,
+        "request_body": None,
+        "response_model": None,
+        "response": {200: {"description": "OK"}},
+        "function_name": "collision_func_b",
+        "_function_id": "tests.test_openapi.collision_func_b",
+    }
+
+    with patch(
+        "azure_functions_openapi.openapi.get_openapi_registry",
+        return_value=conflicting,
+    ):
+        with pytest.raises(ValueError, match="Conflicting security scheme definition"):
+            generate_openapi_spec()
+
+
+def test_generate_openapi_spec_with_delete_request_body() -> None:
+    """DELETE endpoints can have a requestBody when one is specified."""
+    @openapi(
+        route="/items/{id}",
+        method="delete",
+        summary="Delete item with body",
+        request_body={"type": "object", "properties": {"reason": {"type": "string"}}},
+        response={204: {"description": "No Content"}},
+    )
+    def delete_with_body_func() -> None:
+        pass
+
+    spec = generate_openapi_spec()
+    op = spec["paths"]["/items/{id}"]["delete"]
+    assert "requestBody" in op
+    assert op["requestBody"]["required"] is True
+    schema = op["requestBody"]["content"]["application/json"]["schema"]
+    assert schema["properties"]["reason"]["type"] == "string"
+
+
+def test_generate_openapi_spec_request_body_required_false() -> None:
+    """request_body_required=False is reflected in the generated spec."""
+    @openapi(
+        route="/optional-body-spec",
+        method="post",
+        summary="Optional body spec",
+        request_body={"type": "object"},
+        request_body_required=False,
+        response={200: {"description": "OK"}},
+    )
+    def optional_body_spec_func() -> None:
+        pass
+
+    spec = generate_openapi_spec()
+    rb = spec["paths"]["/optional-body-spec"]["post"]["requestBody"]
+    assert rb["required"] is False
+
+
+def _make_conflicting_registry() -> dict[str, Any]:
+    """Return a registry with two entries that define the same security scheme differently."""
+    empty_scopes: list[str] = []
+    return {
+        "fn_a": {"route": "/a", "method": "get", "summary": "", "description": "",
+                 "tags": ["default"], "operation_id": None, "parameters": [],
+                 "security": [{"Auth": empty_scopes}],
+                 "security_scheme": {"Auth": {"type": "http", "scheme": "bearer"}},
+                 "request_model": None, "request_body": None, "request_body_required": True,
+                 "response_model": None, "response": {200: {"description": "OK"}},
+                 "function_name": "fn_a", "_function_id": "fn_a"},
+        "fn_b": {"route": "/b", "method": "get", "summary": "", "description": "",
+                 "tags": ["default"], "operation_id": None, "parameters": [],
+                 "security": [{"Auth": empty_scopes}],
+                 "security_scheme": {"Auth": {"type": "apiKey", "in": "header", "name": "X-Key"}},
+                 "request_model": None, "request_body": None, "request_body_required": True,
+                 "response_model": None, "response": {200: {"description": "OK"}},
+                 "function_name": "fn_b", "_function_id": "fn_b"},
+    }
+
+
+def test_get_openapi_json_propagates_value_error() -> None:
+    """get_openapi_json must not swallow ValueError from collision detection."""
+    with patch("azure_functions_openapi.openapi.get_openapi_registry",
+               return_value=_make_conflicting_registry()):
+        with pytest.raises(ValueError, match="Conflicting security scheme definition"):
+            get_openapi_json()
+
+
+def test_get_openapi_yaml_propagates_value_error() -> None:
+    """get_openapi_yaml must not swallow ValueError from collision detection."""
+    with patch("azure_functions_openapi.openapi.get_openapi_registry",
+               return_value=_make_conflicting_registry()):
+        with pytest.raises(ValueError, match="Conflicting security scheme definition"):
+            get_openapi_yaml()

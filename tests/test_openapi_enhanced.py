@@ -417,3 +417,67 @@ class TestOpenAPISpecComplexScenarios:
             assert path_obj["get"]["summary"] == "Get user"
             assert path_obj["put"]["summary"] == "Update user"
             assert path_obj["delete"]["summary"] == "Delete user"
+
+
+class TestDeterministicOrdering:
+    """Verify that paths and schemas are always sorted alphabetically."""
+
+    def test_paths_are_sorted(self) -> None:
+        """Paths in the spec must be in ascending alphabetical order."""
+        mock_registry = {
+            "func_z": {"route": "/z", "method": "get", "response": {}, "tags": ["t"]},
+            "func_a": {"route": "/a", "method": "get", "response": {}, "tags": ["t"]},
+            "func_m": {"route": "/m", "method": "get", "response": {}, "tags": ["t"]},
+        }
+        with patch(
+            "azure_functions_openapi.openapi.get_openapi_registry",
+            return_value=mock_registry,
+        ):
+            spec = generate_openapi_spec("Test", "1.0.0")
+
+        assert list(spec["paths"].keys()) == ["/a", "/m", "/z"]
+
+    def test_schemas_are_sorted(self) -> None:
+        """Component schemas must be in ascending alphabetical order."""
+        from pydantic import BaseModel as PydanticModel
+
+        class ZebraModel(PydanticModel):
+            x: int
+
+        class AppleModel(PydanticModel):
+            y: str
+
+        mock_registry = {
+            "func_z": {
+                "route": "/z",
+                "method": "get",
+                "response_model": ZebraModel,
+                "response": {},
+                "tags": ["t"],
+            },
+            "func_a": {
+                "route": "/a",
+                "method": "get",
+                "response_model": AppleModel,
+                "response": {},
+                "tags": ["t"],
+            },
+        }
+        with patch(
+            "azure_functions_openapi.openapi.get_openapi_registry",
+            return_value=mock_registry,
+        ):
+            spec = generate_openapi_spec("Test", "1.0.0")
+
+        schema_keys = list(spec["components"]["schemas"].keys())
+        assert schema_keys == sorted(schema_keys)
+
+    def test_empty_registry_produces_sorted_empty_paths(self) -> None:
+        """Empty registry produces an empty (but sorted) paths dict."""
+        with patch(
+            "azure_functions_openapi.openapi.get_openapi_registry",
+            return_value={},
+        ):
+            spec = generate_openapi_spec("Test", "1.0.0")
+
+        assert spec["paths"] == {}
