@@ -66,19 +66,29 @@ Generate OpenAPI 3.1 output:
 azure-functions-openapi generate --openapi-version 3.1 --output openapi-3.1.json
 ```
 
+Import your function app so routes are registered:
+
+```bash
+azure-functions-openapi generate --app function_app --title "Todo API"
+```
+
+Pretty-print JSON output:
+
+```bash
+azure-functions-openapi generate --app function_app --pretty --output openapi.json
+```
+
 ### Options reference
 
 | Option | Alias | Values | Default | Description |
 | --- | --- | --- | --- | --- |
+| `--app` | - | `module` or `module:var` | - | Import module before generating so `@openapi` decorators register routes |
 | `--title` | - | any string | `API` | OpenAPI `info.title` |
 | `--version` | - | any string | `1.0.0` | OpenAPI `info.version` |
 | `--output` | `-o` | file path | stdout | Write generated content to file |
 | `--format` | `-f` | `json`, `yaml` | `json` | Output serialization format |
 | `--openapi-version` | - | `3.0`, `3.1` | `3.0` | OpenAPI schema version |
-| `--pretty` | `-p` | flag | `false` | Compatibility flag (accepted; output is already formatted) |
-
-!!! note
-    `--pretty` is currently accepted by the CLI parser but does not alter rendering behavior. JSON output is already pretty-printed.
+| `--pretty` | `-p` | flag | `false` | Pretty-print JSON output (adds indentation); no effect on YAML |
 
 ## Exit codes
 

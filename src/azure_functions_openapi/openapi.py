@@ -251,6 +251,21 @@ def generate_openapi_spec(
         raise RuntimeError("Failed to generate OpenAPI specification") from e
 
 
+def _build_spec(
+    title: str,
+    version: str,
+    openapi_version: str,
+    description: str,
+    security_schemes: dict[str, dict[str, Any]] | None,
+) -> dict[str, Any]:
+    """Call generate_openapi_spec with the shared parameter set."""
+    return generate_openapi_spec(
+        title, version, openapi_version,
+        description=description,
+        security_schemes=security_schemes,
+    )
+
+
 def get_openapi_json(
     title: str = "API",
     version: str = "1.0.0",
@@ -271,11 +286,7 @@ def get_openapi_json(
         OpenAPI spec in JSON format.
     """
     try:
-        spec = generate_openapi_spec(
-            title, version, openapi_version,
-            description=description,
-            security_schemes=security_schemes,
-        )
+        spec = _build_spec(title, version, openapi_version, description, security_schemes)
         return json.dumps(spec, indent=2, ensure_ascii=False)
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI JSON: {str(e)}")
@@ -302,11 +313,7 @@ def get_openapi_yaml(
         OpenAPI spec in YAML format.
     """
     try:
-        spec = generate_openapi_spec(
-            title, version, openapi_version,
-            description=description,
-            security_schemes=security_schemes,
-        )
+        spec = _build_spec(title, version, openapi_version, description, security_schemes)
         return yaml.safe_dump(spec, sort_keys=False, allow_unicode=True)
     except Exception as e:
         logger.error(f"Failed to generate OpenAPI YAML: {str(e)}")

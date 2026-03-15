@@ -135,7 +135,8 @@ def handle_generate(args: argparse.Namespace) -> int:
 
         if args.format == "json":
             import json
-            content = json.dumps(spec, indent=2, ensure_ascii=False)
+            indent = 2 if getattr(args, "pretty", False) else None
+            content = json.dumps(spec, indent=indent, ensure_ascii=False)
         else:
             import yaml
             content = yaml.safe_dump(spec, sort_keys=False, allow_unicode=True)

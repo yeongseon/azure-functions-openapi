@@ -81,6 +81,30 @@ class TestHandleGenerate:
         assert spec["openapi"] == "3.0.0"
         assert spec["info"]["title"] == "Test API"
         assert spec["info"]["version"] == "1.0.0"
+        # --pretty=False → compact (no indent)
+        assert "\n" not in output or output == output.strip()
+
+    def test_generate_json_pretty(self) -> None:
+        """Test pretty-print JSON: output should be indented."""
+        args = mock.Mock()
+        args.title = "Test API"
+        args.version = "1.0.0"
+        args.format = "json"
+        args.output = None
+        args.pretty = True
+        args.openapi_version = "3.0"
+        args.app = None
+
+        with mock.patch("builtins.print") as mock_print:
+            result = handle_generate(args)
+
+        assert result == 0
+        output = mock_print.call_args[0][0]
+        # Pretty output must be multi-line with indentation
+        assert "\n" in output
+        assert "  " in output  # indent=2 produces leading spaces
+        spec = json.loads(output)
+        assert spec["openapi"] == "3.0.0"
 
     def test_generate_yaml_format(self) -> None:
         """Test YAML generation."""

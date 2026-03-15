@@ -33,7 +33,7 @@ This package does **not** support the legacy `function.json`-based v1 programmin
 - `/openapi.json`, `/openapi.yaml`, and `/docs` endpoints
 - Query, path, header, body, and response schema support
 - Swagger UI helper with security defaults
-- CLI tooling for generation and validation workflows
+- CLI tooling for spec generation (JSON and YAML output)
 
 ## Installation
 
