@@ -23,7 +23,7 @@ Documenting Azure Functions HTTP APIs typically requires maintaining a separate 
 - Azure Functions Python **v2 programming model**
 - Decorator-based `func.FunctionApp()` applications
 - HTTP-triggered functions documented with `@openapi`
-- Optional Pydantic schema generation (supports both Pydantic v1 and v2)
+- Pydantic schema generation (supports both Pydantic v1 and v2)
 
 This package does **not** support the legacy `function.json`-based v1 programming model.
 
