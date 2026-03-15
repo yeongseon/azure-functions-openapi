@@ -7,8 +7,9 @@ from typing import Any, cast
 from packaging import version
 import pydantic
 
-PYDANTIC_V2 = version.parse(pydantic.__version__) >= version.parse("2.0.0")
+from azure_functions_openapi.exceptions import OpenAPISpecConfigError
 
+PYDANTIC_V2 = version.parse(pydantic.__version__) >= version.parse("2.0.0")
 
 def _rewrite_ref(ref: str) -> str:
     if ref.startswith("#/$defs/"):
@@ -121,7 +122,10 @@ def model_to_schema(model_cls: Any, components: dict[str, Any] | None = None) ->
         )
 
     if components is None:
-        components = {}
+        raise OpenAPISpecConfigError(
+            "model_to_schema() requires a 'components' dict; got None. "
+            "Pass the components dict from generate_openapi_spec() or provide an empty one."
+        )
     schemas = components.setdefault("schemas", {})
 
     normalized, definitions = _collect_schemas(schema)
@@ -177,7 +181,32 @@ def validate_route_path(route: Any) -> bool:
     # Whitespace is intentionally disallowed for route consistency and safety.
     if not re.match(r"^/?[a-zA-Z0-9_\-/{}]*$", route):
         return False
+    # Validate brace structure
+    if not _validate_path_param_braces(route):
+        return False
 
+    return True
+
+
+_PARAM_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def _validate_path_param_braces(route: str) -> bool:
+    """Return False if brace structure is malformed (empty, nested, or invalid identifier)."""
+    i = 0
+    while i < len(route):
+        if route[i] == "{":
+            j = route.find("}", i + 1)
+            if j == -1:
+                return False  # unclosed {
+            name = route[i + 1 : j]
+            if not name or "{" in name or "}" in name or not _PARAM_NAME_RE.match(name):
+                return False
+            i = j + 1
+        elif route[i] == "}":
+            return False  # stray }
+        else:
+            i += 1
     return True
 
 
@@ -192,8 +221,9 @@ def sanitize_operation_id(operation_id: Any) -> str:
     if not operation_id or not isinstance(operation_id, str):
         return ""
 
-    # Remove dangerous characters and keep only alphanumeric and underscores
-    sanitized = re.sub(r"[^a-zA-Z0-9_]", "", operation_id)
+    # Replace runs of non-identifier chars with underscores (preserves hyphens → _),
+    # then strip leading/trailing underscores.
+    sanitized = re.sub(r"[^a-zA-Z0-9_]+", "_", operation_id).strip("_")
 
     # Ensure it starts with a letter
     if sanitized and not sanitized[0].isalpha():

@@ -4,7 +4,9 @@ from typing import Any, Dict, List, Literal, Optional, Union, cast
 from unittest.mock import patch
 
 from pydantic import BaseModel, Field
+import pytest
 
+from azure_functions_openapi.exceptions import OpenAPISpecConfigError
 from azure_functions_openapi.utils import (
     _collect_schemas,
     _resolve_name_collision,
@@ -115,9 +117,8 @@ class TestModelToSchema:
                 assert "Item" in components["schemas"]
 
     def test_model_to_schema_initializes_components_when_missing(self) -> None:
-        schema = model_to_schema(SampleModel, None)
-
-        assert schema == {"$ref": "#/components/schemas/SampleModel"}
+        with pytest.raises(OpenAPISpecConfigError):
+            model_to_schema(SampleModel, None)
 
     def test_model_to_schema_resolves_name_collisions(self) -> None:
         with patch("azure_functions_openapi.utils.PYDANTIC_V2", True):
@@ -280,6 +281,19 @@ class TestValidateRoutePath:
         for route in dangerous_routes:
             assert validate_route_path_any(route) is False, f"Route '{route}' should be invalid"
 
+    def test_validate_route_path_invalid_brace_structures(self) -> None:
+        """Test that malformed brace structures are rejected."""
+        invalid_brace_routes = [
+            "{}",           # Empty param name
+            "/{}",          # Empty param name with slash
+            "/api/{}",      # Empty param in path
+            "{{id}}",       # Nested/doubled opening brace
+            "/api/{{id}}",  # Nested brace in path
+            "/api/{123bad}",  # Param name starts with digit
+            "/api/{id",     # Unclosed brace
+        ]
+        for route in invalid_brace_routes:
+            assert validate_route_path_any(route) is False, f"Route '{route}' should be invalid"
 
 class TestSanitizeOperationId:
     """Test sanitize_operation_id function."""
@@ -304,33 +318,33 @@ class TestSanitizeOperationId:
     def test_sanitize_operation_id_invalid_ids(self) -> None:
         """Test sanitization of invalid operation IDs."""
         test_cases = [
-            ("get-user", "getuser"),  # Hyphens removed
-            ("get.user", "getuser"),  # Dots removed
-            ("get user", "getuser"),  # Spaces removed
-            ("get@user", "getuser"),  # Special chars removed
-            ("get#user", "getuser"),  # Special chars removed
-            ("get$user", "getuser"),  # Special chars removed
-            ("get%user", "getuser"),  # Special chars removed
-            ("get&user", "getuser"),  # Special chars removed
-            ("get*user", "getuser"),  # Special chars removed
-            ("get+user", "getuser"),  # Special chars removed
-            ("get=user", "getuser"),  # Special chars removed
-            ("get?user", "getuser"),  # Special chars removed
-            ("get!user", "getuser"),  # Special chars removed
-            ("get^user", "getuser"),  # Special chars removed
-            ("get~user", "getuser"),  # Special chars removed
-            ("get`user", "getuser"),  # Special chars removed
-            ("get|user", "getuser"),  # Special chars removed
-            ("get\\user", "getuser"),  # Special chars removed
-            ("get/user", "getuser"),  # Special chars removed
-            ("get<user", "getuser"),  # Special chars removed
-            ("get>user", "getuser"),  # Special chars removed
-            ("get[user", "getuser"),  # Special chars removed
-            ("get]user", "getuser"),  # Special chars removed
-            ("get{user", "getuser"),  # Special chars removed
-            ("get}user", "getuser"),  # Special chars removed
-            ("get(user", "getuser"),  # Special chars removed
-            ("get)user", "getuser"),  # Special chars removed
+            ("get-user", "get_user"),  # Hyphens → _
+            ("get.user", "get_user"),  # Dots → _
+            ("get user", "get_user"),  # Spaces → _
+            ("get@user", "get_user"),  # Special chars → _
+            ("get#user", "get_user"),  # Special chars → _
+            ("get$user", "get_user"),  # Special chars → _
+            ("get%user", "get_user"),  # Special chars → _
+            ("get&user", "get_user"),  # Special chars → _
+            ("get*user", "get_user"),  # Special chars → _
+            ("get+user", "get_user"),  # Special chars → _
+            ("get=user", "get_user"),  # Special chars → _
+            ("get?user", "get_user"),  # Special chars → _
+            ("get!user", "get_user"),  # Special chars → _
+            ("get^user", "get_user"),  # Special chars → _
+            ("get~user", "get_user"),  # Special chars → _
+            ("get`user", "get_user"),  # Special chars → _
+            ("get|user", "get_user"),  # Special chars → _
+            ("get\\user", "get_user"),  # Special chars → _
+            ("get/user", "get_user"),  # Special chars → _
+            ("get<user", "get_user"),  # Special chars → _
+            ("get>user", "get_user"),  # Special chars → _
+            ("get[user", "get_user"),  # Special chars → _
+            ("get]user", "get_user"),  # Special chars → _
+            ("get{user", "get_user"),  # Special chars → _
+            ("get}user", "get_user"),  # Special chars → _
+            ("get(user", "get_user"),  # Special chars → _
+            ("get)user", "get_user"),  # Special chars → _
         ]
 
         for input_id, expected in test_cases:
@@ -368,7 +382,7 @@ class TestSanitizeOperationId:
 
         # Mixed case with special characters
         result = sanitize_operation_id_any("Get-User@123")
-        assert result == "GetUser123"
+        assert result == "Get_User_123"
 
     def test_sanitize_operation_id_preserves_case(self) -> None:
         """Test that sanitization preserves case."""
@@ -376,8 +390,8 @@ class TestSanitizeOperationId:
             ("GetUser", "GetUser"),
             ("GET_USER", "GET_USER"),
             ("getUser", "getUser"),
-            ("Get-User", "GetUser"),
-            ("GET-USER", "GETUSER"),
+            ("Get-User", "Get_User"),
+            ("GET-USER", "GET_USER"),
         ]
 
         for input_id, expected in test_cases:
@@ -394,7 +408,7 @@ class TestSanitizeOperationId:
 
         # Mixed ASCII and Unicode
         result = sanitize_operation_id_any("get用户123")
-        assert result == "get123"
+        assert result == "get_123"
 
         # Only Unicode
         result = sanitize_operation_id_any("用户")
@@ -549,16 +563,10 @@ class TestRewriteRefsWithMap:
 class TestModelToSchemaCollisionPath:
     """Test model_to_schema name collision and components=None paths."""
 
-    def test_components_none_creates_internally(self) -> None:
-        """model_to_schema(model, None) should work without error."""
-        with patch("azure_functions_openapi.utils.PYDANTIC_V2", True):
-            with patch.object(SampleModel, "model_json_schema") as mock_schema:
-                mock_schema.return_value = {
-                    "type": "object",
-                    "properties": {"name": {"type": "string"}},
-                }
-                result = model_to_schema(SampleModel, None)
-                assert result == {"$ref": "#/components/schemas/SampleModel"}
+    def test_components_none_raises_error(self) -> None:
+        """model_to_schema(model, None) should raise OpenAPISpecConfigError."""
+        with pytest.raises(OpenAPISpecConfigError):
+            model_to_schema(SampleModel, None)
 
     def test_name_collision_triggers_rename(self) -> None:
         """When schema name collides with existing different schema, it gets renamed."""
