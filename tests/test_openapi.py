@@ -1,5 +1,6 @@
 # tests/test_openapi.py
 import json
+from unittest.mock import patch
 
 from pydantic import BaseModel
 
@@ -447,3 +448,147 @@ def test_security_schemes_in_json_output() -> None:
     )
     spec = json.loads(json_str)
     assert "securitySchemes" in spec.get("components", {})
+def test_response_model_with_content_not_dict() -> None:
+    """When existing 200 response has content that is not a dict, it gets replaced."""
+
+    class ContentModel(BaseModel):
+        msg: str
+
+    @openapi(
+        route="/content-not-dict",
+        summary="Content not dict",
+        response={
+            200: {
+                "description": "OK",
+                "content": "not_a_dict",
+            }
+        },
+        response_model=ContentModel,
+    )
+    def content_not_dict_func() -> None:
+        pass
+
+    spec = generate_openapi_spec()
+    resp_200 = spec["paths"]["/content-not-dict"]["get"]["responses"]["200"]
+    assert resp_200["description"] == "OK"
+    # content should have been replaced with a proper dict containing the schema
+    content = resp_200.get("content", {})
+    assert isinstance(content, dict)
+    assert "application/json" in content
+
+
+def test_response_model_with_json_content_not_dict() -> None:
+    """When existing 200 response has application/json that is not a dict, it gets replaced."""
+
+    class JsonContentModel(BaseModel):
+        msg: str
+
+    @openapi(
+        route="/json-content-not-dict",
+        summary="JSON content not dict",
+        response={
+            200: {
+                "description": "OK",
+                "content": {
+                    "application/json": "not_a_dict",
+                },
+            }
+        },
+        response_model=JsonContentModel,
+    )
+    def json_content_not_dict_func() -> None:
+        pass
+
+    spec = generate_openapi_spec()
+    resp_200 = spec["paths"]["/json-content-not-dict"]["get"]["responses"]["200"]
+    json_content = resp_200["content"]["application/json"]
+    assert isinstance(json_content, dict)
+    assert "schema" in json_content
+
+
+def test_response_model_schema_generation_failure_no_200() -> None:
+    """When model_to_schema fails and there is no existing 200, fallback is used."""
+
+    class FailModel(BaseModel):
+        x: int
+
+    @openapi(
+        route="/schema-fail-no-200",
+        summary="Schema fail no 200",
+        response_model=FailModel,
+    )
+    def schema_fail_no_200_func() -> None:
+        pass
+
+    with patch(
+        "azure_functions_openapi.openapi.model_to_schema",
+        side_effect=Exception("schema generation failed"),
+    ):
+        spec = generate_openapi_spec()
+
+    resp_200 = spec["paths"]["/schema-fail-no-200"]["get"]["responses"]["200"]
+    assert resp_200["description"] == "Successful Response"
+    assert resp_200["content"]["application/json"]["schema"] == {"type": "object"}
+
+
+def test_response_model_schema_generation_failure_with_200() -> None:
+    """When model_to_schema fails and there IS an existing 200, fallback still works."""
+
+    class FailModel2(BaseModel):
+        x: int
+
+    @openapi(
+        route="/schema-fail-with-200",
+        summary="Schema fail with 200",
+        response={200: {"description": "Custom 200"}},
+        response_model=FailModel2,
+    )
+    def schema_fail_with_200_func() -> None:
+        pass
+
+    with patch(
+        "azure_functions_openapi.openapi.model_to_schema",
+        side_effect=Exception("schema generation failed"),
+    ):
+        spec = generate_openapi_spec()
+
+    # Since 200 already exists, the fallback shouldn't overwrite it (L138 check)
+    resp_200 = spec["paths"]["/schema-fail-with-200"]["get"]["responses"]["200"]
+    assert resp_200["description"] == "Custom 200"
+
+
+def test_malformed_registry_entry_skipped() -> None:
+    """A registry entry that causes KeyError/TypeError/ValueError should be skipped."""
+
+    # First register a valid function
+    @openapi(
+        route="/valid-endpoint",
+        summary="Valid",
+        response={200: {"description": "OK"}},
+    )
+    def valid_func() -> None:
+        pass
+
+    # Now patch the registry to include a malformed entry alongside valid ones
+    from azure_functions_openapi.decorator import get_openapi_registry
+
+    real_registry = get_openapi_registry()
+
+    # Create a malformed entry that will cause TypeError when processed
+    malformed_registry = dict(real_registry)
+    # response has a non-dict detail value which causes TypeError at dict(detail) on L110
+    malformed_registry["broken_func"] = {
+        "route": "/broken",
+        "method": "get",
+        "response": {200: 42},  # detail=42 → dict(42) raises TypeError
+    }
+
+    with patch(
+        "azure_functions_openapi.openapi.get_openapi_registry",
+        return_value=malformed_registry,
+    ):
+        spec = generate_openapi_spec()
+
+    # Valid endpoint should still be present
+    assert "/valid-endpoint" in spec["paths"]
+    # Broken endpoint should be skipped (not crash the whole spec generation)

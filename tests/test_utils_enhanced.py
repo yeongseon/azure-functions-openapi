@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from azure_functions_openapi.utils import (
     _collect_schemas,
     _resolve_name_collision,
+    _rewrite_ref,
     _rewrite_refs_with_map,
     model_to_schema,
     sanitize_operation_id,
@@ -398,3 +399,236 @@ class TestSanitizeOperationId:
         # Only Unicode
         result = sanitize_operation_id_any("用户")
         assert result == ""
+
+
+class TestRewriteRef:
+    """Test _rewrite_ref function."""
+
+    def test_rewrite_defs_ref(self) -> None:
+        assert _rewrite_ref("#/$defs/Foo") == "#/components/schemas/Foo"
+
+    def test_rewrite_definitions_ref(self) -> None:
+        assert _rewrite_ref("#/definitions/Bar") == "#/components/schemas/Bar"
+
+    def test_passthrough_other_ref(self) -> None:
+        assert _rewrite_ref("#/components/schemas/Baz") == "#/components/schemas/Baz"
+
+    def test_passthrough_unknown_ref(self) -> None:
+        assert _rewrite_ref("#/external/Something") == "#/external/Something"
+
+
+class TestCollectSchemas:
+    """Test _collect_schemas function."""
+
+    def test_non_dict_definition_skipped(self) -> None:
+        """Non-dict values in $defs should be skipped."""
+        schema: Dict[str, Any] = {
+            "type": "object",
+            "$defs": {
+                "Good": {"type": "string"},
+                "Bad": "not_a_dict",
+                "AlsoBad": 42,
+            },
+        }
+        normalized, collected = _collect_schemas(schema)
+        assert "Good" in collected
+        assert "Bad" not in collected
+        assert "AlsoBad" not in collected
+
+    def test_nested_definitions_collected(self) -> None:
+        """Definitions nested inside other definitions should be recursively collected."""
+        schema: Dict[str, Any] = {
+            "type": "object",
+            "$defs": {
+                "Outer": {
+                    "type": "object",
+                    "properties": {"inner": {"$ref": "#/$defs/Inner"}},
+                    "$defs": {
+                        "Inner": {"type": "string"},
+                    },
+                },
+            },
+        }
+        normalized, collected = _collect_schemas(schema)
+        assert "Outer" in collected
+        assert "Inner" in collected
+        # Outer should not retain $defs after processing
+        assert "$defs" not in collected["Outer"]
+
+    def test_empty_definitions(self) -> None:
+        schema: Dict[str, Any] = {"type": "object", "properties": {"id": {"type": "integer"}}}
+        normalized, collected = _collect_schemas(schema)
+        assert collected == {}
+        assert normalized["type"] == "object"
+
+
+class TestResolveNameCollision:
+    """Test _resolve_name_collision function."""
+
+    def test_no_collision(self) -> None:
+        existing: Dict[str, Dict[str, Any]] = {}
+        assert _resolve_name_collision("Foo", {"type": "string"}, existing) == "Foo"
+
+    def test_same_name_identical_schema(self) -> None:
+        schema: Dict[str, Any] = {"type": "string"}
+        existing: Dict[str, Dict[str, Any]] = {"Foo": {"type": "string"}}
+        assert _resolve_name_collision("Foo", schema, existing) == "Foo"
+
+    def test_collision_different_schema(self) -> None:
+        schema: Dict[str, Any] = {"type": "integer"}
+        existing: Dict[str, Dict[str, Any]] = {"Foo": {"type": "string"}}
+        assert _resolve_name_collision("Foo", schema, existing) == "Foo_2"
+
+    def test_collision_cascading(self) -> None:
+        """When Foo and Foo_2 are both taken with different schemas, returns Foo_3."""
+        schema: Dict[str, Any] = {"type": "boolean"}
+        existing: Dict[str, Dict[str, Any]] = {
+            "Foo": {"type": "string"},
+            "Foo_2": {"type": "integer"},
+        }
+        assert _resolve_name_collision("Foo", schema, existing) == "Foo_3"
+
+    def test_collision_candidate_identical(self) -> None:
+        """When Foo is taken but Foo_2 has identical schema, returns Foo_2."""
+        schema: Dict[str, Any] = {"type": "integer"}
+        existing: Dict[str, Dict[str, Any]] = {
+            "Foo": {"type": "string"},
+            "Foo_2": {"type": "integer"},
+        }
+        assert _resolve_name_collision("Foo", schema, existing) == "Foo_2"
+
+
+class TestRewriteRefsWithMap:
+    """Test _rewrite_refs_with_map function."""
+
+    def test_empty_name_map_returns_unchanged(self) -> None:
+        obj: Dict[str, Any] = {"$ref": "#/components/schemas/Foo"}
+        result = _rewrite_refs_with_map(obj, {})
+        assert result == obj
+
+    def test_rewrites_matching_ref(self) -> None:
+        obj: Dict[str, Any] = {"$ref": "#/components/schemas/Foo"}
+        result = _rewrite_refs_with_map(obj, {"Foo": "Foo_2"})
+        assert result == {"$ref": "#/components/schemas/Foo_2"}
+
+    def test_preserves_ref_not_in_map(self) -> None:
+        obj: Dict[str, Any] = {"$ref": "#/components/schemas/Bar"}
+        result = _rewrite_refs_with_map(obj, {"Foo": "Foo_2"})
+        assert result == {"$ref": "#/components/schemas/Bar"}
+
+    def test_preserves_non_components_ref(self) -> None:
+        obj: Dict[str, Any] = {"$ref": "#/external/Foo"}
+        result = _rewrite_refs_with_map(obj, {"Foo": "Foo_2"})
+        assert result == {"$ref": "#/external/Foo"}
+
+    def test_rewrites_refs_in_list(self) -> None:
+        obj = [
+            {"$ref": "#/components/schemas/Foo"},
+            {"$ref": "#/components/schemas/Bar"},
+        ]
+        result = _rewrite_refs_with_map(obj, {"Foo": "Foo_2"})
+        assert result == [
+            {"$ref": "#/components/schemas/Foo_2"},
+            {"$ref": "#/components/schemas/Bar"},
+        ]
+
+    def test_scalar_returned_unchanged(self) -> None:
+        assert _rewrite_refs_with_map("hello", {"Foo": "Foo_2"}) == "hello"
+        assert _rewrite_refs_with_map(42, {"Foo": "Foo_2"}) == 42
+
+    def test_nested_dict_rewrite(self) -> None:
+        obj: Dict[str, Any] = {
+            "properties": {
+                "child": {"$ref": "#/components/schemas/Foo"},
+            }
+        }
+        result = _rewrite_refs_with_map(obj, {"Foo": "Foo_2"})
+        assert result["properties"]["child"]["$ref"] == "#/components/schemas/Foo_2"
+
+
+class TestModelToSchemaCollisionPath:
+    """Test model_to_schema name collision and components=None paths."""
+
+    def test_components_none_creates_internally(self) -> None:
+        """model_to_schema(model, None) should work without error."""
+        with patch("azure_functions_openapi.utils.PYDANTIC_V2", True):
+            with patch.object(SampleModel, "model_json_schema") as mock_schema:
+                mock_schema.return_value = {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+                result = model_to_schema(SampleModel, None)
+                assert result == {"$ref": "#/components/schemas/SampleModel"}
+
+    def test_name_collision_triggers_rename(self) -> None:
+        """When schema name collides with existing different schema, it gets renamed."""
+        with patch("azure_functions_openapi.utils.PYDANTIC_V2", True):
+            with patch.object(SampleModel, "model_json_schema") as mock_schema:
+                mock_schema.return_value = {
+                    "type": "object",
+                    "properties": {"id": {"type": "integer"}},
+                }
+                # Pre-populate with a different schema under the same name
+                components: Dict[str, Any] = {
+                    "schemas": {
+                        "SampleModel": {
+                            "type": "object",
+                            "properties": {"other": {"type": "string"}},
+                        }
+                    }
+                }
+                result = model_to_schema(SampleModel, components)
+
+                # Should be renamed to SampleModel_2
+                assert result == {"$ref": "#/components/schemas/SampleModel_2"}
+                assert "SampleModel_2" in components["schemas"]
+                # Original should be preserved
+                other_type = components["schemas"]["SampleModel"]["properties"]["other"]["type"]
+                assert other_type == "string"
+
+    def test_identical_schema_no_overwrite(self) -> None:
+        """When schema already exists with identical content, no rename or overwrite."""
+        with patch("azure_functions_openapi.utils.PYDANTIC_V2", True):
+            with patch.object(SampleModel, "model_json_schema") as mock_schema:
+                schema_content: Dict[str, Any] = {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+                mock_schema.return_value = dict(schema_content)
+                # Pre-populate with identical schema
+                components: Dict[str, Any] = {
+                    "schemas": {"SampleModel": dict(schema_content)}
+                }
+                result = model_to_schema(SampleModel, components)
+
+                assert result == {"$ref": "#/components/schemas/SampleModel"}
+                # Should still be the same content, no _2 variant
+                assert "SampleModel_2" not in components["schemas"]
+
+    def test_name_collision_with_nested_refs_rewritten(self) -> None:
+        """When collision occurs, $refs in the schema body are also rewritten."""
+        with patch("azure_functions_openapi.utils.PYDANTIC_V2", True):
+            with patch.object(SampleModel, "model_json_schema") as mock_schema:
+                mock_schema.return_value = {
+                    "type": "object",
+                    "properties": {
+                        "child": {"$ref": "#/components/schemas/Child"},
+                    },
+                    "$defs": {
+                        "Child": {"type": "string"},
+                    },
+                }
+                # Pre-populate Child with a different schema to force collision
+                components: Dict[str, Any] = {
+                    "schemas": {
+                        "Child": {"type": "integer"},
+                    }
+                }
+                result = model_to_schema(SampleModel, components)
+
+                assert result == {"$ref": "#/components/schemas/SampleModel"}
+                # Child should be renamed to Child_2
+                assert "Child_2" in components["schemas"]
+                # The ref in SampleModel should point to Child_2
+                registered = components["schemas"]["SampleModel"]
+                assert registered["properties"]["child"]["$ref"] == "#/components/schemas/Child_2"

@@ -2,15 +2,34 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 from pathlib import Path
 import sys
 
 from azure_functions_openapi.openapi import (
     OPENAPI_VERSION_3_0,
     OPENAPI_VERSION_3_1,
-    get_openapi_json,
-    get_openapi_yaml,
+    generate_openapi_spec,
 )
+
+
+def _import_app_module(app: str) -> None:
+    """Import a user module to trigger @openapi decorator registration.
+
+    Accepts either ``module_name`` or ``module_name:variable`` format.
+    The variable part is accepted but ignored — importing the module is
+    sufficient to execute all top-level ``@openapi`` decorators.
+
+    Parameters:
+        app: Module import path, optionally with a ``:variable`` suffix.
+
+    Raises:
+        ImportError: If the module cannot be found or fails to import.
+    """
+    module_name = app.partition(":")[0].strip()
+    if not module_name:
+        raise ValueError(f"Invalid --app value: {app!r}. Expected 'module' or 'module:variable'.")
+    importlib.import_module(module_name)
 
 
 def main() -> int:
@@ -20,9 +39,16 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Generate OpenAPI spec
+  # Generate OpenAPI spec (registry populated at runtime — no --app needed
+  # when this command runs inside the same process that loaded your app)
   azure-functions-openapi generate --title "My API" --version "1.0.0"
-  
+
+  # Import your function app module so @openapi decorators are registered
+  azure-functions-openapi generate --app function_app --title "My API"
+
+  # module:variable format is also accepted (variable is ignored)
+  azure-functions-openapi generate --app function_app:app --title "My API"
+
   # Generate and save to file
   azure-functions-openapi generate --output openapi.json --format json
         """,
@@ -32,6 +58,16 @@ Examples:
 
     # Generate command
     generate_parser = subparsers.add_parser("generate", help="Generate OpenAPI specification")
+    generate_parser.add_argument(
+        "--app",
+        metavar="MODULE[:VARIABLE]",
+        help=(
+            "Python module to import before generating the spec "
+            "(e.g. 'function_app' or 'function_app:app'). "
+            "Importing the module executes @openapi decorators so that "
+            "all routes are visible to the generator."
+        ),
+    )
     generate_parser.add_argument("--title", default="API", help="API title (default: API)")
     generate_parser.add_argument("--version", default="1.0.0", help="API version (default: 1.0.0)")
     generate_parser.add_argument("--output", "-o", help="Output file path")
@@ -70,14 +106,39 @@ Examples:
 def handle_generate(args: argparse.Namespace) -> int:
     """Handle generate command."""
     try:
+        # Import user module first so @openapi decorators populate the registry.
+        if getattr(args, "app", None):
+            try:
+                _import_app_module(args.app)
+            except (ImportError, ValueError) as e:
+                print(
+                    f"Error: Could not import module from --app {args.app!r}: {e}",
+                    file=sys.stderr,
+                )
+                return 1
+
         openapi_version = (
             OPENAPI_VERSION_3_1 if args.openapi_version == "3.1" else OPENAPI_VERSION_3_0
         )
 
+        # Check for empty paths before serialising — gives a clear signal
+        # instead of silently producing a spec with no routes.
+        spec = generate_openapi_spec(args.title, args.version, openapi_version)
+        if not spec.get("paths"):
+            print(
+                "Warning: No routes found in the OpenAPI registry. "
+                "The generated spec contains no paths.\n"
+                "Hint: use --app <module> to import your function app before generating "
+                "(e.g. --app function_app or --app function_app:app).",
+                file=sys.stderr,
+            )
+
         if args.format == "json":
-            content = get_openapi_json(args.title, args.version, openapi_version)
+            import json
+            content = json.dumps(spec, indent=2, ensure_ascii=False)
         else:
-            content = get_openapi_yaml(args.title, args.version, openapi_version)
+            import yaml
+            content = yaml.safe_dump(spec, sort_keys=False, allow_unicode=True)
 
         if args.output:
             output_path = Path(args.output)

@@ -11,7 +11,7 @@ from unittest import mock
 
 import pytest
 
-from azure_functions_openapi.cli import handle_generate, main
+from azure_functions_openapi.cli import _import_app_module, handle_generate, main
 
 
 class TestMain:
@@ -69,6 +69,7 @@ class TestHandleGenerate:
         args.output = None
         args.pretty = False
         args.openapi_version = "3.0"
+        args.app = None
 
         with mock.patch("builtins.print") as mock_print:
             result = handle_generate(args)
@@ -90,6 +91,7 @@ class TestHandleGenerate:
         args.output = None
         args.pretty = False
         args.openapi_version = "3.0"
+        args.app = None
 
         with mock.patch("builtins.print") as mock_print:
             result = handle_generate(args)
@@ -109,6 +111,7 @@ class TestHandleGenerate:
         args.output = None
         args.pretty = False
         args.openapi_version = "3.1"
+        args.app = None
 
         with mock.patch("builtins.print") as mock_print:
             result = handle_generate(args)
@@ -129,6 +132,7 @@ class TestHandleGenerate:
         args.output = None
         args.pretty = False
         args.openapi_version = "3.0"
+        args.app = None
 
         with mock.patch("builtins.print") as mock_print:
             result = handle_generate(args)
@@ -150,6 +154,7 @@ class TestHandleGenerate:
             args.output = str(output_path)
             args.pretty = False
             args.openapi_version = "3.0"
+            args.app = None
 
             result = handle_generate(args)
 
@@ -168,6 +173,7 @@ class TestHandleGenerate:
         args.output = None
         args.pretty = False
         args.openapi_version = "3.1"
+        args.app = None
 
         with mock.patch("builtins.print") as mock_print:
             result = handle_generate(args)
@@ -185,10 +191,11 @@ class TestHandleGenerate:
             output=None,
             pretty=False,
             openapi_version="3.0",
+            app=None,
         )
 
         with mock.patch(
-            "azure_functions_openapi.cli.get_openapi_json",
+            "azure_functions_openapi.cli.generate_openapi_spec",
             side_effect=RuntimeError("boom"),
         ):
             with mock.patch("builtins.print") as mock_print:
@@ -209,9 +216,14 @@ class TestHandleGenerate:
             output="broken.json",
             pretty=False,
             openapi_version="3.0",
+            app=None,
         )
 
-        with mock.patch("azure_functions_openapi.cli.get_openapi_json", return_value="{}"):
+        spec_return: dict[str, object] = {"paths": {}, "info": {}}
+        with mock.patch(
+            "azure_functions_openapi.cli.generate_openapi_spec",
+            return_value=spec_return,
+        ):
             with mock.patch.object(Path, "write_text", side_effect=OSError("disk full")):
                 with mock.patch("builtins.print") as mock_print:
                     result = handle_generate(args)
@@ -285,3 +297,252 @@ class TestCLIIntegration:
             assert spec["openapi"] == "3.1.0"
             assert spec["info"]["title"] == "Full Test"
             assert spec["info"]["version"] == "2.0.0"
+
+
+class TestMainExceptionHandling:
+    """Tests for exception handling in main()."""
+
+    def test_main_catches_exception_from_handle_generate(self) -> None:
+        """When handle_generate raises, main() catches and returns 1."""
+        with mock.patch.object(
+            sys, "argv", ["azure-functions-openapi", "generate"]
+        ):
+            with mock.patch(
+                "azure_functions_openapi.cli.handle_generate",
+                side_effect=RuntimeError("boom"),
+            ):
+                with mock.patch("builtins.print") as mock_print:
+                    result = main()
+
+                assert result == 1
+                # Should print error to stderr
+                mock_print.assert_called_once()
+                assert "boom" in str(mock_print.call_args)
+
+
+class TestHandleGenerateExceptionHandling:
+    """Tests for exception handling in handle_generate()."""
+
+    def test_handle_generate_catches_spec_generation_failure(self) -> None:
+        """When get_openapi_json raises, handle_generate returns 1."""
+        args = mock.Mock()
+        args.title = "Test"
+        args.version = "1.0.0"
+        args.format = "json"
+        args.output = None
+        args.pretty = False
+        args.openapi_version = "3.0"
+        args.app = None
+
+        with mock.patch(
+            "azure_functions_openapi.cli.generate_openapi_spec",
+            side_effect=RuntimeError("generation failed"),
+        ):
+            with mock.patch("builtins.print") as mock_print:
+                result = handle_generate(args)
+
+        assert result == 1
+        mock_print.assert_called_once()
+        assert "Failed to generate" in str(mock_print.call_args)
+
+    def test_handle_generate_catches_yaml_generation_failure(self) -> None:
+        """When get_openapi_yaml raises, handle_generate returns 1."""
+        args = mock.Mock()
+        args.title = "Test"
+        args.version = "1.0.0"
+        args.format = "yaml"
+        args.output = None
+        args.pretty = False
+        args.openapi_version = "3.0"
+        args.app = None
+
+        with mock.patch(
+            "azure_functions_openapi.cli.generate_openapi_spec",
+            side_effect=RuntimeError("yaml failed"),
+        ):
+            with mock.patch("builtins.print") as mock_print:
+                result = handle_generate(args)
+
+        assert result == 1
+        assert "Failed to generate" in str(mock_print.call_args)
+
+
+class TestImportAppModule:
+    """Tests for _import_app_module helper."""
+
+    def test_plain_module_name_is_imported(self) -> None:
+        """Plain 'module' format imports the module."""
+        with mock.patch("importlib.import_module") as mock_import:
+            _import_app_module("my_function_app")
+        mock_import.assert_called_once_with("my_function_app")
+
+    def test_module_colon_variable_format_imports_module_only(self) -> None:
+        """'module:variable' format imports only the module part."""
+        with mock.patch("importlib.import_module") as mock_import:
+            _import_app_module("my_function_app:app")
+        mock_import.assert_called_once_with("my_function_app")
+
+    def test_empty_module_name_raises_value_error(self) -> None:
+        """Empty module name (e.g. ':app') raises ValueError."""
+        with pytest.raises(ValueError, match="Invalid --app value"):
+            _import_app_module(":app")
+
+    def test_import_error_propagates(self) -> None:
+        """ImportError from a missing module propagates to caller."""
+        with pytest.raises(ImportError):
+            _import_app_module("nonexistent_module_xyz_12345")
+
+
+class TestHandleGenerateWithApp:
+    """Tests for --app option in handle_generate."""
+
+    def test_app_option_triggers_module_import(self) -> None:
+        """handle_generate imports the specified module before generating."""
+        args = mock.Mock()
+        args.title = "Test API"
+        args.version = "1.0.0"
+        args.format = "json"
+        args.output = None
+        args.pretty = False
+        args.openapi_version = "3.0"
+        args.app = "my_function_app"
+
+        with mock.patch("azure_functions_openapi.cli._import_app_module") as mock_import:
+            with mock.patch("builtins.print"):
+                result = handle_generate(args)
+
+        assert result == 0
+        mock_import.assert_called_once_with("my_function_app")
+
+    def test_app_import_failure_returns_1(self) -> None:
+        """If the module import fails, handle_generate returns exit code 1."""
+        args = mock.Mock()
+        args.title = "Test API"
+        args.version = "1.0.0"
+        args.format = "json"
+        args.output = None
+        args.pretty = False
+        args.openapi_version = "3.0"
+        args.app = "nonexistent_module_xyz"
+
+        with mock.patch(
+            "azure_functions_openapi.cli._import_app_module",
+            side_effect=ImportError("No module named 'nonexistent_module_xyz'"),
+        ):
+            result = handle_generate(args)
+
+        assert result == 1
+
+    def test_no_app_option_skips_import(self) -> None:
+        """When --app is not provided, no import is attempted."""
+        args = mock.Mock()
+        args.title = "Test API"
+        args.version = "1.0.0"
+        args.format = "json"
+        args.output = None
+        args.pretty = False
+        args.openapi_version = "3.0"
+        args.app = None
+
+        with mock.patch("azure_functions_openapi.cli._import_app_module") as mock_import:
+            with mock.patch("builtins.print"):
+                result = handle_generate(args)
+
+        assert result == 0
+        mock_import.assert_not_called()
+
+
+class TestEmptyPathsWarning:
+    """Tests for the empty-paths guard warning."""
+
+    def test_empty_paths_emits_warning_to_stderr(self) -> None:
+        """When the generated spec has no paths, a hint is written to stderr."""
+        args = mock.Mock()
+        args.title = "Test API"
+        args.version = "1.0.0"
+        args.format = "json"
+        args.output = None
+        args.pretty = False
+        args.openapi_version = "3.0"
+        args.app = None
+
+        empty_spec = {
+            "openapi": "3.0.0",
+            "info": {"title": "Test API", "version": "1.0.0"},
+            "paths": {},
+        }
+
+        with mock.patch(
+            "azure_functions_openapi.cli.generate_openapi_spec",
+            return_value=empty_spec,
+        ):
+            with mock.patch("builtins.print") as mock_print:
+                result = handle_generate(args)
+
+        assert result == 0
+        # Warning goes to stderr via print(..., file=sys.stderr)
+        # We verify the print was called with the hint text by checking all calls.
+        all_calls = str(mock_print.call_args_list)
+        assert "--app" in all_calls
+
+    def test_non_empty_paths_no_warning(self) -> None:
+        """When paths are present, no warning is emitted."""
+        args = mock.Mock()
+        args.title = "Test API"
+        args.version = "1.0.0"
+        args.format = "json"
+        args.output = None
+        args.pretty = False
+        args.openapi_version = "3.0"
+        args.app = None
+
+        spec_with_paths = {
+            "openapi": "3.0.0",
+            "info": {"title": "Test API", "version": "1.0.0"},
+            "paths": {"/hello": {"get": {"responses": {"200": {"description": "ok"}}}}},
+        }
+
+        with mock.patch(
+            "azure_functions_openapi.cli.generate_openapi_spec",
+            return_value=spec_with_paths,
+        ):
+            import io
+            fake_stderr = io.StringIO()
+            with mock.patch("sys.stderr", fake_stderr):
+                with mock.patch("builtins.print"):
+                    result = handle_generate(args)
+
+        assert result == 0
+        assert "--app" not in fake_stderr.getvalue()
+
+
+class TestCLIAppFlag:
+    """Integration tests for --app flag via sys.argv."""
+
+    def test_app_flag_via_argv(self) -> None:
+        """--app flag is parsed and passed through to handle_generate."""
+        with mock.patch.object(
+            sys,
+            "argv",
+            ["azure-functions-openapi", "generate", "--app", "function_app"],
+        ):
+            with mock.patch("azure_functions_openapi.cli._import_app_module") as mock_import:
+                with mock.patch("builtins.print"):
+                    result = main()
+
+        assert result == 0
+        mock_import.assert_called_once_with("function_app")
+
+    def test_app_colon_variable_via_argv(self) -> None:
+        """--app module:variable format is accepted via argv."""
+        with mock.patch.object(
+            sys,
+            "argv",
+            ["azure-functions-openapi", "generate", "--app", "function_app:app"],
+        ):
+            with mock.patch("azure_functions_openapi.cli._import_app_module") as mock_import:
+                with mock.patch("builtins.print"):
+                    result = main()
+
+        assert result == 0
+        mock_import.assert_called_once_with("function_app:app")
