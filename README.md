@@ -35,6 +35,32 @@ This package does **not** support the legacy `function.json`-based v1 programmin
 - Swagger UI helper with security defaults
 - CLI tooling for spec generation (JSON and YAML output)
 
+## CLI Quick Start
+
+Generate an OpenAPI spec from your decorated function app:
+
+```bash
+# Install
+pip install azure-functions-openapi
+
+# Generate spec from a function app module (registers @openapi routes)
+azure-functions-openapi generate --app function_app --title "My API" --format json
+
+# Write to file with pretty-printing
+azure-functions-openapi generate --app function_app --title "My API" --pretty --output openapi.json
+
+# YAML output
+azure-functions-openapi generate --app function_app --format yaml --output openapi.yaml
+```
+
+Pass `module:variable` when the `FunctionApp` instance has a non-default name:
+
+```bash
+azure-functions-openapi generate --app function_app:my_app --title "My API"
+```
+
+See the [CLI Guide](docs/cli.md) for all options and CI integration examples.
+
 ## Installation
 
 ```bash

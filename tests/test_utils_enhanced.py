@@ -1,6 +1,6 @@
 # tests/test_utils_enhanced.py
 
-from typing import Any, Dict, cast
+from typing import Any, Dict, List, Literal, Optional, Union, cast
 from unittest.mock import patch
 
 from pydantic import BaseModel, Field
@@ -632,3 +632,115 @@ class TestModelToSchemaCollisionPath:
                 # The ref in SampleModel should point to Child_2
                 registered = components["schemas"]["SampleModel"]
                 assert registered["properties"]["child"]["$ref"] == "#/components/schemas/Child_2"
+
+
+# ---------------------------------------------------------------------------
+# Pydantic v2 real-model edge cases (no mocking — exercises actual schema gen)
+# ---------------------------------------------------------------------------
+
+
+class Address(BaseModel):
+    street: str
+    city: str
+
+
+class PersonWithOptional(BaseModel):
+    name: str
+    nickname: Optional[str] = None
+
+
+class PersonWithUnion(BaseModel):
+    identifier: Union[int, str]
+
+
+class PersonWithLiteral(BaseModel):
+    role: Literal["admin", "user", "guest"] = "user"
+
+
+class PersonWithNested(BaseModel):
+    name: str
+    address: Address
+
+
+class PersonWithList(BaseModel):
+    tags: List[str]
+    addresses: List[Address]
+
+
+class TestPydanticV2EdgeCases:
+    """Real Pydantic v2 models - no mocking, exercises actual model_json_schema output."""
+
+    def test_optional_field_not_required(self) -> None:
+        """Optional[str] field must NOT appear in 'required'."""
+        components: Dict[str, Any] = {"schemas": {}}
+        ref = model_to_schema(PersonWithOptional, components)
+        assert ref == {"$ref": "#/components/schemas/PersonWithOptional"}
+        schema = components["schemas"]["PersonWithOptional"]
+        required = schema.get("required", [])
+        assert "name" in required
+        assert "nickname" not in required
+
+    def test_union_field_produces_valid_schema(self) -> None:
+        """Union[int, str] must produce anyOf / oneOf or a schema without errors."""
+        components: Dict[str, Any] = {"schemas": {}}
+        ref = model_to_schema(PersonWithUnion, components)
+        assert ref == {"$ref": "#/components/schemas/PersonWithUnion"}
+        schema = components["schemas"]["PersonWithUnion"]
+        assert "properties" in schema
+        identifier = schema["properties"]["identifier"]
+        # Pydantic v2 emits anyOf for Union[int, str]
+        assert "anyOf" in identifier or "type" in identifier
+
+    def test_literal_field_uses_enum(self) -> None:
+        """Literal['admin','user','guest'] must produce an enum in the schema."""
+        components: Dict[str, Any] = {"schemas": {}}
+        ref = model_to_schema(PersonWithLiteral, components)
+        assert ref == {"$ref": "#/components/schemas/PersonWithLiteral"}
+        schema = components["schemas"]["PersonWithLiteral"]
+        role = schema["properties"]["role"]
+        # Pydantic v2 may inline the enum or wrap in anyOf/const
+        assert "enum" in role or "const" in role or "anyOf" in role
+
+    def test_nested_model_registered_as_component(self) -> None:
+        """Nested Pydantic model must be registered separately in components.schemas."""
+        components: Dict[str, Any] = {"schemas": {}}
+        ref = model_to_schema(PersonWithNested, components)
+        assert ref == {"$ref": "#/components/schemas/PersonWithNested"}
+        # Address must be hoisted into components.schemas
+        assert "Address" in components["schemas"]
+        # The nested ref must point to #/components/schemas/Address
+        address_ref = components["schemas"]["PersonWithNested"]["properties"]["address"]["$ref"]
+        assert address_ref == "#/components/schemas/Address"
+
+    def test_list_of_nested_model_registered(self) -> None:
+        """List[NestedModel] must hoist the nested model and rewrite $refs."""
+        components: Dict[str, Any] = {"schemas": {}}
+        ref = model_to_schema(PersonWithList, components)
+        assert ref == {"$ref": "#/components/schemas/PersonWithList"}
+        # Address must be registered even when used inside a list
+        assert "Address" in components["schemas"]
+        schema = components["schemas"]["PersonWithList"]
+        items = schema["properties"]["addresses"]["items"]
+        assert items.get("$ref") == "#/components/schemas/Address"
+
+    def test_no_defs_key_in_registered_schemas(self) -> None:
+        """$defs must never appear in the final registered component schemas."""
+        components: Dict[str, Any] = {"schemas": {}}
+        model_to_schema(PersonWithNested, components)
+        for name, schema in components["schemas"].items():
+            assert "$defs" not in schema, f"$defs leaked into components.schemas['{name}']"
+            assert "definitions" not in schema, (
+                f"definitions leaked into components.schemas['{name}']"
+            )
+
+    def test_multiple_models_no_cross_contamination(self) -> None:
+        """Registering two unrelated models must not contaminate each other.
+        Uses the same components dict for both calls."""
+        components: Dict[str, Any] = {"schemas": {}}
+        model_to_schema(PersonWithOptional, components)
+        model_to_schema(PersonWithLiteral, components)
+        assert "PersonWithOptional" in components["schemas"]
+        assert "PersonWithLiteral" in components["schemas"]
+        # PersonWithOptional should not have PersonWithLiteral's fields
+        assert "role" not in components["schemas"]["PersonWithOptional"].get("properties", {})
+        assert "nickname" not in components["schemas"]["PersonWithLiteral"].get("properties", {})

@@ -146,8 +146,17 @@ jobs:
 ### Empty `paths` in output
 
 - Ensure app handlers are decorated with `@openapi`
-- Ensure decorated modules are imported before running generation
+- Pass `--app <module>` so decorated routes are registered before generation:
 
+  ```bash
+  azure-functions-openapi generate --app function_app --title "My API"
+  ```
+
+- Use `module:variable` syntax when the `FunctionApp` instance is not named `app`:
+
+  ```bash
+  azure-functions-openapi generate --app function_app:my_app --title "My API"
+  ```
 ### Unsupported version error
 
 - Use only `--openapi-version 3.0` or `--openapi-version 3.1`
