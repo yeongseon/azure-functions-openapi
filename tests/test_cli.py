@@ -71,8 +71,16 @@ class TestHandleGenerate:
         args.openapi_version = "3.0"
         args.app = None
 
-        with mock.patch("builtins.print") as mock_print:
-            result = handle_generate(args)
+        _spec = {
+            "openapi": "3.0.0",
+            "info": {"title": "Test API", "version": "1.0.0"},
+            "paths": {"/hello": {"get": {"responses": {"200": {"description": "ok"}}}}},
+        }
+        with mock.patch(
+            "azure_functions_openapi.cli.generate_openapi_spec", return_value=_spec
+        ):
+            with mock.patch("builtins.print") as mock_print:
+                result = handle_generate(args)
 
         assert result == 0
         mock_print.assert_called_once()
@@ -117,15 +125,22 @@ class TestHandleGenerate:
         args.openapi_version = "3.0"
         args.app = None
 
-        with mock.patch("builtins.print") as mock_print:
-            result = handle_generate(args)
+        _spec = {
+            "openapi": "3.0.0",
+            "info": {"title": "YAML API", "version": "2.0.0"},
+            "paths": {"/hello": {"get": {"responses": {"200": {"description": "ok"}}}}},
+        }
+        with mock.patch(
+            "azure_functions_openapi.cli.generate_openapi_spec", return_value=_spec
+        ):
+            with mock.patch("builtins.print") as mock_print:
+                result = handle_generate(args)
 
         assert result == 0
         mock_print.assert_called_once()
         output = mock_print.call_args[0][0]
         assert "openapi:" in output
         assert "YAML API" in output
-
     def test_generate_openapi_version_3_1(self) -> None:
         """Test OpenAPI 3.1 generation."""
         args = mock.Mock()
@@ -137,8 +152,16 @@ class TestHandleGenerate:
         args.openapi_version = "3.1"
         args.app = None
 
-        with mock.patch("builtins.print") as mock_print:
-            result = handle_generate(args)
+        _spec = {
+            "openapi": "3.1.0",
+            "info": {"title": "API 3.1", "version": "1.0.0"},
+            "paths": {"/hello": {"get": {"responses": {"200": {"description": "ok"}}}}},
+        }
+        with mock.patch(
+            "azure_functions_openapi.cli.generate_openapi_spec", return_value=_spec
+        ):
+            with mock.patch("builtins.print") as mock_print:
+                result = handle_generate(args)
 
         assert result == 0
         mock_print.assert_called_once()
@@ -241,6 +264,7 @@ class TestHandleGenerate:
             pretty=False,
             openapi_version="3.0",
             app=None,
+            fail_on_empty_paths=False,
         )
 
         spec_return: dict[str, object] = {"paths": {}, "info": {}}
@@ -253,7 +277,11 @@ class TestHandleGenerate:
                     result = handle_generate(args)
 
         assert result == 1
-        mock_print.assert_called_with(
+        # assert_any_call (not assert_called_with) because handle_generate may
+        # emit multiple print() calls (e.g. progress messages) before writing;
+        # we only care that the error message appeared at least once.
+
+        mock_print.assert_any_call(
             "Failed to generate OpenAPI specification: disk full",
             file=sys.stderr,
         )
@@ -415,6 +443,15 @@ class TestImportAppModule:
         """ImportError from a missing module propagates to caller."""
         with pytest.raises(ImportError):
             _import_app_module("nonexistent_module_xyz_12345")
+    def test_nonexistent_variable_raises_attribute_error(self) -> None:
+        """'module:nonexistent' raises AttributeError with a clear message."""
+        import types
+        fake_mod = types.ModuleType("fake_mod")
+        with mock.patch("importlib.import_module", return_value=fake_mod):
+            with pytest.raises(AttributeError, match="no attribute 'nonexistent'"):
+                _import_app_module("fake_mod:nonexistent")
+
+
 
 
 class TestHandleGenerateWithApp:
@@ -456,6 +493,25 @@ class TestHandleGenerateWithApp:
             result = handle_generate(args)
 
         assert result == 1
+    def test_app_attribute_error_returns_1(self) -> None:
+        """If the named variable does not exist, handle_generate returns exit code 1."""
+        args = mock.Mock()
+        args.title = "Test API"
+        args.version = "1.0.0"
+        args.format = "json"
+        args.output = None
+        args.pretty = False
+        args.openapi_version = "3.0"
+        args.app = "function_app:nonexistent_var"
+
+        with mock.patch(
+            "azure_functions_openapi.cli._import_app_module",
+            side_effect=AttributeError("Module 'function_app' has no attribute 'nonexistent_var'"),
+        ):
+            result = handle_generate(args)
+
+        assert result == 1
+
 
     def test_no_app_option_skips_import(self) -> None:
         """When --app is not provided, no import is attempted."""
@@ -489,6 +545,7 @@ class TestEmptyPathsWarning:
         args.pretty = False
         args.openapi_version = "3.0"
         args.app = None
+        args.fail_on_empty_paths = False
 
         empty_spec = {
             "openapi": "3.0.0",
@@ -570,3 +627,82 @@ class TestCLIAppFlag:
 
         assert result == 0
         mock_import.assert_called_once_with("function_app:app")
+
+
+class TestFailOnEmptyPaths:
+    """Tests for --fail-on-empty-paths flag."""
+
+    def test_fail_on_empty_paths_returns_1_when_no_routes(self) -> None:
+        """When --fail-on-empty-paths is set and spec has no paths, return 1."""
+        args = mock.Mock()
+        args.title = "Test API"
+        args.version = "1.0.0"
+        args.format = "json"
+        args.output = None
+        args.pretty = False
+        args.openapi_version = "3.0"
+        args.app = None
+        args.fail_on_empty_paths = True
+
+        empty_spec = {
+            "openapi": "3.0.0",
+            "info": {"title": "Test API", "version": "1.0.0"},
+            "paths": {},
+        }
+
+        with mock.patch(
+            "azure_functions_openapi.cli.generate_openapi_spec",
+            return_value=empty_spec,
+        ):
+            with mock.patch("builtins.print"):
+                result = handle_generate(args)
+
+        assert result == 1
+
+    def test_fail_on_empty_paths_false_returns_0_when_no_routes(self) -> None:
+        """Without --fail-on-empty-paths, empty paths still returns 0."""
+        args = mock.Mock()
+        args.title = "Test API"
+        args.version = "1.0.0"
+        args.format = "json"
+        args.output = None
+        args.pretty = False
+        args.openapi_version = "3.0"
+        args.app = None
+        args.fail_on_empty_paths = False
+
+        empty_spec = {
+            "openapi": "3.0.0",
+            "info": {"title": "Test API", "version": "1.0.0"},
+            "paths": {},
+        }
+
+        with mock.patch(
+            "azure_functions_openapi.cli.generate_openapi_spec",
+            return_value=empty_spec,
+        ):
+            with mock.patch("builtins.print"):
+                result = handle_generate(args)
+
+        assert result == 0
+
+    def test_fail_on_empty_paths_flag_via_argv(self) -> None:
+        """--fail-on-empty-paths flag is parsed and causes exit 1 when no routes."""
+        with mock.patch.object(
+            sys,
+            "argv",
+            ["azure-functions-openapi", "generate", "--fail-on-empty-paths"],
+        ):
+            empty_spec = {
+                "openapi": "3.0.0",
+                "info": {"title": "API", "version": "1.0.0"},
+                "paths": {},
+            }
+            with mock.patch(
+                "azure_functions_openapi.cli.generate_openapi_spec",
+                return_value=empty_spec,
+            ):
+                with mock.patch("builtins.print"):
+                    result = main()
+
+        assert result == 1

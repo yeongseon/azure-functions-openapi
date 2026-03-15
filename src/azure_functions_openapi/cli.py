@@ -6,6 +6,7 @@ import importlib
 from pathlib import Path
 import sys
 
+from azure_functions_openapi.exceptions import OpenAPISpecConfigError
 from azure_functions_openapi.openapi import (
     OPENAPI_VERSION_3_0,
     OPENAPI_VERSION_3_1,
@@ -17,19 +18,28 @@ def _import_app_module(app: str) -> None:
     """Import a user module to trigger @openapi decorator registration.
 
     Accepts either ``module_name`` or ``module_name:variable`` format.
-    The variable part is accepted but ignored — importing the module is
-    sufficient to execute all top-level ``@openapi`` decorators.
+    When the ``variable`` part is provided it is validated to exist on the
+    imported module so that typos are caught early.
 
     Parameters:
         app: Module import path, optionally with a ``:variable`` suffix.
 
     Raises:
         ImportError: If the module cannot be found or fails to import.
+        AttributeError: If the named variable does not exist on the module.
     """
-    module_name = app.partition(":")[0].strip()
+    module_name, _, variable = app.partition(":")
+    module_name = module_name.strip()
     if not module_name:
         raise ValueError(f"Invalid --app value: {app!r}. Expected 'module' or 'module:variable'.")
-    importlib.import_module(module_name)
+    mod = importlib.import_module(module_name)
+    if variable:
+        variable = variable.strip()
+        if not hasattr(mod, variable):
+            raise AttributeError(
+                f"Module '{module_name}' has no attribute '{variable}'. "
+                f"Check the variable name after the colon in --app {app!r}."
+            )
 
 
 def main() -> int:
@@ -46,7 +56,7 @@ Examples:
   # Import your function app module so @openapi decorators are registered
   azure-functions-openapi generate --app function_app --title "My API"
 
-  # module:variable format is also accepted (variable is ignored)
+  # module:variable format: module is imported, variable existence is validated
   azure-functions-openapi generate --app function_app:app --title "My API"
 
   # Generate and save to file
@@ -80,6 +90,12 @@ Examples:
     )
     generate_parser.add_argument("--pretty", "-p", action="store_true", help="Pretty print output")
     generate_parser.add_argument(
+        "--fail-on-empty-paths",
+        action="store_true",
+        default=False,
+        help="Exit with code 1 if the generated spec contains no paths.",
+    )
+    generate_parser.add_argument(
         "--openapi-version",
         choices=["3.0", "3.1"],
         default="3.0",
@@ -110,7 +126,7 @@ def handle_generate(args: argparse.Namespace) -> int:
         if getattr(args, "app", None):
             try:
                 _import_app_module(args.app)
-            except (ImportError, ValueError) as e:
+            except (ImportError, ValueError, AttributeError) as e:
                 print(
                     f"Error: Could not import module from --app {args.app!r}: {e}",
                     file=sys.stderr,
@@ -132,6 +148,8 @@ def handle_generate(args: argparse.Namespace) -> int:
                 "(e.g. --app function_app or --app function_app:app).",
                 file=sys.stderr,
             )
+            if getattr(args, "fail_on_empty_paths", False):
+                return 1
 
         if args.format == "json":
             import json
@@ -149,6 +167,9 @@ def handle_generate(args: argparse.Namespace) -> int:
             print(content)
 
         return 0
+    except OpenAPISpecConfigError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
     except Exception as e:
         print(f"Failed to generate OpenAPI specification: {e}", file=sys.stderr)
         return 1
