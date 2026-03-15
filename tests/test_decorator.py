@@ -206,3 +206,41 @@ def test_openapi_registers_security_scheme_metadata() -> None:
     assert registry["secured_scheme_dummy"]["security_scheme"] == {
         "BearerAuth": {"type": "http", "scheme": "bearer"}
     }
+
+
+def test_openapi_registers_request_body_required_default() -> None:
+    """request_body_required defaults to True and is stored in registry."""
+    @openapi(
+        summary="Required body by default",
+        method="post",
+        request_body={"type": "object"},
+        response={200: {"description": "OK"}},
+    )
+    def default_required_func() -> None:
+        pass
+
+    registry = get_openapi_registry()
+    assert registry["default_required_func"]["request_body_required"] is True
+
+
+def test_openapi_registers_request_body_required_false() -> None:
+    """request_body_required=False is stored in registry and used in spec."""
+    from azure_functions_openapi.openapi import generate_openapi_spec
+
+    @openapi(
+        summary="Optional body",
+        route="/optional-body",
+        method="post",
+        request_body={"type": "object"},
+        request_body_required=False,
+        response={200: {"description": "OK"}},
+    )
+    def optional_body_func() -> None:
+        pass
+
+    registry = get_openapi_registry()
+    assert registry["optional_body_func"]["request_body_required"] is False
+
+    spec = generate_openapi_spec()
+    rb = spec["paths"]["/optional-body"]["post"]["requestBody"]
+    assert rb["required"] is False

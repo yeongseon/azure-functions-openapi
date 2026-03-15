@@ -1,6 +1,7 @@
 # src/azure_functions_openapi/decorator.py
 from __future__ import annotations
 
+import copy
 import logging
 import threading
 from typing import Any, Callable, TypeVar, cast
@@ -8,6 +9,7 @@ from typing import Any, Callable, TypeVar, cast
 from azure.functions.decorators.function_app import FunctionBuilder
 from pydantic import BaseModel
 
+from azure_functions_openapi.exceptions import OpenAPISpecConfigError
 from azure_functions_openapi.utils import sanitize_operation_id, validate_route_path
 
 # Define a generic type variable for functions
@@ -46,6 +48,7 @@ def openapi(
     # ── request / response schema ───────────────────────────────
     request_model: type[BaseModel] | None = None,
     request_body: dict[str, Any] | None = None,
+    request_body_required: bool = True,
     response_model: type[BaseModel] | None = None,
     response: dict[int, dict[str, Any]] | None = None,
 ) -> Callable[[F], F]:
@@ -128,7 +131,9 @@ def openapi(
     request_model:
         Pydantic model used to derive requestBody schema.
     request_body:
-        Raw requestBody schema (if you don’t use Pydantic).
+        Raw requestBody schema (if you don't use Pydantic).
+    request_body_required:
+        Whether the request body is required. Defaults to True.
     response_model:
         Pydantic model used to derive 200-response schema.
     response:
@@ -141,11 +146,10 @@ def openapi(
     """
 
     def decorator(func: F) -> F:
-        original_func: Any = func
-        metadata_func: Callable[..., Any] = cast(Callable[..., Any], func)
-
+        target_name = getattr(func, "__qualname__", getattr(func, "__name__", "<unknown>"))
         try:
             original_func, metadata_func = _resolve_metadata_target(func)
+            target_name = f"{metadata_func.__module__}.{metadata_func.__qualname__}"
 
             # Enhanced input validation and sanitization
             validated_route = _validate_and_sanitize_route(route, metadata_func.__name__)
@@ -169,8 +173,9 @@ def openapi(
                 existing = _openapi_registry.get(registry_key)
                 if existing and existing.get("_function_id") != function_id:
                     existing_id = existing.get("_function_id")
-                    if isinstance(existing_id, str) and existing_id not in _openapi_registry:
-                        _openapi_registry[existing_id] = existing
+                    if isinstance(existing_id, str):
+                        # Preserve displaced entry under its fully-qualified id
+                        _openapi_registry.setdefault(existing_id, existing)
 
                 _openapi_registry[registry_key] = {
                     # ── basic metadata ────────────────────────────────────────
@@ -187,6 +192,7 @@ def openapi(
                     # ── request / response schema ────────────────────────
                     "request_model": request_model,
                     "request_body": request_body,
+                    "request_body_required": request_body_required,
                     "response_model": response_model,
                     "response": response or {},
                     "function_name": metadata_func.__name__,
@@ -196,19 +202,16 @@ def openapi(
             logger.debug(f"Registered OpenAPI metadata for function '{metadata_func.__name__}'")
             return cast(F, original_func)
 
+        except OpenAPISpecConfigError as e:
+            logger.error(f"Failed to register OpenAPI metadata for '{target_name}': {str(e)}")
+            raise
         except ValueError as e:
-            logger.error(
-                f"Failed to register OpenAPI metadata for function "
-                f"'{metadata_func.__name__}': {str(e)}"
-            )
+            logger.error(f"Failed to register OpenAPI metadata for '{target_name}': {str(e)}")
             raise
         except Exception as e:
-            logger.error(
-                f"Failed to register OpenAPI metadata for function "
-                f"'{metadata_func.__name__}': {str(e)}"
-            )
+            logger.error(f"Failed to register OpenAPI metadata for '{target_name}': {str(e)}")
             raise RuntimeError(
-                f"Failed to register OpenAPI metadata for function '{metadata_func.__name__}': {e}"
+                f"Failed to register OpenAPI metadata for '{target_name}': {e}"
             ) from e
 
     return decorator
@@ -222,7 +225,7 @@ def get_openapi_registry() -> dict[str, dict[str, Any]]:
         A dictionary where each key is a function name and value is its OpenAPI metadata.
     """
     with _registry_lock:
-        return {key: value.copy() for key, value in _openapi_registry.items()}
+        return copy.deepcopy(_openapi_registry)
 
 
 def _validate_and_sanitize_route(route: str | None, func_name: str) -> str | None:

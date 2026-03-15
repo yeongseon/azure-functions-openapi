@@ -55,7 +55,7 @@ class TestOpenAPIDecoratorEnhanced:
         registry = get_openapi_registry()
         assert "test_func" in registry
         # The operation ID should be sanitized to remove dangerous characters
-        assert registry["test_func"]["operation_id"] == "scriptalertxssscript"
+        assert registry["test_func"]["operation_id"] == "script_alert_xss_script"
 
     def test_openapi_decorator_with_invalid_parameters(self) -> None:
         """Test decorator with invalid parameters."""
@@ -201,7 +201,7 @@ class TestValidationFunctions:
         """Test operation ID validation with invalid ID."""
         # The function should sanitize instead of raising an error
         result = _validate_and_sanitize_operation_id("<script>alert('xss')</script>", "test_func")
-        assert result == "scriptalertxssscript"
+        assert result == "script_alert_xss_script"
 
     def test_validate_parameters_valid(self) -> None:
         """Test parameter validation with valid parameters."""
