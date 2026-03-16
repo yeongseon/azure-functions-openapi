@@ -234,3 +234,33 @@ The CI workflow runs:
 
 All four steps must pass for a PR to be mergeable. The matrix covers
 Python 3.10, 3.11, 3.12, 3.13, and 3.14.
+
+## Real Azure E2E Tests
+
+The project includes a real Azure end-to-end test workflow that deploys an actual Function App to Azure and validates HTTP endpoints.
+
+### Workflow
+
+- **File**: `.github/workflows/e2e-azure.yml`
+- **Trigger**: Manual (`workflow_dispatch`) or weekly schedule (Mondays 02:00 UTC)
+- **Infrastructure**: Azure Consumption plan, `koreacentral` region
+- **Cleanup**: Resource group deleted immediately after tests (`if: always()`)
+
+### Running E2E Tests
+
+```bash
+gh workflow run e2e-azure.yml --ref main
+```
+
+### Required Secrets & Variables
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `AZURE_CLIENT_ID` | Secret | App Registration Client ID (OIDC) |
+| `AZURE_TENANT_ID` | Secret | Azure Tenant ID |
+| `AZURE_SUBSCRIPTION_ID` | Secret | Azure Subscription ID |
+| `AZURE_LOCATION` | Variable | Azure region (default: `koreacentral`) |
+
+### Test Report
+
+HTML test report is uploaded as a GitHub Actions artifact (retained 30 days).
