@@ -1,6 +1,7 @@
 [project]
 name = "azure-functions-openapi"
 description = "OpenAPI (Swagger) integration for Azure Functions Python v2 programming model"
+keywords = ["azure-functions", "azure", "python", "v2", "openapi", "swagger", "rest-api", "serverless"]
 authors = [{ name = "Yeongseon Choe", email = "yeongseon.choe@gmail.com" }]
 license = { text = "MIT" }
 readme = "README.md"
