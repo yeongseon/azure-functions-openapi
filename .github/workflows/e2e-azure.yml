@@ -1,0 +1,113 @@
+name: e2e-azure
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * 1"  # Weekly Monday 02:00 UTC
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AZURE_LOCATION: ${{ vars.AZURE_LOCATION || 'koreacentral' }}
+  REPO_SHORT: openapi
+
+jobs:
+  deploy_and_test:
+    name: Deploy & Test
+    runs-on: ubuntu-latest
+    outputs:
+      resource_group: ${{ steps.names.outputs.rg }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute resource names
+        id: names
+        run: |
+          RUN="${GITHUB_RUN_ID}${GITHUB_RUN_ATTEMPT}"
+          RG="rg-af-e2e-${REPO_SHORT}-${RUN}"
+          APP="af-e2e-${REPO_SHORT}-${RUN}"
+          # Storage name: lowercase alphanumeric, max 24 chars
+          ST="stafe2e${RUN}"
+          ST="${ST:0:24}"
+          echo "rg=${RG}"   >> "$GITHUB_OUTPUT"
+          echo "app=${APP}" >> "$GITHUB_OUTPUT"
+          echo "st=${ST}"   >> "$GITHUB_OUTPUT"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Create Resource Group
+        run: |
+          az group create \
+            --name "${{ steps.names.outputs.rg }}" \
+            --location "$AZURE_LOCATION" \
+            --tags purpose=e2e repo=azure-functions-openapi run="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+      - name: Deploy infra (Bicep)
+        run: |
+          az deployment group create \
+            --resource-group "${{ steps.names.outputs.rg }}" \
+            --template-file infra/main.bicep \
+            --parameters \
+                location="$AZURE_LOCATION" \
+                functionAppName="${{ steps.names.outputs.app }}" \
+                storageName="${{ steps.names.outputs.st }}" \
+                enableAppInsights=false
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Azure Functions Core Tools
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /tmp/microsoft.gpg
+          sudo install -o root -g root -m 644 /tmp/microsoft.gpg /etc/apt/trusted.gpg.d/
+          sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-ubuntu-$(lsb_release -cs)-prod $(lsb_release -cs) main" > /etc/apt/sources.list.d/dotnetdev.list'
+          sudo apt-get update
+          sudo apt-get install -y azure-functions-core-tools-4
+
+      - name: Install library from source + test deps
+        run: |
+          pip install -e ".[dev]"
+          pip install requests pyyaml pytest
+
+      - name: Publish function app
+        working-directory: examples/e2e_app
+        run: |
+          func azure functionapp publish "${{ steps.names.outputs.app }}" --python --build remote
+
+      - name: Run e2e tests
+        run: pytest tests/e2e -v
+        env:
+          E2E_BASE_URL: https://${{ steps.names.outputs.app }}.azurewebsites.net
+
+  cleanup:
+    name: Cleanup Azure Resources
+    runs-on: ubuntu-latest
+    needs: [deploy_and_test]
+    if: always()
+    steps:
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Delete Resource Group
+        run: |
+          RG="${{ needs.deploy_and_test.outputs.resource_group }}"
+          if [ -n "$RG" ]; then
+            echo "Deleting resource group: $RG"
+            az group delete --name "$RG" --yes --no-wait
+          else
+            echo "No resource group to delete."
+          fi

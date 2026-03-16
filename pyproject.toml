@@ -47,6 +47,8 @@ dev = [
     "pytest-cov",
     "ruff==0.15.5",
     "types-PyYAML",
+    "requests",
+    "types-requests",
 ]
 docs = [
     "mkdocs<2.0",
@@ -89,6 +91,7 @@ typecheck = "mypy src tests"
 lint = "hatch run style && hatch run typecheck"
 test = "pytest -v tests"
 cov = "pytest --cov-report=term-missing --cov-report=html --cov-report=xml tests/"
+e2e-azure = "pytest -v -m e2e tests/e2e/"
 docs = "mkdocs serve"
 precommit = "pre-commit run --all-files"
 precommit-install = "pre-commit install"
@@ -118,9 +121,10 @@ pretty = true
 module = "examples.*"
 follow_imports = "skip"
 [tool.pytest.ini_options]
-addopts = "--cov=src/azure_functions_openapi --cov-report=xml --cov-report=term-missing -ra -q"
+addopts = "--cov=src/azure_functions_openapi --cov-report=xml --cov-report=term-missing -ra -q -m 'not e2e'"
 testpaths = ["tests"]
 pythonpath = ["src", "."]
+markers = ["e2e: real Azure end-to-end tests (require E2E_BASE_URL)"]
 
 [tool.coverage.run]
 branch = true

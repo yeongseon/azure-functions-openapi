@@ -98,6 +98,16 @@ cov: ensure-hatch
 	@echo "Open htmlcov/index.html in your browser to view the coverage report."
 	@echo "coverage.xml generated for Codecov upload."
 
+.PHONY: e2e-local
+e2e-local: ensure-hatch
+	@echo "Running e2e tests against local Azurite (E2E_BASE_URL=http://localhost:7071)..."
+	@E2E_BASE_URL=http://localhost:7071 $(HATCH) run e2e-azure
+
+.PHONY: e2e-azure
+e2e-azure: ensure-hatch
+	@echo "Running e2e tests against Azure (E2E_BASE_URL must be set)..."
+	@$(HATCH) run e2e-azure
+
 .PHONY: build
 build: ensure-hatch
 	@$(HATCH) build
