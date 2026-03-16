@@ -1,9 +1,10 @@
 name: e2e-azure
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
-  schedule:
-    - cron: "0 2 * * 1"  # Weekly Monday 02:00 UTC
 
 permissions:
   id-token: write
