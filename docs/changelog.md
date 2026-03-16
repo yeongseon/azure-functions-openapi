@@ -4,6 +4,14 @@ All notable changes to this project are documented here. This changelog follows
 [Keep a Changelog](https://keepachangelog.com/) and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.14.0] - 2026-03-16
+
+### Breaking Changes
+
+- Drop Pydantic v1 support. Pydantic `>=2.0,<3.0` is now required.
+  Users on Pydantic v1 must upgrade to Pydantic v2 before updating this package.
+  The `packaging` dependency has been removed.
+
 ## [0.13.1] - 2026-03-14
 
 ### Bug Fixes

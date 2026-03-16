@@ -72,7 +72,7 @@ print(get_openapi_registry().keys())
 
 ### What the library does
 
-`azure-functions-openapi` supports both v1 and v2. It detects runtime version and uses the correct schema method internally.
+`azure-functions-openapi` requires Pydantic v2. If you are using Pydantic v1, upgrade to v2 before using this library.
 
 ### Common mistakes
 

@@ -60,7 +60,7 @@ Spec generation flow:
 
 Responsibilities:
 
-- Pydantic v1/v2 schema extraction (`model_to_schema`)
+- Pydantic v2 schema extraction (`model_to_schema`)
 - `$ref` rewriting to `#/components/schemas/...`
 - schema collision resolution for repeated model names
 - route and operation ID validation helpers

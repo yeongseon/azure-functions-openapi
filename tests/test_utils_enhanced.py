@@ -34,123 +34,74 @@ class TestModelToSchema:
 
     def test_model_to_schema_pydantic_v2(self) -> None:
         """Test model_to_schema with Pydantic v2."""
-        with patch("azure_functions_openapi.utils.PYDANTIC_V2", True):
+        components: Dict[str, Dict[str, Any]] = {"schemas": {}}
+        schema = model_to_schema(SampleModel, components)
+
+        assert schema == {"$ref": "#/components/schemas/SampleModel"}
+        registered = components["schemas"]["SampleModel"]
+        assert "properties" in registered
+        assert "name" in registered["properties"]
+        assert "age" in registered["properties"]
+        assert "email" in registered["properties"]
+        assert "required" in registered
+        assert "name" in registered["required"]
+        assert "email" in registered["required"]
+        assert "age" not in registered["required"]  # Has default value
+    def test_model_to_schema_rewrites_defs_v2(self) -> None:
+        """Test that $defs and refs are rewritten for OpenAPI."""
+        with patch.object(SampleModel, "model_json_schema") as mock_schema:
+            mock_schema.return_value = {
+                "type": "array",
+                "items": {"$ref": "#/$defs/Item"},
+                "$defs": {
+                    "Item": {
+                        "type": "object",
+                        "properties": {"id": {"type": "integer"}},
+                    }
+                },
+            }
+
             components: Dict[str, Dict[str, Any]] = {"schemas": {}}
             schema = model_to_schema(SampleModel, components)
 
             assert schema == {"$ref": "#/components/schemas/SampleModel"}
             registered = components["schemas"]["SampleModel"]
-            assert "properties" in registered
-            assert "name" in registered["properties"]
-            assert "age" in registered["properties"]
-            assert "email" in registered["properties"]
-            assert "required" in registered
-            assert "name" in registered["required"]
-            assert "email" in registered["required"]
-            assert "age" not in registered["required"]  # Has default value
-
-    def test_model_to_schema_pydantic_v1(self) -> None:
-        """Test model_to_schema with Pydantic v1."""
-        with patch("azure_functions_openapi.utils.PYDANTIC_V2", False):
-            with patch.object(SampleModel, "schema") as mock_schema:
-                mock_schema.return_value = {
-                    "type": "object",
-                    "properties": {"name": {"type": "string"}},
-                }
-
-                components: Dict[str, Dict[str, Any]] = {"schemas": {}}
-                schema = model_to_schema(SampleModel, components)
-
-                assert schema == {"$ref": "#/components/schemas/SampleModel"}
-                assert components["schemas"]["SampleModel"] == {
-                    "type": "object",
-                    "properties": {"name": {"type": "string"}},
-                }
-                mock_schema.assert_called_once()
-
-    def test_model_to_schema_rewrites_defs_v2(self) -> None:
-        """Test that $defs and refs are rewritten for OpenAPI."""
-        with patch("azure_functions_openapi.utils.PYDANTIC_V2", True):
-            with patch.object(SampleModel, "model_json_schema") as mock_schema:
-                mock_schema.return_value = {
-                    "type": "array",
-                    "items": {"$ref": "#/$defs/Item"},
-                    "$defs": {
-                        "Item": {
-                            "type": "object",
-                            "properties": {"id": {"type": "integer"}},
-                        }
-                    },
-                }
-
-                components: Dict[str, Dict[str, Any]] = {"schemas": {}}
-                schema = model_to_schema(SampleModel, components)
-
-                assert schema == {"$ref": "#/components/schemas/SampleModel"}
-                registered = components["schemas"]["SampleModel"]
-                assert "$defs" not in registered
-                assert registered["items"]["$ref"] == "#/components/schemas/Item"
-                assert "Item" in components["schemas"]
-
-    def test_model_to_schema_rewrites_definitions_v1(self) -> None:
-        """Test that v1 definitions are rewritten for OpenAPI."""
-        with patch("azure_functions_openapi.utils.PYDANTIC_V2", False):
-            with patch.object(SampleModel, "schema") as mock_schema:
-                mock_schema.return_value = {
-                    "type": "array",
-                    "items": {"$ref": "#/definitions/Item"},
-                    "definitions": {
-                        "Item": {
-                            "type": "object",
-                            "properties": {"id": {"type": "integer"}},
-                        }
-                    },
-                }
-
-                components: Dict[str, Dict[str, Any]] = {"schemas": {}}
-                schema = model_to_schema(SampleModel, components)
-
-                assert schema == {"$ref": "#/components/schemas/SampleModel"}
-                registered = components["schemas"]["SampleModel"]
-                assert "definitions" not in registered
-                assert registered["items"]["$ref"] == "#/components/schemas/Item"
-                assert "Item" in components["schemas"]
-
+            assert "$defs" not in registered
+            assert registered["items"]["$ref"] == "#/components/schemas/Item"
+            assert "Item" in components["schemas"]
     def test_model_to_schema_initializes_components_when_missing(self) -> None:
         with pytest.raises(OpenAPISpecConfigError):
             model_to_schema(SampleModel, None)
 
     def test_model_to_schema_resolves_name_collisions(self) -> None:
-        with patch("azure_functions_openapi.utils.PYDANTIC_V2", True):
-            with patch.object(SampleModel, "model_json_schema") as mock_schema:
-                mock_schema.return_value = {
-                    "type": "object",
-                    "properties": {"child": {"$ref": "#/components/schemas/Child"}},
-                    "$defs": {
-                        "Child": {
-                            "type": "object",
-                            "properties": {"id": {"type": "integer"}},
-                        }
-                    },
-                }
-
-                components: Dict[str, Dict[str, Any]] = {
-                    "schemas": {
-                        "SampleModel": {
-                            "type": "object",
-                            "properties": {"name": {"type": "string"}},
-                        },
-                        "Child": {"type": "object", "properties": {"legacy": {"type": "string"}}},
+        with patch.object(SampleModel, "model_json_schema") as mock_schema:
+            mock_schema.return_value = {
+                "type": "object",
+                "properties": {"child": {"$ref": "#/components/schemas/Child"}},
+                "$defs": {
+                    "Child": {
+                        "type": "object",
+                        "properties": {"id": {"type": "integer"}},
                     }
+                },
+            }
+
+            components: Dict[str, Dict[str, Any]] = {
+                "schemas": {
+                    "SampleModel": {
+                        "type": "object",
+                        "properties": {"name": {"type": "string"}},
+                    },
+                    "Child": {"type": "object", "properties": {"legacy": {"type": "string"}}},
                 }
-                schema = model_to_schema(SampleModel, components)
+            }
+            schema = model_to_schema(SampleModel, components)
 
-                assert schema == {"$ref": "#/components/schemas/SampleModel_2"}
-                assert "SampleModel_2" in components["schemas"]
-                assert "Child_2" in components["schemas"]
-                child_ref = components["schemas"]["SampleModel_2"]["properties"]["child"]["$ref"]
-                assert child_ref == "#/components/schemas/Child_2"
-
+            assert schema == {"$ref": "#/components/schemas/SampleModel_2"}
+            assert "SampleModel_2" in components["schemas"]
+            assert "Child_2" in components["schemas"]
+            child_ref = components["schemas"]["SampleModel_2"]["properties"]["child"]["$ref"]
+            assert child_ref == "#/components/schemas/Child_2"
 
 class TestUtilsInternals:
     def test_collect_schemas_skips_non_dict_definitions_and_hoists_nested_defs(self) -> None:
@@ -570,77 +521,71 @@ class TestModelToSchemaCollisionPath:
 
     def test_name_collision_triggers_rename(self) -> None:
         """When schema name collides with existing different schema, it gets renamed."""
-        with patch("azure_functions_openapi.utils.PYDANTIC_V2", True):
-            with patch.object(SampleModel, "model_json_schema") as mock_schema:
-                mock_schema.return_value = {
-                    "type": "object",
-                    "properties": {"id": {"type": "integer"}},
-                }
-                # Pre-populate with a different schema under the same name
-                components: Dict[str, Any] = {
-                    "schemas": {
-                        "SampleModel": {
-                            "type": "object",
-                            "properties": {"other": {"type": "string"}},
-                        }
+        with patch.object(SampleModel, "model_json_schema") as mock_schema:
+            mock_schema.return_value = {
+                "type": "object",
+                "properties": {"id": {"type": "integer"}},
+            }
+            # Pre-populate with a different schema under the same name
+            components: Dict[str, Any] = {
+                "schemas": {
+                    "SampleModel": {
+                        "type": "object",
+                        "properties": {"other": {"type": "string"}},
                     }
                 }
-                result = model_to_schema(SampleModel, components)
+            }
+            result = model_to_schema(SampleModel, components)
 
-                # Should be renamed to SampleModel_2
-                assert result == {"$ref": "#/components/schemas/SampleModel_2"}
-                assert "SampleModel_2" in components["schemas"]
-                # Original should be preserved
-                other_type = components["schemas"]["SampleModel"]["properties"]["other"]["type"]
-                assert other_type == "string"
-
+            # Should be renamed to SampleModel_2
+            assert result == {"$ref": "#/components/schemas/SampleModel_2"}
+            assert "SampleModel_2" in components["schemas"]
+            # Original should be preserved
+            other_type = components["schemas"]["SampleModel"]["properties"]["other"]["type"]
+            assert other_type == "string"
     def test_identical_schema_no_overwrite(self) -> None:
         """When schema already exists with identical content, no rename or overwrite."""
-        with patch("azure_functions_openapi.utils.PYDANTIC_V2", True):
-            with patch.object(SampleModel, "model_json_schema") as mock_schema:
-                schema_content: Dict[str, Any] = {
-                    "type": "object",
-                    "properties": {"name": {"type": "string"}},
-                }
-                mock_schema.return_value = dict(schema_content)
-                # Pre-populate with identical schema
-                components: Dict[str, Any] = {
-                    "schemas": {"SampleModel": dict(schema_content)}
-                }
-                result = model_to_schema(SampleModel, components)
+        with patch.object(SampleModel, "model_json_schema") as mock_schema:
+            schema_content: Dict[str, Any] = {
+                "type": "object",
+                "properties": {"name": {"type": "string"}},
+            }
+            mock_schema.return_value = dict(schema_content)
+            # Pre-populate with identical schema
+            components: Dict[str, Any] = {
+                "schemas": {"SampleModel": dict(schema_content)}
+            }
+            result = model_to_schema(SampleModel, components)
 
-                assert result == {"$ref": "#/components/schemas/SampleModel"}
-                # Should still be the same content, no _2 variant
-                assert "SampleModel_2" not in components["schemas"]
-
+            assert result == {"$ref": "#/components/schemas/SampleModel"}
+            # Should still be the same content, no _2 variant
+            assert "SampleModel_2" not in components["schemas"]
     def test_name_collision_with_nested_refs_rewritten(self) -> None:
         """When collision occurs, $refs in the schema body are also rewritten."""
-        with patch("azure_functions_openapi.utils.PYDANTIC_V2", True):
-            with patch.object(SampleModel, "model_json_schema") as mock_schema:
-                mock_schema.return_value = {
-                    "type": "object",
-                    "properties": {
-                        "child": {"$ref": "#/components/schemas/Child"},
-                    },
-                    "$defs": {
-                        "Child": {"type": "string"},
-                    },
+        with patch.object(SampleModel, "model_json_schema") as mock_schema:
+            mock_schema.return_value = {
+                "type": "object",
+                "properties": {
+                    "child": {"$ref": "#/components/schemas/Child"},
+                },
+                "$defs": {
+                    "Child": {"type": "string"},
+                },
+            }
+            # Pre-populate Child with a different schema to force collision
+            components: Dict[str, Any] = {
+                "schemas": {
+                    "Child": {"type": "integer"},
                 }
-                # Pre-populate Child with a different schema to force collision
-                components: Dict[str, Any] = {
-                    "schemas": {
-                        "Child": {"type": "integer"},
-                    }
-                }
-                result = model_to_schema(SampleModel, components)
+            }
+            result = model_to_schema(SampleModel, components)
 
-                assert result == {"$ref": "#/components/schemas/SampleModel"}
-                # Child should be renamed to Child_2
-                assert "Child_2" in components["schemas"]
-                # The ref in SampleModel should point to Child_2
-                registered = components["schemas"]["SampleModel"]
-                assert registered["properties"]["child"]["$ref"] == "#/components/schemas/Child_2"
-
+            assert result == {"$ref": "#/components/schemas/SampleModel"}
+            # Child should be renamed to Child_2
+            assert "Child_2" in components["schemas"]
+            # The ref in SampleModel should point to Child_2
+            registered = components["schemas"]["SampleModel"]
+            assert registered["properties"]["child"]["$ref"] == "#/components/schemas/Child_2"
 
 # ---------------------------------------------------------------------------
 # Pydantic v2 real-model edge cases (no mocking — exercises actual schema gen)

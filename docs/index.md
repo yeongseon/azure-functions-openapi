@@ -131,7 +131,7 @@ Generate programmatically with:
 | Python | 3.10 to 3.14 |
 | Azure Functions model | Python v2 (`func.FunctionApp`) |
 | OpenAPI versions | 3.0.0 and 3.1.0 |
-| Pydantic | v1 and v2 |
+| Pydantic | v2 (≥2.0) |
 
 !!! warning
     This package is for the Azure Functions Python v2 decorator model. It does not support the legacy `function.json`-based model.

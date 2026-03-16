@@ -4,12 +4,8 @@ from __future__ import annotations
 import re
 from typing import Any, cast
 
-from packaging import version
-import pydantic
-
 from azure_functions_openapi.exceptions import OpenAPISpecConfigError
 
-PYDANTIC_V2 = version.parse(pydantic.__version__) >= version.parse("2.0.0")
 
 def _rewrite_ref(ref: str) -> str:
     if ref.startswith("#/$defs/"):
@@ -110,16 +106,15 @@ def model_to_schema(model_cls: Any, components: dict[str, Any] | None = None) ->
         dict[str, Any]: Schema with $ref to components.schemas.
     """
 
-    if PYDANTIC_V2:
-        schema = cast(
-            dict[str, Any],
-            model_cls.model_json_schema(ref_template="#/components/schemas/{model}"),
+    if not hasattr(model_cls, "model_json_schema"):
+        raise TypeError(
+            "model_to_schema expects a Pydantic v2 BaseModel subclass "
+            "(missing model_json_schema). Pydantic v1 is not supported."
         )
-    else:
-        schema = cast(
-            dict[str, Any],
-            model_cls.schema(ref_template="#/components/schemas/{model}"),
-        )
+    schema = cast(
+        dict[str, Any],
+        model_cls.model_json_schema(ref_template="#/components/schemas/{model}"),
+    )
 
     if components is None:
         raise OpenAPISpecConfigError(

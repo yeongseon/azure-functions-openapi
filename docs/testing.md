@@ -112,7 +112,7 @@ def test_spec_contains_paths():
 
 ### Pydantic model tests
 
-Verify schema generation from Pydantic v1 and v2 models:
+Verify schema generation from Pydantic v2 models:
 
 ```python
 class ItemResponse(BaseModel):
