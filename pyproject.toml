@@ -129,6 +129,7 @@ source = ["src/azure_functions_openapi"]
 
 [tool.coverage.report]
 show_missing = true
+fail_under = 96
 skip_covered = true
 
 [tool.bandit]
