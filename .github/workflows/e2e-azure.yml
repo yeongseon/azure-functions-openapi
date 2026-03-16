@@ -77,7 +77,7 @@ jobs:
       - name: Install library from source + test deps
         run: |
           pip install -e ".[dev]"
-          pip install requests pyyaml pytest
+          pip install requests pyyaml pytest pytest-html
 
       - name: Publish function app
         working-directory: examples/e2e_app
@@ -85,9 +85,17 @@ jobs:
           func azure functionapp publish "${{ steps.names.outputs.app }}" --python --build remote
 
       - name: Run e2e tests
-        run: pytest tests/e2e -v
+        run: pytest tests/e2e -v --no-cov --html=e2e-report/report.html --self-contained-html
         env:
           E2E_BASE_URL: https://${{ steps.names.outputs.app }}.azurewebsites.net
+
+      - name: Upload e2e report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: e2e-report/
+          retention-days: 30
 
   cleanup:
     name: Cleanup Azure Resources
