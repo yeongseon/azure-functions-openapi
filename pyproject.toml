@@ -112,14 +112,12 @@ section-order = ["future", "standard-library", "third-party", "first-party", "lo
 python_version = "3.10"
 strict = true
 ignore_missing_imports = true
-exclude = "examples/"
 show_error_codes = true
 pretty = true
 
 [[tool.mypy.overrides]]
 module = "examples.*"
 follow_imports = "skip"
-
 [tool.pytest.ini_options]
 addopts = "--cov=src/azure_functions_openapi --cov-report=xml --cov-report=term-missing -ra -q"
 testpaths = ["tests"]
