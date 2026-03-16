@@ -182,3 +182,5 @@ junit.xml
 
 # Local OpenCode config
 oh-my-opencode.json
+.venv-review/
+.venv-review-cli/
