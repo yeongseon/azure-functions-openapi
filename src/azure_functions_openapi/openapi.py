@@ -149,16 +149,22 @@ def generate_openapi_spec(
                 if meta.get("response_model"):
                     try:
                         model_schema = model_to_schema(meta["response_model"], components)
-                        if "200" not in responses:
-                            responses["200"] = {
+                        target_status = "200"
+                        for status_key in responses:
+                            if str(status_key).startswith("2"):
+                                target_status = str(status_key)
+                                break
+
+                        if target_status not in responses:
+                            responses[target_status] = {
                                 "description": "Successful Response",
                                 "content": {"application/json": {"schema": model_schema}},
                             }
                         else:
-                            content = responses["200"].setdefault("content", {})
+                            content = responses[target_status].setdefault("content", {})
                             if not isinstance(content, dict):
                                 content = {}
-                                responses["200"]["content"] = content
+                                responses[target_status]["content"] = content
 
                             json_content = content.setdefault("application/json", {})
                             if not isinstance(json_content, dict):
