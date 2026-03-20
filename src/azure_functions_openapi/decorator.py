@@ -48,9 +48,11 @@ def openapi(
     # ── request / response schema ───────────────────────────────
     request_model: type[BaseModel] | None = None,
     request_body: dict[str, Any] | None = None,
+    requests: type[BaseModel] | dict[str, Any] | None = None,
     request_body_required: bool = True,
     response_model: type[BaseModel] | None = None,
     response: dict[int, dict[str, Any]] | None = None,
+    responses: type[BaseModel] | dict[int, dict[str, Any]] | None = None,
 ) -> Callable[[F], F]:
     """
     Decorator that attaches OpenAPI metadata to an Azure Functions handler.
@@ -132,12 +134,20 @@ def openapi(
         Pydantic model used to derive requestBody schema.
     request_body:
         Raw requestBody schema (if you don't use Pydantic).
+    requests:
+        Unified request parameter that accepts either a Pydantic model class
+        (equivalent to `request_model`) or a raw requestBody schema dict
+        (equivalent to `request_body`).
     request_body_required:
         Whether the request body is required. Defaults to True.
     response_model:
         Pydantic model used to derive 200-response schema.
     response:
         Manual responses dict keyed by status code.
+    responses:
+        Unified response parameter that accepts either a Pydantic model class
+        (equivalent to `response_model`) or a manual responses dict keyed by
+        status code (equivalent to `response`).
 
     Returns
     -------
@@ -163,8 +173,45 @@ def openapi(
             )
             validated_tags = _validate_tags(tags, metadata_func.__name__)
 
+            resolved_request_model = request_model
+            resolved_request_body = request_body
+            resolved_response_model = response_model
+            resolved_response = response
+
+            if requests is not None:
+                if request_model is not None or request_body is not None:
+                    raise ValueError(
+                        "Cannot provide both 'requests' and 'request_model'/'request_body'."
+                    )
+                if isinstance(requests, dict):
+                    resolved_request_body = requests
+                elif isinstance(requests, type) and issubclass(requests, BaseModel):
+                    resolved_request_model = requests
+                else:
+                    raise ValueError(
+                        "'requests' must be either a Pydantic BaseModel subclass or a dictionary."
+                    )
+
+            if responses is not None:
+                if response_model is not None or response is not None:
+                    raise ValueError(
+                        "Cannot provide both 'responses' and 'response_model'/'response'."
+                    )
+                if isinstance(responses, dict):
+                    resolved_response = responses
+                elif isinstance(responses, type) and issubclass(responses, BaseModel):
+                    resolved_response_model = responses
+                else:
+                    raise ValueError(
+                        "'responses' must be either a Pydantic BaseModel subclass or a dictionary."
+                    )
+
             # Validate request/response models
-            _validate_models(request_model, response_model, metadata_func.__name__)
+            _validate_models(
+                resolved_request_model,
+                resolved_response_model,
+                metadata_func.__name__,
+            )
 
             function_id = f"{metadata_func.__module__}.{metadata_func.__qualname__}"
 
@@ -190,11 +237,11 @@ def openapi(
                     "security": validated_security,
                     "security_scheme": validated_security_scheme,
                     # ── request / response schema ────────────────────────
-                    "request_model": request_model,
-                    "request_body": request_body,
+                    "request_model": resolved_request_model,
+                    "request_body": resolved_request_body,
                     "request_body_required": request_body_required,
-                    "response_model": response_model,
-                    "response": response or {},
+                    "response_model": resolved_response_model,
+                    "response": resolved_response or {},
                     "function_name": metadata_func.__name__,
                     "_function_id": function_id,
                 }
