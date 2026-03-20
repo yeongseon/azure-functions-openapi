@@ -53,7 +53,7 @@ dev = [
 docs = [
     "mkdocs<2.0",
     "mkdocs-material<10.0",
-    "mkdocstrings[python]<1.0",
+    "mkdocstrings[python]<2.0",
 ]
 
 [project.scripts]
