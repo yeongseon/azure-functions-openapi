@@ -268,6 +268,69 @@ def test_response_200_is_preserved_when_response_model_exists() -> None:
     }
 
 
+def test_response_model_uses_explicit_first_success_status_code() -> None:
+    class CreatedModel(BaseModel):
+        id: str
+
+    @openapi(
+        route="/created-with-model",
+        method="post",
+        summary="Created with model",
+        response={201: {"description": "Created"}, 400: {"description": "Bad Request"}},
+        response_model=CreatedModel,
+    )
+    def created_with_model_func() -> None:
+        pass
+
+    responses = generate_openapi_spec()["paths"]["/created-with-model"]["post"]["responses"]
+    assert "200" not in responses
+    assert responses["201"]["description"] == "Created"
+    assert responses["201"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/CreatedModel"
+    }
+
+
+def test_response_model_defaults_to_200_when_no_success_response_declared() -> None:
+    class DefaultSuccessModel(BaseModel):
+        ok: bool
+
+    @openapi(
+        route="/response-model-default-200",
+        summary="Response model default 200",
+        response={400: {"description": "Bad Request"}},
+        response_model=DefaultSuccessModel,
+    )
+    def response_model_default_200_func() -> None:
+        pass
+
+    responses = generate_openapi_spec()["paths"]["/response-model-default-200"]["get"]["responses"]
+    assert "200" in responses
+    assert responses["200"]["description"] == "Successful Response"
+    assert responses["200"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/DefaultSuccessModel"
+    }
+
+
+def test_response_model_uses_explicit_200_when_declared() -> None:
+    class Explicit200Model(BaseModel):
+        message: str
+
+    @openapi(
+        route="/response-model-explicit-200",
+        summary="Response model explicit 200",
+        response={200: {"description": "OK"}, 201: {"description": "Created"}},
+        response_model=Explicit200Model,
+    )
+    def response_model_explicit_200_func() -> None:
+        pass
+
+    responses = generate_openapi_spec()["paths"]["/response-model-explicit-200"]["get"]["responses"]
+    assert responses["200"]["description"] == "OK"
+    assert responses["200"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/Explicit200Model"
+    }
+
+
 def test_openapi_spec_contains_operation_id_and_tags() -> None:
     _register_http_trigger()
     spec = json.loads(get_openapi_json())
