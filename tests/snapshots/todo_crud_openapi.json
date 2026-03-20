@@ -16,13 +16,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Todo created successfully"
-          },
-          "400": {
-            "description": "Invalid request"
-          },
-          "200": {
-            "description": "Successful Response",
+            "description": "Todo created successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -30,6 +24,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid request"
           }
         },
         "requestBody": {
