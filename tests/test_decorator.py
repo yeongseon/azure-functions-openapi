@@ -2,6 +2,7 @@
 
 import azure.functions as func
 from azure.functions.decorators.function_app import FunctionBuilder
+from pydantic import BaseModel
 
 import azure_functions_openapi.decorator as decorator_module
 from azure_functions_openapi.decorator import get_openapi_registry, openapi
@@ -206,6 +207,93 @@ def test_openapi_registers_security_scheme_metadata() -> None:
     assert registry["secured_scheme_dummy"]["security_scheme"] == {
         "BearerAuth": {"type": "http", "scheme": "bearer"}
     }
+
+
+class _UnifiedRequestModel(BaseModel):
+    name: str
+
+
+class _UnifiedResponseModel(BaseModel):
+    ok: bool
+
+
+def test_openapi_requests_accepts_model() -> None:
+    @openapi(summary="Unified request model", requests=_UnifiedRequestModel)
+    def unified_request_model_func() -> None:
+        pass
+
+    registry = get_openapi_registry()
+    assert registry["unified_request_model_func"]["request_model"] is _UnifiedRequestModel
+    assert registry["unified_request_model_func"]["request_body"] is None
+
+
+def test_openapi_requests_accepts_dict() -> None:
+    request_schema = {"type": "object"}
+
+    @openapi(summary="Unified request body", requests=request_schema)
+    def unified_request_body_func() -> None:
+        pass
+
+    registry = get_openapi_registry()
+    assert registry["unified_request_body_func"]["request_model"] is None
+    assert registry["unified_request_body_func"]["request_body"] == request_schema
+
+
+def test_openapi_responses_accepts_model() -> None:
+    @openapi(summary="Unified response model", responses=_UnifiedResponseModel)
+    def unified_response_model_func() -> None:
+        pass
+
+    registry = get_openapi_registry()
+    assert registry["unified_response_model_func"]["response_model"] is _UnifiedResponseModel
+    assert registry["unified_response_model_func"]["response"] == {}
+
+
+def test_openapi_responses_accepts_dict() -> None:
+    manual_responses = {201: {"description": "Created"}}
+
+    @openapi(summary="Unified response dict", responses=manual_responses)
+    def unified_response_dict_func() -> None:
+        pass
+
+    registry = get_openapi_registry()
+    assert registry["unified_response_dict_func"]["response_model"] is None
+    assert registry["unified_response_dict_func"]["response"] == manual_responses
+
+
+def test_openapi_raises_error_when_requests_and_request_model_provided() -> None:
+    import pytest
+
+    with pytest.raises(ValueError) as exc_info:
+
+        @openapi(
+            summary="Conflicting request params",
+            requests=_UnifiedRequestModel,
+            request_model=_UnifiedRequestModel,
+        )
+        def conflicting_requests_func() -> None:
+            pass
+
+    assert (
+        "Cannot provide both 'requests' and 'request_model'/'request_body'."
+        in str(exc_info.value)
+    )
+
+
+def test_openapi_raises_error_when_responses_and_response_model_provided() -> None:
+    import pytest
+
+    with pytest.raises(ValueError) as exc_info:
+
+        @openapi(
+            summary="Conflicting response params",
+            responses=_UnifiedResponseModel,
+            response_model=_UnifiedResponseModel,
+        )
+        def conflicting_responses_func() -> None:
+            pass
+
+    assert "Cannot provide both 'responses' and 'response_model'/'response'." in str(exc_info.value)
 
 
 def test_openapi_registers_request_body_required_default() -> None:
