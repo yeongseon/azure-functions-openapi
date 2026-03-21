@@ -11,7 +11,7 @@ from azure_functions_openapi.openapi import (
 )
 from azure_functions_openapi.swagger_ui import render_swagger_ui
 
-__version__ = "0.14.0"
+__version__ = "0.15.0"
 
 __all__ = [
     "__version__",
