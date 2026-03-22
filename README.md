@@ -3,7 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-openapi.svg)](https://pypi.org/project/azure-functions-openapi/)
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-openapi/)
 [![CI](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/ci-test.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/ci-test.yml)
-[![Release](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/release.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/release.yml)
+[![Release](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/publish-pypi.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/publish-pypi.yml)
 [![Security Scans](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/security.yml)
 [![codecov](https://codecov.io/gh/yeongseon/azure-functions-openapi/branch/main/graph/badge.svg)](https://codecov.io/gh/yeongseon/azure-functions-openapi)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
@@ -14,9 +14,36 @@ Read this in: [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中
 
 OpenAPI (Swagger) documentation and Swagger UI for the **Azure Functions Python v2 programming model**.
 
-## Why Use It
+---
 
-Documenting Azure Functions HTTP APIs typically requires maintaining a separate OpenAPI spec by hand. `azure-functions-openapi` generates the spec automatically from decorated handlers, keeping documentation and code in sync.
+Part of the **Azure Functions Python DX Toolkit**
+→ Bring FastAPI-like developer experience to Azure Functions
+
+## Why this exists
+
+Azure Functions Python v2 has no built-in API documentation story:
+
+- **No auto-generated docs** — you maintain OpenAPI specs by hand or not at all
+- **No Swagger UI** — no browser-based API explorer for testing endpoints
+- **Hard to test** — consumers rely on tribal knowledge or external tools to discover your API
+- **Spec drift** — hand-written docs diverge from actual handler behavior over time
+
+## What it does
+
+- **`@openapi` decorator** — attach operation metadata directly to your handler
+- **Auto-generated spec** — `/openapi.json` and `/openapi.yaml` endpoints from decorated handlers
+- **Swagger UI** — built-in `/docs` endpoint with security defaults
+- **CLI tooling** — generate specs at build time for CI validation
+
+## FastAPI comparison
+
+| Feature | FastAPI | azure-functions-openapi |
+|---------|---------|------------------------|
+| API docs generation | Built-in from type hints | `@openapi` decorator on handlers |
+| Swagger UI | `/docs` auto-served | `render_swagger_ui()` endpoint |
+| OpenAPI spec | Auto-generated `/openapi.json` | `get_openapi_json()` endpoint |
+| CLI spec export | N/A | `azure-functions-openapi generate` |
+| Pydantic integration | Native | `request_model=` / `response_model=` |
 
 ## Scope
 
@@ -123,6 +150,7 @@ def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
         mimetype="application/json",
     )
 
+
 @app.function_name(name="openapi_json")
 @app.route(route="openapi.json", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
 def openapi_json(req: func.HttpRequest) -> func.HttpResponse:
@@ -173,6 +201,13 @@ The web preview below is generated from the same representative example and capt
 
 ![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
 
+## When to use
+
+- You have HTTP-triggered Azure Functions and need API documentation
+- You want Swagger UI for browser-based API testing
+- You need OpenAPI specs for client code generation or CI validation
+- You want to keep docs in sync with handler code automatically
+
 ## Documentation
 
 - Full docs: [yeongseon.github.io/azure-functions-openapi](https://yeongseon.github.io/azure-functions-openapi/)
@@ -184,11 +219,16 @@ The web preview below is generated from the same representative example and capt
 
 ## Ecosystem
 
-- [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) — Request and response validation
-- [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) — Structured logging
-- [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) — Diagnostic CLI
-- [azure-functions-scaffold](https://github.com/yeongseon/azure-functions-scaffold) — Project scaffolding
-- [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) — Recipes and examples
+Part of the **Azure Functions Python DX Toolkit**:
+
+| Package | Role |
+|---------|------|
+| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) | Request and response validation |
+| **azure-functions-openapi** | OpenAPI spec and Swagger UI |
+| [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) | Structured logging and observability |
+| [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) | Pre-deploy diagnostic CLI |
+| [azure-functions-scaffold](https://github.com/yeongseon/azure-functions-scaffold) | Project scaffolding |
+| [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) | Recipes and examples |
 
 ## Disclaimer
 
