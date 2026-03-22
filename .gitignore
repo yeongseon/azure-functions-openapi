@@ -30,3 +30,4 @@ site/
 
 # Review
 .venv-review/
+.venv-review-cli/
