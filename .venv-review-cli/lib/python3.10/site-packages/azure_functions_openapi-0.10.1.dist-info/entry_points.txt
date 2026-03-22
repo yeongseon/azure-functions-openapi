@@ -1,0 +1,2 @@
+[console_scripts]
+azure-functions-openapi = azure_functions_openapi.cli:main

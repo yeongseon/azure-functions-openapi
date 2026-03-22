@@ -19,7 +19,7 @@ permissions:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-    environment: release
+    environment: pypi
 
     steps:
       - name: Checkout repository
