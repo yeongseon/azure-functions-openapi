@@ -100,18 +100,24 @@ def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
 @app.function_name(name="openapi_json")
 @app.route(route="openapi.json", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
 def openapi_json(req: func.HttpRequest) -> func.HttpResponse:
-    return get_openapi_json(
-        title="Sample API",
-        description="OpenAPI document for the Sample API.",
+    return func.HttpResponse(
+        get_openapi_json(
+            title="Sample API",
+            description="OpenAPI document for the Sample API.",
+        ),
+        mimetype="application/json",
     )
 
 
 @app.function_name(name="openapi_yaml")
 @app.route(route="openapi.yaml", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])
 def openapi_yaml(req: func.HttpRequest) -> func.HttpResponse:
-    return get_openapi_yaml(
-        title="Sample API",
-        description="OpenAPI document for the Sample API.",
+    return func.HttpResponse(
+        get_openapi_yaml(
+            title="Sample API",
+            description="OpenAPI document for the Sample API.",
+        ),
+        mimetype="application/x-yaml",
     )
 
 
