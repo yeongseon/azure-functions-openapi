@@ -19,8 +19,8 @@ class TestAPISurface:
             "render_swagger_ui",
         }
 
-    def test_version_is_0_15_0(self) -> None:
-        assert azure_functions_openapi.__version__ == "0.15.0"
+    def test_version_is_0_15_1(self) -> None:
+        assert azure_functions_openapi.__version__ == "0.15.1"
 
     def test_version_is_string(self) -> None:
         assert isinstance(azure_functions_openapi.__version__, str)

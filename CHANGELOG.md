@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.15.1] - 2026-03-29
+
+### Changed
+
+- Dependency updates: ruff 0.15.7, anchore/sbom-action 0.24.0, github/codeql-action 4.34.1
+
+### Docs
+
+- Sync docs/changelog.md with 0.15.0 release notes (#126)
+- Fix README Quick Start to wrap OpenAPI helpers in HttpResponse (#125)
+- Update README with Azure Functions Python DX Toolkit branding
+
+### Internal
+
+- Rename publish environment from production to release
+- Unify CI/CD workflow configurations
+
 ## [0.15.0] - 2026-03-21
 
 ### Added
