@@ -4,6 +4,24 @@ All notable changes to this project are documented here. This changelog follows
 [Keep a Changelog](https://keepachangelog.com/) and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.15.0] - 2026-03-21
+
+### Features
+
+- Unified `requests` and `responses` decorator parameters for cleaner API declarations (#115)
+- Real Azure end-to-end test workflow (`e2e-azure.yml`) deploying to Consumption plan (`koreacentral`)
+- `docs/testing.md` — Real Azure E2E Tests section
+
+### Breaking Changes
+
+- Drop Pydantic v1 support, require `pydantic>=2.0,<3.0`
+- GitHub Actions versions upgraded to Node.js 24 compatible versions
+- Repository consistency fixes (AGENTS.md, .gitignore standardization)
+
+### Bug Fixes
+
+- Apply `response_model` schema to first declared success response instead of synthetic 200 (#114)
+
 ## [0.14.0] - 2026-03-16
 
 ### Breaking Changes
