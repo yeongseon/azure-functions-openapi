@@ -4,6 +4,20 @@ All notable changes to this project are documented here. This changelog follows
 [Keep a Changelog](https://keepachangelog.com/) and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.15.1] - 2026-03-29
+
+### Docs
+
+- Sync docs/changelog.md with 0.15.0 release notes (#126)
+- Fix README Quick Start to wrap OpenAPI helpers in HttpResponse (#125)
+- Update README with Azure Functions Python DX Toolkit branding
+
+### Internal
+
+- Dependency updates: ruff 0.15.7, anchore/sbom-action 0.24.0, github/codeql-action 4.34.1
+- Rename publish environment from production to release
+- Unify CI/CD workflow configurations
+
 ## [0.15.0] - 2026-03-21
 
 ### Features
