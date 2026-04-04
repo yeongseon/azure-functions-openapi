@@ -17,13 +17,7 @@
         ],
         "responses": {
           "201": {
-            "description": "User created"
-          },
-          "422": {
-            "description": "Validation error"
-          },
-          "200": {
-            "description": "Successful Response",
+            "description": "User created",
             "content": {
               "application/json": {
                 "schema": {
@@ -31,6 +25,9 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation error"
           }
         },
         "requestBody": {
