@@ -2,138 +2,185 @@
 
 This document explains how `azure-functions-openapi` transforms decorator metadata into OpenAPI output and Swagger UI responses.
 
-## High-level design
+## Design Objectives
 
-```text
-Function handlers + @openapi metadata
-            |
-            v
-Thread-safe metadata registry (decorator.py)
-            |
-            v
-Spec compiler (openapi.py)
-   |                     |
-   v                     v
-JSON / YAML strings      Swagger UI HTML response (swagger_ui.py)
+- Keep the decorator model explicit and predictable.
+- Separate metadata capture (import-time) from document generation (request-time).
+- Treat OpenAPI generation and CLI output as registry consumers, with Swagger UI rendering as a separate HTML helper.
+- Keep the module count small and the dependency graph shallow.
+
+## High-Level Flow
+
+The architecture operates in two phases: import-time registration and on-demand consumption.
+
+### Phase 1: Import-Time Registration
+
+1. Python imports function modules.
+2. `@openapi(...)` decorator executes and registers operation metadata.
+3. Metadata is stored in the thread-safe `_openapi_registry`.
+
+### Phase 2: On-Demand Consumption
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Endpoint as Function Endpoint
+    participant Gen as generate_openapi_spec()
+    participant Reg as _openapi_registry
+    participant UI as render_swagger_ui()
+
+    rect rgb(240, 248, 255)
+    note over Client,Reg: Spec Request (/api/openapi.json or /api/openapi.yaml)
+    Client->>Endpoint: GET /api/openapi.json
+    Endpoint->>Gen: get_openapi_json() or get_openapi_yaml()
+    Gen->>Reg: read registry entries
+    Reg-->>Gen: operation metadata
+    Gen->>Gen: compile spec + resolve schemas
+    Gen-->>Endpoint: JSON or YAML string
+    Endpoint-->>Client: HttpResponse (200, application/json)
+    end
+
+    rect rgb(255, 248, 240)
+    note over Client,UI: Docs Request (/api/docs)
+    Client->>Endpoint: GET /api/docs
+    Endpoint->>UI: render_swagger_ui(openapi_url=...)
+    UI-->>Endpoint: HTML + security headers
+    Endpoint-->>Client: HttpResponse (200, text/html)
+    note over Client: Browser fetches spec from openapi_url
+    end
 ```
 
-## Core modules
+Note: `render_swagger_ui()` does not generate or embed the OpenAPI spec. It returns HTML that instructs the browser to fetch the spec from a configured URL. The CLI (`azure-functions-openapi generate`) is another on-demand consumer that imports the app module to trigger registration, then compiles the spec to file or stdout.
 
-## `decorator.py`
+## Module Boundaries
 
-Responsibilities:
+```mermaid
+flowchart TD
+    INIT["__init__.py\nPublic API exports"]
+    DEC["decorator.py\n@openapi + registry"]
+    OAI["openapi.py\nSpec compiler"]
+    UTL["utils.py\nSchema extraction + validation"]
+    SUI["swagger_ui.py\nSwagger UI rendering"]
+    CLI["cli.py\nCLI entrypoint"]
+    EXC["exceptions.py\nOpenAPISpecConfigError"]
 
-- provide `@openapi(...)`
-- validate and sanitize decorator inputs
-- store operation metadata in `_openapi_registry`
-- expose `get_openapi_registry()` snapshot accessor
+    INIT --> DEC
+    INIT --> OAI
+    INIT --> SUI
+    INIT --> EXC
+    DEC --> UTL
+    DEC --> EXC
+    OAI --> DEC
+    OAI --> UTL
+    OAI --> EXC
+    UTL --> EXC
+    CLI --> OAI
+    CLI --> EXC
+```
 
-Key behaviors:
+### `decorator.py`
 
-- registry writes are protected by `threading.RLock`
-- tags default to `['default']` when not provided
-- invalid route path or operation ID raises `ValueError`
+- Provides `@openapi(...)` decorator.
+- Validates and sanitizes decorator inputs.
+- Stores operation metadata in `_openapi_registry` (protected by `threading.RLock`).
+- Exposes `get_openapi_registry()` snapshot accessor.
+- Tags default to `['default']` when not provided; invalid route path or operation ID raises `ValueError`.
 
-## `openapi.py`
+### `openapi.py`
 
-Responsibilities:
+- Compiles registry into OpenAPI document via `generate_openapi_spec()`.
+- Serializes to JSON (`get_openapi_json`) and YAML (`get_openapi_yaml`).
+- Supports OpenAPI 3.0.0 and 3.1.0 output (3.1 converts `nullable` to union types, `example` to `examples`).
+- Resolves routes, methods, request/response schemas, Pydantic model components, and security schemes.
 
-- compile registry into OpenAPI document (`generate_openapi_spec`)
-- serialize to JSON (`get_openapi_json`) and YAML (`get_openapi_yaml`)
-- support OpenAPI 3.0.0 and 3.1.0 output
+### `utils.py`
 
-Spec generation flow:
+- Pydantic v2 schema extraction (`model_to_schema`).
+- `$ref` rewriting to `#/components/schemas/...`.
+- Schema collision resolution for repeated model names (suffixed `_2`, `_3`, ...).
+- Route and operation ID validation helpers.
 
-1. Read registry entries
-2. Resolve route and method per operation
-3. Build responses and request body schemas
-4. Convert Pydantic models into `components.schemas`
-5. Merge security schemes (global + per-operation)
-6. Return final `spec` dictionary
+### `swagger_ui.py`
 
-3.1-specific conversion:
+- Renders Swagger UI HTML via `render_swagger_ui()`.
+- Applies security headers: `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and cache prevention headers.
+- Sanitizes title and URL inputs.
 
-- `nullable: true` -> `type: ["<type>", "null"]`
-- `example` -> `examples`
+### `cli.py`
 
-## `utils.py`
+- Parses `azure-functions-openapi generate` command.
+- Outputs JSON or YAML to stdout or file.
+- Selects OpenAPI version (`3.0` or `3.1`).
 
-Responsibilities:
+### `exceptions.py`
 
-- Pydantic v2 schema extraction (`model_to_schema`)
-- `$ref` rewriting to `#/components/schemas/...`
-- schema collision resolution for repeated model names
-- route and operation ID validation helpers
+- Defines `OpenAPISpecConfigError` (subclass of `ValueError`) for caller-fixable configuration errors.
 
-Important details:
+## Public API Boundary
 
-- nested `$defs`/`definitions` are collected recursively
-- colliding schema names are suffixed (`_2`, `_3`, ...)
+Exported symbols (via `__all__`):
 
-## `swagger_ui.py`
+- `openapi` — decorator for annotating function handlers
+- `generate_openapi_spec` — compile registry into spec dictionary
+- `get_openapi_json` — serialize spec to JSON string
+- `get_openapi_yaml` — serialize spec to YAML string
+- `render_swagger_ui` — generate Swagger UI HTML response
+- `OpenAPISpecConfigError` — configuration error exception
+- `OPENAPI_VERSION_3_0` — version constant (`"3.0.0"`)
+- `OPENAPI_VERSION_3_1` — version constant (`"3.1.0"`)
+- `__version__` — package version string
 
-Responsibilities:
+CLI contract: `azure-functions-openapi generate` (entrypoint: `azure_functions_openapi.cli:main`).
 
-- render Swagger UI HTML via `render_swagger_ui`
-- apply security headers
-- sanitize title and URL inputs
+Everything else (registry internals, utility functions, module layout) is implementation detail.
 
-Headers added include:
+## Key Design Decisions
 
-- `Content-Security-Policy`
-- `X-Content-Type-Options`
-- `X-Frame-Options`
-- `Referrer-Policy`
-- cache prevention headers
+### Runtime-Decorator Driven Metadata
 
-## `cli.py`
+No function source parsing. All metadata is captured through the `@openapi(...)` decorator at import time. This means the registry only contains what users explicitly declare.
 
-Responsibilities:
+### In-Process Registry (No Persistence)
 
-- parse `azure-functions-openapi generate` command
-- output JSON/YAML to stdout or file
-- choose OpenAPI version (`3.0` or `3.1`)
+The registry exists in process memory only. There is no file, database, or external cache. This keeps the architecture simple but requires that all function modules are imported before spec generation.
 
-## Request lifecycle perspective
+### Separate Spec Generation and UI Rendering
 
-At startup:
+`openapi.py` and `cli.py` are registry consumers that compile the spec on demand. `swagger_ui.py` is independent — it does not access the registry. It returns HTML that instructs the browser to fetch the spec from a configured URL. This means the spec endpoint and docs endpoint can be deployed or disabled independently.
 
-1. Python imports function modules
-2. `@openapi` executes and registers metadata
+### Thread-Safe Registration
 
-At spec request time (`/api/openapi.json` or `/api/openapi.yaml`):
+The `_openapi_registry` is protected by `threading.RLock`, ensuring safe concurrent decorator execution during module import.
 
-1. endpoint function calls `get_openapi_json()` or `get_openapi_yaml()`
-2. generator compiles current registry
-3. endpoint wraps returned string in `func.HttpResponse`
+### Extension Points
 
-At docs request time (`/api/docs`):
+- Customize spec metadata via generator arguments (`title`, `version`, `description`).
+- Configure security centrally (`security_schemes`) or per operation (`security_scheme`).
+- Customize UI CSP and behavior via `render_swagger_ui(...)`.
 
-1. endpoint calls `render_swagger_ui(openapi_url=...)`
-2. HTML + security headers are returned
-3. browser fetches OpenAPI document from `openapi_url`
+### Operational Considerations
 
-## Design constraints
+- Missing imports can lead to empty `paths` in the generated spec.
+- Inconsistent `@app.route` vs `@openapi(route=...)` leads to documentation/runtime mismatch.
+- Model schema generation is resilient, but invalid model usage raises explicit errors.
 
-- no function source parsing; metadata is runtime-decorator driven
-- no persistence layer; registry exists in process memory
-- assumes module import/registration has already happened
-
-## Operational considerations
-
-- missing imports can lead to empty `paths`
-- inconsistent `@app.route` vs `@openapi(route=...)` leads to doc/runtime mismatch
-- model schema generation is resilient but invalid model usage raises explicit errors
-
-## Extension points
-
-- customize spec metadata via generator arguments (`title`, `version`, `description`)
-- configure security centrally (`security_schemes`) or per operation (`security_scheme`)
-- customize UI CSP and behavior via `render_swagger_ui(...)`
-
-## Related docs
+## Related Documents
 
 - [Usage](usage.md)
 - [Configuration](configuration.md)
 - [API Reference](api.md)
 - [Troubleshooting](troubleshooting.md)
+
+## Sources
+
+- [Azure Functions Python developer reference](https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-python)
+- [Azure Functions HTTP trigger](https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-http-webhook-trigger)
+- [Supported languages in Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/supported-languages)
+
+## See Also
+
+- [azure-functions-validation — Architecture](https://github.com/yeongseon/azure-functions-validation) — Request/response validation pipeline
+- [azure-functions-logging — Architecture](https://github.com/yeongseon/azure-functions-logging) — Structured logging with contextvars
+- [azure-functions-doctor — Architecture](https://github.com/yeongseon/azure-functions-doctor) — Pre-deploy diagnostic CLI
+- [azure-functions-scaffold — Architecture](https://github.com/yeongseon/azure-functions-scaffold) — Project scaffolding CLI
+- [azure-functions-langgraph — Architecture](https://github.com/yeongseon/azure-functions-langgraph) — LangGraph agent deployment
