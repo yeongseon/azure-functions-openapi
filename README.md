@@ -225,7 +225,7 @@ curl -s "https://<your-app>.azurewebsites.net/api/http_trigger" \
 
 The `/api/openapi.json`, `/api/openapi.yaml`, and `/api/docs` endpoints are also available in both environments.
 
-> Response captured from a deployed Azure Function; URL anonymized.
+> Verified against a temporary Azure Functions deployment in koreacentral (Python 3.12, Consumption plan). Response captured and URL anonymized.
 
 ## Demo
 
