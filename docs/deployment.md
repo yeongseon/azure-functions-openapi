@@ -108,7 +108,6 @@ Stop the local server with `Ctrl+C`.
 az login
 az account list -o table
 SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
-SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
 az account set --subscription "$SUBSCRIPTION_ID"
 ```
 
