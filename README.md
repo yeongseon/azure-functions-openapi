@@ -194,6 +194,39 @@ Run locally with Azure Functions Core Tools:
 func start
 ```
 
+
+### Verify locally and on Azure
+
+After deploying (see [docs/deployment.md](docs/deployment.md)), the same request produces the same response in both environments.
+
+#### Local
+
+```bash
+curl -s http://localhost:7071/api/http_trigger \
+  -H "Content-Type: application/json" \
+  -d '{"name": "World"}'
+```
+
+```json
+{"message": "Hello, World!"}
+```
+
+#### Azure
+
+```bash
+curl -s "https://<your-app>.azurewebsites.net/api/http_trigger" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "World"}'
+```
+
+```json
+{"message": "Hello, World!"}
+```
+
+The `/api/openapi.json`, `/api/openapi.yaml`, and `/api/docs` endpoints are also available in both environments.
+
+> Response captured from a deployed Azure Function; URL anonymized.
+
 ## Demo
 
 The representative `hello` example shows the full outcome of adopting this library:
