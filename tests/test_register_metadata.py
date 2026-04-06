@@ -279,3 +279,20 @@ def test_register_invalid_route_raises() -> None:
     """Route validation rejects dangerous patterns like path traversal."""
     with pytest.raises(ValueError, match="Invalid route path"):
         register_openapi_metadata(path="/api/../secret", method="GET")
+
+
+def test_register_invalid_operation_id_raises() -> None:
+    """Regression test: explicit operation_id that sanitizes to empty must be rejected."""
+    with pytest.raises(ValueError, match="Invalid operation ID"):
+        register_openapi_metadata(path="/api/test", method="GET", operation_id="!!!")
+
+
+def test_register_sanitizable_operation_id_accepted() -> None:
+    """An operation_id that sanitizes to a non-empty string should be accepted."""
+    register_openapi_metadata(
+        path="/api/sanitize", method="POST", operation_id="my-op_id.v2"
+    )
+    registry = get_openapi_registry()
+    entry = registry["post::/api/sanitize"]
+    # sanitize_operation_id strips non-alphanumeric except underscore
+    assert entry["operation_id"]  # non-empty after sanitization

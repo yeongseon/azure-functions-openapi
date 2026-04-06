@@ -355,11 +355,16 @@ def register_openapi_metadata(
     # Fix #1: Collision-safe registry key preserving exact path
     registry_key = f"{method.lower()}::{path}"
 
-    # Auto-generate operation_id from sanitized method+path if not provided
-    clean_path = path.strip("/").replace("/", "_").replace("{", "").replace("}", "")
-    fallback_op_id = f"{method.lower()}_{clean_path}" if clean_path else method.lower()
-    resolved_operation_id = operation_id or fallback_op_id
-    sanitized_op_id = sanitize_operation_id(resolved_operation_id)
+    # Validate and sanitize operation_id
+    # If user-provided: use decorator-grade validation (rejects invalid IDs)
+    # If auto-generated: use raw sanitize (our fallback is always valid)
+    if operation_id:
+        sanitized_op_id = _validate_and_sanitize_operation_id(operation_id, registry_key)
+        # _validate_and_sanitize_operation_id returns str|None; if None it already raised
+    else:
+        clean_path = path.strip("/").replace("/", "_").replace("{", "").replace("}", "")
+        fallback_op_id = f"{method.lower()}_{clean_path}" if clean_path else method.lower()
+        sanitized_op_id = sanitize_operation_id(fallback_op_id)
 
     validated_parameters = _validate_parameters(parameters, registry_key) if parameters else []
     validated_security = _validate_security(security, registry_key) if security else []
