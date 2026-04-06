@@ -47,7 +47,7 @@ In this guide, you deploy example apps that provide:
 | Azure Functions Core Tools v4 | `func --version` | [Install Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local#install-the-azure-functions-core-tools) |
 | Python 3.10-3.13 | `python3 --version` | [python.org](https://www.python.org/downloads/) |
 | Package examples available | `ls examples` | Clone this repo again if missing |
-| Local example works | `func start` + local `curl` | See [README](../README.md) |
+| Local example works | `func start` + local `curl` | See [README](https://github.com/yeongseon/azure-functions-openapi/blob/main/README.md) |
 
 > Verify locally first. If it fails locally, deployment troubleshooting is much harder.
 
