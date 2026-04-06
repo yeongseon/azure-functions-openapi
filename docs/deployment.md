@@ -1,407 +1,489 @@
-# Deployment Guide
-This guide walks through deploying two `azure-functions-openapi` examples to Azure Functions (`todo_crud` and `with_validation`) and verifying runtime behavior, OpenAPI endpoints, and Swagger UI headers. It also includes CLI-based spec generation for CI workflows. Outputs are representative examples, not guaranteed byte-for-byte.
-## Prerequisites
-| Requirement | Minimum | Notes |
-|---|---|---|
-| Azure subscription | Active | Use `<YOUR_SUBSCRIPTION_ID>` |
-| Azure CLI (`az`) | Current | `az --version` |
-| Azure Functions Core Tools (`func`) | v4 | `func --version` |
-| Python | 3.10+ | Deploy runtime shown is Python 3.11 |
-| `azure-functions-openapi` | v0.16.0 | Install in each example environment |
+# Deploy to Azure
 
-Install dependencies in each example project before deploy:
+This guide walks you through deploying `azure-functions-openapi` to Azure, step by step.
+No Azure experience required.
+
+## Who this guide is for
+
+You know Python and pip, and you can run the examples locally.
+Now you want to deploy to Azure Functions and verify both your API endpoints and OpenAPI docs endpoints.
+
+## What you are deploying
+
+`azure-functions-openapi` adds OpenAPI support to Azure Functions Python apps.
+In this guide, you deploy example apps that provide:
+
+- Runtime API endpoints (`todo_crud`, `with_validation`)
+- Generated OpenAPI documents at `/api/openapi.json` and `/api/openapi.yaml`
+- Swagger UI at `/api/docs`
+- Security-focused response headers on the docs page (`Content-Security-Policy`, `X-Frame-Options`, HSTS, and others)
+
+## Azure concepts you need for this guide
+
+> New to Azure? Read [Choose an Azure Functions Hosting Plan](choose-a-plan.md) first.
+
+| Term | What it means |
+|---|---|
+| **Function App** | Your deployed app in Azure. It can contain multiple HTTP functions. |
+| **Hosting plan** | The compute model for your Function App (scaling, timeout, cost). |
+| **Resource Group** | A container for related resources. Delete it to clean up everything. |
+| **Storage Account** | Required by Azure Functions for runtime state and deployment internals. |
+| **Application Insights** | Monitoring resource Azure creates for logs and telemetry. |
+
+## Recommended plan for this repo
+
+| | |
+|---|---|
+| **Default plan** | Flex Consumption |
+| **Why** | Cheapest entry point, scale-to-zero, and enough timeout for these examples. |
+| **Switch to Premium if** | You need lower cold-start latency or large dependency footprints. |
+
+## Before you start
+
+| Requirement | How to check | Install if missing |
+|---|---|---|
+| Azure account | [portal.azure.com](https://portal.azure.com) | [Create free account](https://azure.microsoft.com/free/) |
+| Azure CLI | `az --version` | [Install Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) |
+| Azure Functions Core Tools v4 | `func --version` | [Install Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local#install-the-azure-functions-core-tools) |
+| Python 3.10-3.13 | `python3 --version` | [python.org](https://www.python.org/downloads/) |
+| Package examples available | `ls examples` | Clone this repo again if missing |
+| Local example works | `func start` + local `curl` | See [README](../README.md) |
+
+> Verify locally first. If it fails locally, deployment troubleshooting is much harder.
+
+## Read these warnings before provisioning
+
+1. **Storage account names are globally unique.** Only lowercase letters and numbers, 3–24 characters.
+2. **Use one region across all resources.** Mixed regions can increase latency and failures.
+3. **Deploy from the correct example directory.** Publishing from the wrong folder gives wrong functions and wrong OpenAPI output.
+4. **OpenAPI and Swagger routes are regular functions.** If `auth_level` for `openapi.json`, `openapi.yaml`, or `docs` is not anonymous, direct `curl` checks can return `401/403`.
+5. **Swagger UI route path is `/api/docs` by default.** If your host config or route prefix changes, docs URL changes too.
+6. **First publish is slower.** Azure performs a remote build and installs dependencies.
+
+---
+
+## Example 1: todo_crud
+
+This is the primary guided path.
+
+### Step 1 — Move into the example project
 
 ```bash
+cd /data/GitHub/azure-functions-openapi/examples/todo_crud
+```
+
+### Step 2 — Create and activate a virtual environment
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+```
+
+### Step 3 — Install dependencies
+
+```bash
+pip install -r requirements.txt
+pip install azure-functions-openapi==0.16.0
+```
+
+### Step 4 — Verify local app starts
+
+```bash
+cp local.settings.json.example local.settings.json
+func start
+```
+
+In another terminal, verify one endpoint:
+
+```bash
+curl -s -i http://localhost:7071/api/list_todos
+```
+
+Stop the local server with `Ctrl+C`.
+
+### Step 5 — Sign in to Azure and select subscription
+
+```bash
+az login
+az account list -o table
+SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+az account set --subscription "$SUBSCRIPTION_ID"
+```
+
+### Step 6 — Define deployment variables
+
+```bash
+RESOURCE_GROUP="rg-openapi-todo"
+LOCATION="koreacentral"
+STORAGE_ACCOUNT="stopenapitodo$(date +%s | tail -c 6)"
+FUNCTIONAPP_NAME="func-openapi-todo"
+BASE_URL="https://$FUNCTIONAPP_NAME.azurewebsites.net"
+```
+
+If needed, list Flex Consumption regions:
+
+```bash
+az functionapp list-flexconsumption-locations -o table
+```
+
+### Step 7 — Create Azure resource group
+
+```bash
+az group create --name "$RESOURCE_GROUP" --location "$LOCATION"
+```
+
+### Step 8 — Create storage account
+
+```bash
+az storage account create \
+  --name "$STORAGE_ACCOUNT" \
+  --resource-group "$RESOURCE_GROUP" \
+  --location "$LOCATION" \
+  --sku Standard_LRS
+```
+
+### Step 9 — Create Function App on Flex Consumption
+
+```bash
+az functionapp create \
+  --name "$FUNCTIONAPP_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --storage-account "$STORAGE_ACCOUNT" \
+  --flexconsumption-location "$LOCATION" \
+  --runtime python \
+  --runtime-version 3.11
+```
+
+### Step 10 — Publish the app
+
+```bash
+func azure functionapp publish "$FUNCTIONAPP_NAME"
+```
+
+Expected function names include:
+
+- `create_todo`, `list_todos`, `get_todo`, `update_todo`, `delete_todo`
+- `openapi_spec`, `openapi_yaml_spec`, `swagger_ui`
+
+### Step 11 — Verify CRUD API endpoints
+
+Create todo:
+
+```bash
+curl -s -i -X POST "$BASE_URL/api/create_todo" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Buy groceries"}'
+```
+
+List todos:
+
+```bash
+curl -s -i "$BASE_URL/api/list_todos"
+```
+
+Get todo:
+
+```bash
+curl -s -i "$BASE_URL/api/get_todo?id=1"
+```
+
+Update todo:
+
+```bash
+curl -s -i -X PUT "$BASE_URL/api/update_todo" \
+  -H "Content-Type: application/json" \
+  -d '{"id":1,"title":"Buy groceries","done":true}'
+```
+
+Delete todo:
+
+```bash
+curl -s -i -X DELETE "$BASE_URL/api/delete_todo?id=1"
+```
+
+### Step 12 — Verify OpenAPI JSON, YAML, and Swagger UI
+
+OpenAPI JSON:
+
+```bash
+curl -s -i "$BASE_URL/api/openapi.json"
+```
+
+OpenAPI YAML:
+
+```bash
+curl -s -i "$BASE_URL/api/openapi.yaml"
+```
+
+Swagger UI HTML:
+
+```bash
+curl -s -i "$BASE_URL/api/docs"
+```
+
+For Swagger UI, confirm these headers exist:
+
+- `Content-Security-Policy`
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `Strict-Transport-Security`
+
+### Step 13 — Optional: watch live logs
+
+```bash
+func azure functionapp logstream "$FUNCTIONAPP_NAME"
+```
+
+Press `Ctrl+C` to stop log streaming.
+
+---
+
+## Example 2: with_validation
+
+Try another example with request validation powered by `azure-functions-validation`.
+
+### Step 1 — Move into the example project
+
+```bash
+cd /data/GitHub/azure-functions-openapi/examples/with_validation
+```
+
+### Step 2 — Install dependencies
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 pip install azure-functions-openapi==0.16.0
 ```
 
-Representative output:
+### Step 3 — Set variables and create resources
 
 ```bash
-Requirement already satisfied: pip in ./.venv/lib/python3.11/site-packages (25.0)
-Collecting azure-functions
-Collecting azure-functions-openapi==0.16.0
-Collecting pydantic
-Successfully installed azure-functions-1.24.0 azure-functions-openapi-0.16.0 pydantic-2.11.3
+RESOURCE_GROUP="rg-openapi-validation"
+LOCATION="koreacentral"
+STORAGE_ACCOUNT="stopenapival$(date +%s | tail -c 6)"
+FUNCTIONAPP_NAME="func-openapi-validation"
+BASE_URL="https://$FUNCTIONAPP_NAME.azurewebsites.net"
+
+az login
+SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+az account set --subscription "$SUBSCRIPTION_ID"
+
+az group create --name "$RESOURCE_GROUP" --location "$LOCATION"
+
+az storage account create \
+  --name "$STORAGE_ACCOUNT" \
+  --resource-group "$RESOURCE_GROUP" \
+  --location "$LOCATION" \
+  --sku Standard_LRS
+
+az functionapp create \
+  --name "$FUNCTIONAPP_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --storage-account "$STORAGE_ACCOUNT" \
+  --flexconsumption-location "$LOCATION" \
+  --runtime python \
+  --runtime-version 3.11
 ```
 
-## Example 1: `todo_crud`
-The `todo_crud` example uses an in-memory store (`TODOS = []`) and starts empty on cold start. The first created item gets `id=1`.
-### Provision Azure resources
+### Step 4 — Publish and verify endpoints
 
 ```bash
-az account set --subscription <YOUR_SUBSCRIPTION_ID>
-az group create --name <YOUR_RESOURCE_GROUP_TODO> --location eastus
-az storage account create --name <YOUR_STORAGE_ACCOUNT_TODO> --resource-group <YOUR_RESOURCE_GROUP_TODO> --location eastus --sku Standard_LRS --kind StorageV2
-az functionapp create --name <YOUR_FUNCTION_APP_TODO> --resource-group <YOUR_RESOURCE_GROUP_TODO> --storage-account <YOUR_STORAGE_ACCOUNT_TODO> --consumption-plan-location eastus --runtime python --runtime-version 3.11 --functions-version 4
+func azure functionapp publish "$FUNCTIONAPP_NAME"
 ```
 
-Representative output:
-
-```json
-{"name":"<YOUR_RESOURCE_GROUP_TODO>","location":"eastus","properties":{"provisioningState":"Succeeded"}}
-{"name":"<YOUR_STORAGE_ACCOUNT_TODO>","kind":"StorageV2","provisioningState":"Succeeded"}
-{"name":"<YOUR_FUNCTION_APP_TODO>","defaultHostName":"<YOUR_FUNCTION_APP_TODO>.azurewebsites.net","provisioningState":"Succeeded","state":"Running"}
-```
-
-### Configure app settings
+Create user:
 
 ```bash
-az storage account show-connection-string --name <YOUR_STORAGE_ACCOUNT_TODO> --resource-group <YOUR_RESOURCE_GROUP_TODO> --query connectionString --output tsv
-az functionapp config appsettings set --name <YOUR_FUNCTION_APP_TODO> --resource-group <YOUR_RESOURCE_GROUP_TODO> --settings AZURE_STORAGE_CONNECTION_STRING="<YOUR_STORAGE_CONNECTION_STRING_TODO>"
+curl -s -i -X POST "$BASE_URL/api/users" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alice","email":"alice@example.com"}'
 ```
 
-Representative output:
-
-```text
-<YOUR_STORAGE_CONNECTION_STRING_TODO>
-```
-
-```json
-{"appSettings":[{"name":"AZURE_STORAGE_CONNECTION_STRING","slotSetting":false,"value":""},{"name":"FUNCTIONS_EXTENSION_VERSION","slotSetting":false,"value":"~4"},{"name":"FUNCTIONS_WORKER_RUNTIME","slotSetting":false,"value":"python"}]}
-
-### Publish
-
-From `examples/todo_crud`:
+Get user:
 
 ```bash
-func azure functionapp publish <YOUR_FUNCTION_APP_TODO>
+curl -s -i "$BASE_URL/api/users/1"
 ```
 
-Representative output:
-
-```text
-Getting site publishing info...
-[2026-04-06T10:27:41.021Z] Starting the function app deployment...
-Uploading package...
-Uploading 4.12 MB [#############################################################################]
-Deployment completed successfully.
-Syncing triggers...
-Functions in <YOUR_FUNCTION_APP_TODO>:
-    create_todo - [httpTrigger]
-    list_todos - [httpTrigger]
-    get_todo - [httpTrigger]
-    update_todo - [httpTrigger]
-    delete_todo - [httpTrigger]
-    openapi_spec - [httpTrigger]
-    openapi_yaml_spec - [httpTrigger]
-    swagger_ui - [httpTrigger]
-Deployment successful.
-```
-
-### Verify endpoints
+Invalid payload (validation expected):
 
 ```bash
-export BASE_URL_TODO="https://<YOUR_FUNCTION_APP_TODO>.azurewebsites.net"
+curl -s -i -X POST "$BASE_URL/api/users" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alice"}'
 ```
 
-#### `POST /api/create_todo`
+Check docs endpoints:
 
 ```bash
-curl -s -i -X POST "$BASE_URL_TODO/api/create_todo" -H "Content-Type: application/json" -d '{"title":"Buy groceries"}'
+curl -s -i "$BASE_URL/api/openapi.json"
+curl -s -i "$BASE_URL/api/openapi.yaml"
+curl -s -i "$BASE_URL/api/docs"
 ```
 
-Representative response:
-
-```http
-HTTP/1.1 201 Created
-Content-Type: application/json
-
-{"id":1,"title":"Buy groceries","done":false}
-```
-
-#### `GET /api/list_todos`
-
-```bash
-curl -s -i "$BASE_URL_TODO/api/list_todos"
-```
-
-Representative response:
-
-```http
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{"todos":[{"id":1,"title":"Buy groceries","done":false}]}
-```
-
-#### `GET /api/get_todo?id=1`
-
-```bash
-curl -s -i "$BASE_URL_TODO/api/get_todo?id=1"
-```
-
-Representative response:
-
-```http
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{"id":1,"title":"Buy groceries","done":false}
-```
-
-#### `PUT /api/update_todo`
-
-```bash
-curl -s -i -X PUT "$BASE_URL_TODO/api/update_todo" -H "Content-Type: application/json" -d '{"id":1,"title":"Buy groceries","done":true}'
-```
-
-Representative response:
-
-```http
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{"id":1,"title":"Buy groceries","done":true}
-```
-
-#### `DELETE /api/delete_todo?id=1`
-
-```bash
-curl -s -i -X DELETE "$BASE_URL_TODO/api/delete_todo?id=1"
-```
-
-Representative response:
-
-```http
-HTTP/1.1 204 No Content
-Content-Type: text/plain; charset=utf-8
-```
-
-#### `GET /api/openapi.json`
-
-`get_openapi_json()` is called without args in this example, so defaults apply (`title="API"`, `version="1.0.0"`).
-
-```bash
-curl -s -i "$BASE_URL_TODO/api/openapi.json"
-```
-
-Representative response (truncated):
-
-```http
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{
-  "openapi": "3.0.0",
-  "info": {"title": "API", "version": "1.0.0"},
-  "paths": {
-    "/api/create_todo": {"post": {"operationId": "createTodo"}},
-    "/api/list_todos": {"get": {"operationId": "listTodos"}}
-  }
-}
-```
-
-#### `GET /api/openapi.yaml`
-
-```bash
-curl -s -i "$BASE_URL_TODO/api/openapi.yaml"
-```
-
-Representative response (truncated):
-
-```http
-HTTP/1.1 200 OK
-Content-Type: application/x-yaml
-
-openapi: 3.0.0
-info: {title: API, version: 1.0.0}
-paths:
-  /api/create_todo: {post: {operationId: createTodo}}
-  /api/list_todos: {get: {operationId: listTodos}}
-```
-
-#### `GET /api/docs`
-
-```bash
-curl -s -i "$BASE_URL_TODO/api/docs"
-```
-
-Representative response (headers + HTML start):
-
-```http
-HTTP/1.1 200 OK
-Content-Type: text/html
-Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-<NONCE>' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
-X-Content-Type-Options: nosniff
-X-Frame-Options: DENY
-X-XSS-Protection: 1; mode=block
-Referrer-Policy: strict-origin-when-cross-origin
-Strict-Transport-Security: max-age=31536000; includeSubDomains
-Cache-Control: no-cache, no-store, must-revalidate
-
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>API Documentation</title>
-```
-
-## Example 2: `with_validation`
-The `with_validation` example uses `azure-functions-validation` (`@validate_http`) and an in-memory user store (`USERS = []`). It starts empty on cold start, so the first created user gets `id=1`.
-### Provision Azure resources
-
-```bash
-az account set --subscription <YOUR_SUBSCRIPTION_ID>
-az group create --name <YOUR_RESOURCE_GROUP_VALIDATION> --location eastus
-az storage account create --name <YOUR_STORAGE_ACCOUNT_VALIDATION> --resource-group <YOUR_RESOURCE_GROUP_VALIDATION> --location eastus --sku Standard_LRS --kind StorageV2
-az functionapp create --name <YOUR_FUNCTION_APP_VALIDATION> --resource-group <YOUR_RESOURCE_GROUP_VALIDATION> --storage-account <YOUR_STORAGE_ACCOUNT_VALIDATION> --consumption-plan-location eastus --runtime python --runtime-version 3.11 --functions-version 4
-```
-
-Representative output:
-
-```json
-{"name":"<YOUR_RESOURCE_GROUP_VALIDATION>","location":"eastus","properties":{"provisioningState":"Succeeded"}}
-{"name":"<YOUR_STORAGE_ACCOUNT_VALIDATION>","kind":"StorageV2","provisioningState":"Succeeded"}
-{"name":"<YOUR_FUNCTION_APP_VALIDATION>","defaultHostName":"<YOUR_FUNCTION_APP_VALIDATION>.azurewebsites.net","provisioningState":"Succeeded","state":"Running"}
-```
-
-### Configure app settings
-
-```bash
-az storage account show-connection-string --name <YOUR_STORAGE_ACCOUNT_VALIDATION> --resource-group <YOUR_RESOURCE_GROUP_VALIDATION> --query connectionString --output tsv
-az functionapp config appsettings set --name <YOUR_FUNCTION_APP_VALIDATION> --resource-group <YOUR_RESOURCE_GROUP_VALIDATION> --settings AZURE_STORAGE_CONNECTION_STRING="<YOUR_STORAGE_CONNECTION_STRING_VALIDATION>"
-```
-
-Representative output:
-
-```text
-<YOUR_STORAGE_CONNECTION_STRING_VALIDATION>
-```
-
-```json
-{"appSettings":[{"name":"AZURE_STORAGE_CONNECTION_STRING","slotSetting":false,"value":""},{"name":"FUNCTIONS_EXTENSION_VERSION","slotSetting":false,"value":"~4"},{"name":"FUNCTIONS_WORKER_RUNTIME","slotSetting":false,"value":"python"}]}
-
-### Publish
-
-From `examples/with_validation`:
-
-```bash
-func azure functionapp publish <YOUR_FUNCTION_APP_VALIDATION>
-```
-
-Representative output:
-
-```text
-Getting site publishing info...
-[2026-04-06T10:47:13.207Z] Starting the function app deployment...
-Uploading package...
-Uploading 4.07 MB [#############################################################################]
-Deployment completed successfully.
-Syncing triggers...
-Functions in <YOUR_FUNCTION_APP_VALIDATION>:
-    create_user - [httpTrigger]
-    get_user - [httpTrigger]
-    openapi_spec - [httpTrigger]
-    openapi_yaml_spec - [httpTrigger]
-    swagger_ui - [httpTrigger]
-Deployment successful.
-```
-
-### Verify endpoints
-
-```bash
-export BASE_URL_VALIDATION="https://<YOUR_FUNCTION_APP_VALIDATION>.azurewebsites.net"
-```
-
-#### `POST /api/users`
-
-`create_user` is decorated with `@validate_http`; at runtime this returns `200 OK` by default even though the OpenAPI `response` block lists `201`.
-
-```bash
-curl -s -i -X POST "$BASE_URL_VALIDATION/api/users" -H "Content-Type: application/json" -d '{"name":"Alice","email":"alice@example.com"}'
-```
-
-Representative response:
-
-```http
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{"id":1,"name":"Alice","email":"alice@example.com"}
-```
-
-#### `GET /api/users/1`
-
-```bash
-curl -s -i "$BASE_URL_VALIDATION/api/users/1"
-```
-
-Representative response:
-
-```http
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-{"id":1,"name":"Alice","email":"alice@example.com"}
-```
-
-#### `POST /api/users` (invalid payload)
-
-```bash
-curl -s -i -X POST "$BASE_URL_VALIDATION/api/users" -H "Content-Type: application/json" -d '{"name":"Alice"}'
-```
-
-Representative response (from `azure-functions-validation`):
-
-```http
-HTTP/1.1 422 Unprocessable Entity
-Content-Type: application/json
-
-{"detail":[{"loc":["email"],"msg":"Field required","type":"missing"}]}
-```
+---
 
 ## CLI spec generation
-Use the CLI to generate a static OpenAPI artifact during CI without manually calling API routes:
-```bash
-azure-functions-openapi generate --app-path ./function_app.py --format json --output ./openapi.json
-```
 
-Representative output:
+After deployment (or in CI), you can generate a static OpenAPI file directly from `function_app.py`.
 
-```text
-Generating OpenAPI spec from ./function_app.py
-Detected Azure Functions routes and OpenAPI decorators
-Wrote OpenAPI JSON to ./openapi.json
-```
-
-You can also output YAML:
+From either example directory:
 
 ```bash
-azure-functions-openapi generate --app-path ./function_app.py --format yaml --output ./openapi.yaml
+azure-functions-openapi generate \
+  --app-path ./function_app.py \
+  --format json \
+  --output ./openapi.json
 ```
 
-Representative output:
+Generate YAML instead:
 
-```text
-Generating OpenAPI spec from ./function_app.py
-Wrote OpenAPI YAML to ./openapi.yaml
-```
-
-For full CLI options and flags, see [`docs/cli.md`](./cli.md).
-
-## Cleanup
 ```bash
-az group delete --name <YOUR_RESOURCE_GROUP_TODO> --yes --no-wait
-az group delete --name <YOUR_RESOURCE_GROUP_VALIDATION> --yes --no-wait
+azure-functions-openapi generate \
+  --app-path ./function_app.py \
+  --format yaml \
+  --output ./openapi.yaml
 ```
 
-Representative output:
+See [`docs/cli.md`](./cli.md) for full CLI options.
 
-```text
-{"status":"Accepted"}
-{"status":"Accepted"}
+## If you need a different plan
+
+This guide uses Flex Consumption. For Premium or Dedicated commands, see [Choose an Azure Functions Hosting Plan](choose-a-plan.md).
+
+### Premium (EP1)
+
+```bash
+az functionapp plan create \
+  --name "${FUNCTIONAPP_NAME}-plan" \
+  --resource-group "$RESOURCE_GROUP" \
+  --location "$LOCATION" \
+  --sku EP1 \
+  --is-linux
+
+az functionapp create \
+  --name "$FUNCTIONAPP_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --storage-account "$STORAGE_ACCOUNT" \
+  --plan "${FUNCTIONAPP_NAME}-plan" \
+  --runtime python \
+  --runtime-version 3.11 \
+  --os-type Linux
+```
+
+### Dedicated (B1)
+
+```bash
+az appservice plan create \
+  --name "${FUNCTIONAPP_NAME}-plan" \
+  --resource-group "$RESOURCE_GROUP" \
+  --location "$LOCATION" \
+  --sku B1 \
+  --is-linux
+
+az functionapp create \
+  --name "$FUNCTIONAPP_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --storage-account "$STORAGE_ACCOUNT" \
+  --plan "${FUNCTIONAPP_NAME}-plan" \
+  --runtime python \
+  --runtime-version 3.11 \
+  --os-type Linux
+```
+
+## Troubleshooting
+
+### Provisioning failed
+
+| Symptom | Usually means | How to fix |
+|---|---|---|
+| `StorageAccountAlreadyTaken` | Storage account name is already used globally | Change the name suffix and retry |
+| `LocationNotAvailableForResourceType` | Flex Consumption not available in selected region | Run `az functionapp list-flexconsumption-locations -o table` and choose a supported region |
+| `SubscriptionNotFound` | Wrong subscription selected | Run `az account list -o table`, then set `SUBSCRIPTION_ID` again |
+
+### Deployment failed
+
+| Symptom | Usually means | How to fix |
+|---|---|---|
+| `ModuleNotFoundError` during publish | Missing or incomplete dependencies | Reinstall with `pip install -r requirements.txt` and republish |
+| `Can't find app with name` | Function App not ready yet | Wait 30-60 seconds and rerun publish |
+| Publish is very slow | First remote build is still running | Wait, then rerun once if it times out |
+
+### OpenAPI and Swagger issues
+
+| Symptom | Usually means | How to fix |
+|---|---|---|
+| `404` on `/api/docs` | Wrong route prefix or docs route changed | Verify `app.route(route="docs")` and host route prefix |
+| `/api/openapi.json` is empty or missing endpoints | OpenAPI decorators are missing or not imported | Confirm functions use `@openapi` and app starts without import errors |
+| `/api/openapi.yaml` returns `401/403` | Auth level is not anonymous on docs functions | Set `auth_level=func.AuthLevel.ANONYMOUS` for OpenAPI/docs routes and redeploy |
+| Swagger UI loads but fails to fetch spec | Spec URL blocked or wrong path | Confirm `/api/openapi.json` is reachable directly with `curl` |
+| Missing hardening headers on `/api/docs` | Docs response not coming from `render_swagger_ui()` | Ensure docs function returns `render_swagger_ui()` and redeploy |
+
+### Logs and monitoring
+
+```bash
+func azure functionapp logstream "$FUNCTIONAPP_NAME"
+
+az monitor app-insights events show \
+  --app "$FUNCTIONAPP_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --type requests \
+  --offset 1h
+```
+
+### Before opening an issue
+
+Share these outputs so maintainers can reproduce quickly:
+
+```bash
+az --version
+func --version
+python3 --version
+pip show azure-functions-openapi
+
+az functionapp show \
+  --name "$FUNCTIONAPP_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --query "{state:state,runtimeVersion:siteConfig.linuxFxVersion}"
+
+curl -s -i "$BASE_URL/api/openapi.json"
+curl -s -i "$BASE_URL/api/docs"
+```
+
+## Clean up resources
+
+Azure resources keep billing until deleted.
+
+```bash
+az group delete --name "rg-openapi-todo" --yes --no-wait
+az group delete --name "rg-openapi-validation" --yes --no-wait
+```
+
+Verify cleanup:
+
+```bash
+az group list --query "[?starts_with(name, 'rg-openapi')]" -o table
 ```
 
 ## Sources
 
-- [Azure Functions Python quickstart](https://learn.microsoft.com/en-us/azure/azure-functions/create-first-function-cli-python)
-- [Azure Functions Core Tools publish reference](https://learn.microsoft.com/en-us/azure/azure-functions/functions-core-tools-reference#func-azure-functionapp-publish)
-- [Function App settings](https://learn.microsoft.com/en-us/azure/azure-functions/functions-how-to-use-azure-function-app-settings)
+- [Azure Functions Python quickstart](https://learn.microsoft.com/azure/azure-functions/create-first-function-cli-python)
+- [Azure Functions Core Tools reference](https://learn.microsoft.com/azure/azure-functions/functions-core-tools-reference)
+- [Azure Functions hosting options](https://learn.microsoft.com/azure/azure-functions/functions-scale)
+- [Flex Consumption plan](https://learn.microsoft.com/azure/azure-functions/flex-consumption-plan)
+- [Azure Functions app settings](https://learn.microsoft.com/azure/azure-functions/functions-how-to-use-azure-function-app-settings)
 
 ## See Also
 
-- [`azure-functions-validation`](https://github.com/yeongseon/azure-functions-validation)
+- [Choose an Azure Functions Hosting Plan](choose-a-plan.md) — Plan selection guide with decision tree
+- [CLI guide](./cli.md)
 - [`azure-functions-scaffold`](https://github.com/yeongseon/azure-functions-scaffold)
-- [`docs/cli.md`](./cli.md)
+- [`azure-functions-validation`](https://github.com/yeongseon/azure-functions-validation)
+- [`azure-functions-doctor`](https://github.com/yeongseon/azure-functions-doctor)
+- [`azure-functions-logging`](https://github.com/yeongseon/azure-functions-logging)
+- [`azure-functions-langgraph`](https://github.com/yeongseon/azure-functions-langgraph)
