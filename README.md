@@ -57,7 +57,7 @@ This package does **not** support the legacy `function.json`-based v1 programmin
 ## What this package does not do
 
 This package does not own:
-- Runtime execution or graph deployment — use [`azure-functions-langgraph`](https://github.com/yeongseon/azure-functions-langgraph)
+- Runtime exposure or graph deployment — use [`azure-functions-langgraph`](https://github.com/yeongseon/azure-functions-langgraph)
 - Request/response validation or serialization — use [`azure-functions-validation`](https://github.com/yeongseon/azure-functions-validation)
 - Project scaffolding — use [`azure-functions-scaffold`](https://github.com/yeongseon/azure-functions-scaffold)
 
@@ -234,7 +234,7 @@ The web preview below is generated from the same representative example and capt
 
 This package is part of the **Azure Functions Python DX Toolkit**.
 
-**Design principle:** `azure-functions-openapi` owns API documentation and spec generation. `azure-functions-validation` owns request/response validation. `azure-functions-langgraph` owns LangGraph runtime execution.
+**Design principle:** `azure-functions-openapi` owns API documentation and spec generation. `azure-functions-validation` owns request/response validation and serialization. `azure-functions-langgraph` owns LangGraph runtime exposure.
 
 | Package | Role |
 |---------|------|
