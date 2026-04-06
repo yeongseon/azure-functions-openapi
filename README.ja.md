@@ -164,10 +164,12 @@ func start
 
 ## Ecosystem
 
+- [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph) — LangGraph デプロイアダプター
 - [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) — リクエストとレスポンスのバリデーション
 - [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) — 構造化ロギング
 - [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) — 診断 CLI
 - [azure-functions-scaffold](https://github.com/yeongseon/azure-functions-scaffold) — プロジェクトスキャフォールディング
+- [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph) — Durable Functions ベースのグラフランタイム
 - [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) — レシピとサンプル
 
 ## Disclaimer

@@ -54,6 +54,13 @@ Azure Functions Python v2 has no built-in API documentation story:
 
 This package does **not** support the legacy `function.json`-based v1 programming model.
 
+## What this package does not do
+
+This package does not own:
+- Runtime exposure or graph deployment — use [`azure-functions-langgraph`](https://github.com/yeongseon/azure-functions-langgraph)
+- Request/response validation or serialization — use [`azure-functions-validation`](https://github.com/yeongseon/azure-functions-validation)
+- Project scaffolding — use [`azure-functions-scaffold`](https://github.com/yeongseon/azure-functions-scaffold)
+
 ## Features
 
 - `@openapi` decorator for operation metadata
@@ -225,15 +232,19 @@ The web preview below is generated from the same representative example and capt
 
 ## Ecosystem
 
-Part of the **Azure Functions Python DX Toolkit**:
+This package is part of the **Azure Functions Python DX Toolkit**.
+
+**Design principle:** `azure-functions-openapi` owns API documentation and spec generation. `azure-functions-validation` owns request/response validation and serialization. `azure-functions-langgraph` owns LangGraph runtime exposure.
 
 | Package | Role |
 |---------|------|
-| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) | Request and response validation |
-| **azure-functions-openapi** | OpenAPI spec and Swagger UI |
+| [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph) | LangGraph deployment adapter for Azure Functions |
+| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) | Request/response validation and serialization |
+| **azure-functions-openapi** | OpenAPI spec generation and Swagger UI |
 | [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) | Structured logging and observability |
 | [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) | Pre-deploy diagnostic CLI |
 | [azure-functions-scaffold](https://github.com/yeongseon/azure-functions-scaffold) | Project scaffolding |
+| [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph) | Manifest-first graph runtime with Durable Functions |
 | [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) | Recipes and examples |
 
 ## Disclaimer
