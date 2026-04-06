@@ -275,6 +275,131 @@ def get_openapi_registry() -> dict[str, dict[str, Any]]:
         return copy.deepcopy(_openapi_registry)
 
 
+def clear_openapi_registry() -> None:
+    """Remove all entries from the OpenAPI registry.
+
+    Primarily useful for testing or when rebuilding the registry from scratch.
+    """
+    with _registry_lock:
+        _openapi_registry.clear()
+
+
+def register_openapi_metadata(
+    path: str,
+    method: str,
+    *,
+    operation_id: str | None = None,
+    summary: str = "",
+    description: str = "",
+    tags: list[str] | None = None,
+    request_body: dict[str, Any] | None = None,
+    request_body_required: bool = True,
+    response_model: type[BaseModel] | None = None,
+    response: dict[int, dict[str, Any]] | None = None,
+    parameters: list[dict[str, Any]] | None = None,
+    security: list[dict[str, list[str]]] | None = None,
+    security_scheme: dict[str, dict[str, Any]] | None = None,
+) -> None:
+    """Register OpenAPI metadata for an endpoint programmatically.
+
+    Use this instead of the ``@openapi()`` decorator when the HTTP handler
+    is generated dynamically (e.g. by ``azure-functions-langgraph``).
+
+    Parameters
+    ----------
+    path:
+        URL path for the endpoint (e.g. ``/api/chat/invoke``).
+    method:
+        HTTP method (e.g. ``POST``).
+    operation_id:
+        Custom operationId. Auto-generated from method + path if omitted.
+    summary:
+        Short description shown in Swagger UI.
+    description:
+        Longer Markdown-enabled description.
+    tags:
+        List of group tags. Defaults to ``["default"]``.
+    request_body:
+        Raw requestBody schema dict.
+    request_body_required:
+        Whether the request body is required. Defaults to True.
+    response_model:
+        Pydantic model for the 200-response schema.
+    response:
+        Manual responses dict keyed by status code.
+    parameters:
+        List of OpenAPI parameter objects (query/path/header/cookie).
+    security:
+        List of OpenAPI Security Requirement Objects.
+    security_scheme:
+        Security scheme definitions for components.securitySchemes.
+
+    Raises
+    ------
+    ValueError
+        If ``path`` or ``method`` is empty/invalid.
+    """
+    if not path or not isinstance(path, str):
+        raise ValueError("path must be a non-empty string")
+    if not method or not isinstance(method, str):
+        raise ValueError("method must be a non-empty string")
+
+    method_upper = method.upper()
+    valid_methods = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
+    if method_upper not in valid_methods:
+        raise ValueError(f"Invalid HTTP method: {method!r}. Must be one of {sorted(valid_methods)}")
+
+    # Fix #2: Validate route using existing validation (consistent with decorator)
+    _validate_and_sanitize_route(path, f"{method_upper} {path}")
+
+    # Fix #1: Collision-safe registry key preserving exact path
+    registry_key = f"{method.lower()}::{path}"
+
+    # Validate and sanitize operation_id
+    # If user-provided: use decorator-grade validation (rejects invalid IDs)
+    # If auto-generated: use raw sanitize (our fallback is always valid)
+    if operation_id:
+        sanitized_op_id = _validate_and_sanitize_operation_id(operation_id, registry_key)
+        # _validate_and_sanitize_operation_id returns str|None; if None it already raised
+    else:
+        clean_path = path.strip("/").replace("/", "_").replace("{", "").replace("}", "")
+        fallback_op_id = f"{method.lower()}_{clean_path}" if clean_path else method.lower()
+        sanitized_op_id = sanitize_operation_id(fallback_op_id)
+
+    validated_parameters = _validate_parameters(parameters, registry_key) if parameters else []
+    validated_security = _validate_security(security, registry_key) if security else []
+    validated_security_scheme = (
+        _validate_security_scheme(security_scheme, registry_key) if security_scheme else {}
+    )
+    validated_tags = _validate_tags(tags, registry_key) if tags else ["default"]
+
+    if response_model is not None:
+        _validate_models(None, response_model, registry_key)
+
+    with _registry_lock:
+        _openapi_registry[registry_key] = {
+            "summary": summary,
+            "description": description,
+            "tags": validated_tags,
+            "operation_id": sanitized_op_id,
+            # Fix #3: Store route unchanged; generate_openapi_spec() normalizes with lstrip("/")
+            "route": path,
+            "method": method.lower(),
+            "parameters": validated_parameters,
+            "security": validated_security,
+            "security_scheme": validated_security_scheme,
+            "request_model": None,
+            "request_body": request_body,
+            "request_body_required": request_body_required,
+            "response_model": response_model,
+            "response": response or {},
+            "function_name": registry_key,
+            "_function_id": f"programmatic.{registry_key}",
+        }
+
+    logger.debug("Registered programmatic OpenAPI metadata for '%s %s'", method_upper, path)
+
+
 def _validate_and_sanitize_route(route: str | None, func_name: str) -> str | None:
     """Validate and sanitize route path."""
     if not route:

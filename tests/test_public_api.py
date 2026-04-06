@@ -12,15 +12,18 @@ class TestAPISurface:
             "OPENAPI_VERSION_3_0",
             "OPENAPI_VERSION_3_1",
             "OpenAPISpecConfigError",
+            "OpenAPIOperationMetadata",
+            "clear_openapi_registry",
             "generate_openapi_spec",
             "get_openapi_json",
             "get_openapi_yaml",
             "openapi",
+            "register_openapi_metadata",
             "render_swagger_ui",
         }
 
-    def test_version_is_0_15_1(self) -> None:
-        assert azure_functions_openapi.__version__ == "0.15.1"
+    def test_version_is_0_16_0(self) -> None:
+        assert azure_functions_openapi.__version__ == "0.16.0"
 
     def test_version_is_string(self) -> None:
         assert isinstance(azure_functions_openapi.__version__, str)
@@ -29,11 +32,14 @@ class TestAPISurface:
         from azure_functions_openapi import (  # noqa: F401
             OPENAPI_VERSION_3_0,
             OPENAPI_VERSION_3_1,
+            OpenAPIOperationMetadata,
             OpenAPISpecConfigError,
+            clear_openapi_registry,
             generate_openapi_spec,
             get_openapi_json,
             get_openapi_yaml,
             openapi,
+            register_openapi_metadata,
             render_swagger_ui,
         )
 
