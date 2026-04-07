@@ -1,2 +1,3 @@
 azure-functions
-azure-functions-openapi[bridge]
+azure-functions-openapi
+azure-functions-validation

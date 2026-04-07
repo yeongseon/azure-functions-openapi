@@ -343,8 +343,10 @@ This scans the app's registered HTTP functions for `@validate_http` metadata
 and auto-registers them in the OpenAPI registry. Explicit `@openapi` decorators
 always take precedence.
 
-!!! info "Requires bridge extra"
-    Install with `pip install azure-functions-openapi[bridge]`.
+!!! info "No extra dependencies required"
+    `scan_validation_metadata()` reads the convention-based metadata attribute
+    written by `@validate_http` — no extra install step needed beyond having both
+    packages in your project.
 
 See [Bridge Example](examples/with_bridge.md) for a complete walkthrough.
 

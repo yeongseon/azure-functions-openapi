@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-import builtins
 from collections.abc import Iterator
 from dataclasses import dataclass
-import importlib
 from typing import Any
 
 from pydantic import BaseModel
 import pytest
 
-from azure_functions_openapi.bridge import _model_to_parameters, scan_validation_metadata
+from azure_functions_openapi.bridge import (
+    _HANDLER_METADATA_ATTR,
+    _model_to_parameters,
+    scan_validation_metadata,
+)
 from azure_functions_openapi.decorator import (
     _openapi_registry,
     _registry_lock,
@@ -19,33 +21,6 @@ from azure_functions_openapi.decorator import (
 )
 from azure_functions_openapi.exceptions import OpenAPISpecConfigError
 from azure_functions_openapi.utils import model_to_schema, type_to_schema
-
-try:
-    validation_module = importlib.import_module("azure_functions_validation.decorator")
-    RuntimeValidationMetadata = getattr(validation_module, "ValidationMetadata")
-    has_validation = True
-except ImportError:
-    RuntimeValidationMetadata = None
-    has_validation = False
-
-if has_validation and RuntimeValidationMetadata is not None:
-    ValidationMetadata = RuntimeValidationMetadata
-else:
-
-    @dataclass(frozen=True)
-    class FallbackValidationMetadata:
-        body: Any = None
-        query: Any = None
-        path: Any = None
-        headers: Any = None
-        response_model: Any = None
-
-    ValidationMetadata = FallbackValidationMetadata
-
-
-pytestmark = pytest.mark.skipif(
-    not has_validation, reason="azure-functions-validation not installed"
-)
 
 
 @pytest.fixture(autouse=True)
@@ -99,11 +74,11 @@ class MockApp:
     _function_builders: list[MockBuilder]
 
 
-def _make_validated_handler(metadata: Any) -> Any:
+def _make_validated_handler(metadata: dict[str, Any]) -> Any:
     def handler(req: Any) -> Any:
         return req
 
-    setattr(handler, "_af_validation_metadata", metadata)
+    setattr(handler, _HANDLER_METADATA_ATTR, {"validation": metadata})
     return handler
 
 
@@ -121,7 +96,9 @@ def _make_app(
 
 
 def test_scan_discovers_validation_metadata() -> None:
-    app = _make_app(metadata=ValidationMetadata(body=CreateBody, response_model=ResponseModel))
+    app = _make_app(
+        metadata={"body": CreateBody, "response_model": ResponseModel}
+    )
 
     scan_validation_metadata(app)
 
@@ -141,16 +118,17 @@ def test_scan_skips_non_validated_functions() -> None:
 
 def test_explicit_openapi_wins() -> None:
     register_openapi_metadata(path="/api/users", method="post", summary="explicit")
-    app = _make_app(metadata=ValidationMetadata(body=CreateBody, response_model=ResponseModel))
+    app = _make_app(
+        metadata={"body": CreateBody, "response_model": ResponseModel}
+    )
 
     scan_validation_metadata(app)
 
     entry = get_openapi_registry()["post::/api/users"]
     assert entry["summary"] == "explicit"
 
-
 def test_body_model_registered_as_request_body() -> None:
-    app = _make_app(metadata=ValidationMetadata(body=CreateBody))
+    app = _make_app(metadata={"body": CreateBody})
 
     scan_validation_metadata(app)
 
@@ -160,7 +138,7 @@ def test_body_model_registered_as_request_body() -> None:
 
 
 def test_query_model_registered_as_parameters() -> None:
-    app = _make_app(metadata=ValidationMetadata(query=QueryModel))
+    app = _make_app(metadata={"query": QueryModel})
 
     scan_validation_metadata(app)
 
@@ -169,7 +147,9 @@ def test_query_model_registered_as_parameters() -> None:
 
 
 def test_path_model_registered_as_parameters() -> None:
-    app = _make_app(route="users/{user_id}", metadata=ValidationMetadata(path=PathModel))
+    app = _make_app(
+        route="users/{user_id}", metadata={"path": PathModel}
+    )
 
     scan_validation_metadata(app)
 
@@ -180,25 +160,23 @@ def test_path_model_registered_as_parameters() -> None:
 
 
 def test_response_model_registered() -> None:
-    app = _make_app(metadata=ValidationMetadata(response_model=ResponseModel))
+    app = _make_app(metadata={"response_model": ResponseModel})
 
     scan_validation_metadata(app)
 
     assert get_openapi_registry()["post::/api/users"]["response_model"] is ResponseModel
 
 
-def test_import_error_without_validation_package(monkeypatch: pytest.MonkeyPatch) -> None:
-    real_import = builtins.__import__
+def test_scan_without_validation_metadata() -> None:
+    """Handlers without the convention attribute are silently skipped."""
+    handler_fn = lambda req: req  # noqa: E731
+    binding = MockBinding(route="users", methods=["POST"])
+    fn = MockFunction(_name="create_user", _func=handler_fn, _bindings=[binding])
+    app = MockApp(_function_builders=[MockBuilder(_function=fn)])
 
-    def raising_import(name: str, *args: Any, **kwargs: Any) -> Any:
-        if name.startswith("azure_functions_validation"):
-            raise ImportError("not installed")
-        return real_import(name, *args, **kwargs)
+    scan_validation_metadata(app)
 
-    monkeypatch.setattr(builtins, "__import__", raising_import)
-
-    with pytest.raises(ImportError, match="azure-functions-validation"):
-        scan_validation_metadata(MockApp(_function_builders=[]))
+    assert get_openapi_registry() == {}
 
 
 def test_scan_empty_app() -> None:
@@ -215,14 +193,14 @@ def test_model_to_parameters_conversion() -> None:
 
 def test_conflict_detection() -> None:
     register_openapi_metadata(path="/api/users", method="post", response_model=AltResponseModel)
-    app = _make_app(metadata=ValidationMetadata(response_model=ResponseModel))
+    app = _make_app(metadata={"response_model": ResponseModel})
 
     with pytest.raises(OpenAPISpecConfigError):
         scan_validation_metadata(app)
 
 
 def test_scan_skips_non_http_bindings() -> None:
-    handler = _make_validated_handler(ValidationMetadata(body=CreateBody))
+    handler = _make_validated_handler({"body": CreateBody})
     fn = MockFunction(
         _name="non_http",
         _func=handler,
@@ -236,7 +214,7 @@ def test_scan_skips_non_http_bindings() -> None:
 
 
 def test_scan_defaults_method_to_get_when_unspecified() -> None:
-    handler = _make_validated_handler(ValidationMetadata(response_model=ResponseModel))
+    handler = _make_validated_handler({"response_model": ResponseModel})
     binding = MockBinding(route="users", methods=None, type="httpTrigger")
     fn = MockFunction(_name="get_users", _func=handler, _bindings=[binding])
     app = MockApp(_function_builders=[MockBuilder(_function=fn)])
@@ -267,7 +245,7 @@ def test_scan_merges_explicit_function_name_entry() -> None:
             "_function_id": "tests.create_user",
         }
 
-    app = _make_app(name="create_user", metadata=ValidationMetadata(body=CreateBody))
+    app = _make_app(name="create_user", metadata={"body": CreateBody})
     scan_validation_metadata(app)
 
     entry = get_openapi_registry()["create_user"]
@@ -283,7 +261,7 @@ def test_parameter_conflict_detection() -> None:
             {"name": "limit", "in": "query", "required": True, "schema": {"type": "string"}}
         ],
     )
-    app = _make_app(metadata=ValidationMetadata(query=QueryModel))
+    app = _make_app(metadata={"query": QueryModel})
 
     with pytest.raises(OpenAPISpecConfigError, match="Conflicting validation"):
         scan_validation_metadata(app)
@@ -311,3 +289,29 @@ def test_model_to_schema_accepts_generic_type_hints() -> None:
 def test_type_to_schema_without_components() -> None:
     schema = type_to_schema(ResponseModel | None)
     assert "anyOf" in schema or "oneOf" in schema or "type" in schema
+
+
+def test_legacy_af_validation_metadata_fallback() -> None:
+    """Handlers with only the legacy _af_validation_metadata attribute are still discovered."""
+
+    @dataclass(frozen=True)
+    class LegacyMeta:
+        body: Any = None
+        query: Any = None
+        path: Any = None
+        headers: Any = None
+        response_model: Any = None
+
+    def handler(req: Any) -> Any:
+        return req
+
+    setattr(handler, "_af_validation_metadata", LegacyMeta(body=CreateBody))
+    binding = MockBinding(route="users", methods=["POST"])
+    fn = MockFunction(_name="create_user", _func=handler, _bindings=[binding])
+    app = MockApp(_function_builders=[MockBuilder(_function=fn)])
+
+    scan_validation_metadata(app)
+
+    schema = get_openapi_registry()["post::/api/users"]["request_body"]
+    assert schema["type"] == "object"
+    assert "name" in schema["properties"]

@@ -175,37 +175,73 @@ def _model_to_parameters(model_cls: type, location: str) -> list[dict[str, Any]]
 
 
 def _discovered_operation(
-    function_name: str, metadata: Any, path: str, method: str
+    function_name: str, metadata: dict[str, Any], path: str, method: str
 ) -> dict[str, Any]:
     request_body = (
-        type_to_schema(metadata.body) if getattr(metadata, "body", None) is not None else None
+        type_to_schema(metadata["body"]) if metadata.get("body") is not None else None
     )
     parameters: list[dict[str, Any]] = []
-    if getattr(metadata, "query", None) is not None:
-        parameters.extend(_model_to_parameters(metadata.query, "query"))
-    if getattr(metadata, "path", None) is not None:
-        parameters.extend(_model_to_parameters(metadata.path, "path"))
-    if getattr(metadata, "headers", None) is not None:
-        parameters.extend(_model_to_parameters(metadata.headers, "header"))
+    if metadata.get("query") is not None:
+        parameters.extend(_model_to_parameters(metadata["query"], "query"))
+    if metadata.get("path") is not None:
+        parameters.extend(_model_to_parameters(metadata["path"], "path"))
+    if metadata.get("headers") is not None:
+        parameters.extend(_model_to_parameters(metadata["headers"], "header"))
     return {
         "function_name": function_name,
         "route": path,
         "method": method,
         "request_body": request_body,
         "parameters": parameters,
-        "response_model": getattr(metadata, "response_model", None),
+        "response_model": metadata.get("response_model"),
     }
+
+# Convention-based handler metadata attribute name.
+# Packages in the Azure Functions Python DX Toolkit write per-namespace
+# dicts into this attribute so consumers can discover metadata without
+# importing the producing package.
+_HANDLER_METADATA_ATTR = "_azure_functions_toolkit_metadata"
+
+# Legacy attribute written by azure-functions-validation <0.7.
+_LEGACY_METADATA_ATTR = "_af_validation_metadata"
+
+
+def _read_validation_hints(handler: Any) -> dict[str, Any] | None:
+    """Read validation hints from a handler using the convention attribute.
+
+    Falls back to the legacy ``_af_validation_metadata`` attribute for
+    backward compatibility with azure-functions-validation <0.7.
+
+    Returns a plain dict with keys matching ValidationHintsV1 (body, query,
+    path, headers, response_model) or ``None`` if no metadata is found.
+    """
+    toolkit_meta = getattr(handler, _HANDLER_METADATA_ATTR, None)
+    if isinstance(toolkit_meta, dict):
+        hints = toolkit_meta.get("validation")
+        if isinstance(hints, dict):
+            return hints
+
+    # Legacy fallback: azure-functions-validation <0.7 wrote a dataclass.
+    legacy = getattr(handler, _LEGACY_METADATA_ATTR, None)
+    if legacy is not None:
+        return {
+            "body": getattr(legacy, "body", None),
+            "query": getattr(legacy, "query", None),
+            "path": getattr(legacy, "path", None),
+            "headers": getattr(legacy, "headers", None),
+            "response_model": getattr(legacy, "response_model", None),
+        }
+
+    return None
 
 
 def scan_validation_metadata(app: Any) -> None:
-    try:
-        from azure_functions_validation.decorator import ValidationMetadata
-    except ImportError as exc:
-        raise ImportError(
-            "scan_validation_metadata() requires optional dependency 'azure-functions-validation'. "
-            "Install with: pip install azure-functions-openapi[bridge]"
-        ) from exc
+    """Scan function builders for validation metadata and register OpenAPI operations.
 
+    This function reads the convention-based ``_azure_functions_toolkit_metadata``
+    attribute (namespace ``"validation"``) from each handler.  No import from
+    ``azure-functions-validation`` is required.
+    """
     builders = getattr(app, "_function_builders", None)
     if not builders:
         logger.debug("No function builders found on app; skipping validation scan")
@@ -219,8 +255,8 @@ def scan_validation_metadata(app: Any) -> None:
         handler = getattr(function_obj, "_func", None)
         if handler is None:
             continue
-        metadata = getattr(handler, "_af_validation_metadata", None)
-        if not isinstance(metadata, ValidationMetadata):
+        metadata = _read_validation_hints(handler)
+        if metadata is None:
             continue
 
         binding = _extract_http_binding(function_obj)

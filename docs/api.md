@@ -175,8 +175,10 @@ from azure_functions_openapi import scan_validation_metadata
 scan_validation_metadata(app)
 ```
 
-!!! info "Requires bridge extra"
-    Install with `pip install azure-functions-openapi[bridge]` to enable this feature.
+!!! info "No extra dependencies required"
+    `scan_validation_metadata()` reads the convention-based metadata attribute
+    written by `@validate_http`.  No import from `azure-functions-validation` is needed —
+    just install both packages in your project.
 
 #### Merge rules
 

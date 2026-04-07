@@ -36,14 +36,13 @@ Install the `docs` extras to build the documentation site locally:
 pip install azure-functions-openapi[docs]
 ```
 
-Install the `bridge` extras to enable automatic OpenAPI generation from
-`azure-functions-validation` decorators:
+If you also use `azure-functions-validation` for request/response validation,
+install it alongside — `scan_validation_metadata()` will auto-discover
+validation metadata without any extra configuration:
 
 ```bash
-pip install azure-functions-openapi[bridge]
+pip install azure-functions-openapi azure-functions-validation
 ```
-
-This adds `azure-functions-validation` as a dependency for the bridge feature.
 
 
 ## Add to requirements.txt
