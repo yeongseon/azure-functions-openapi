@@ -1,0 +1,400 @@
+# azure-functions-openapi — Full LLM Reference
+
+> Generate OpenAPI specs and Swagger UI for Azure Functions HTTP handlers.
+
+## Package Info
+
+- PyPI: `pip install azure-functions-openapi`
+- Version: 0.16.0
+- Python: >=3.10, <3.15
+- License: MIT
+- Docs: https://yeongseon.github.io/azure-functions-openapi/
+- Repository: https://github.com/yeongseon/azure-functions-openapi
+- Azure Functions programming model: v2
+
+## Installation
+
+```bash
+pip install azure-functions-openapi
+```
+
+## Public API
+
+### Core Functions
+
+```python
+from azure_functions_openapi import (
+    openapi,
+    register_openapi_metadata,
+    clear_openapi_registry,
+    generate_openapi_spec,
+    get_openapi_json,
+    get_openapi_yaml,
+    render_swagger_ui,
+    OpenAPIOperationMetadata,
+    OpenAPISpecConfigError,
+    OPENAPI_VERSION_3_0,
+    OPENAPI_VERSION_3_1,
+)
+```
+
+### @openapi Decorator
+
+```python
+def openapi(
+    # Basic metadata
+    summary: str = "",
+    description: str = "",
+    tags: list[str] | None = None,
+    operation_id: str | None = None,
+    # Routing information
+    route: str | None = None,
+    method: str | None = None,
+    parameters: list[dict[str, Any]] | None = None,
+    security: list[dict[str, list[str]]] | None = None,
+    security_scheme: dict[str, dict[str, Any]] | None = None,
+    # Request/response schema
+    request_model: type[BaseModel] | None = None,
+    request_body: dict[str, Any] | None = None,
+    requests: type[BaseModel] | dict[str, Any] | None = None,
+    request_body_required: bool = True,
+    response_model: type[BaseModel] | None = None,
+    response: dict[int, dict[str, Any]] | None = None,
+    responses: type[BaseModel] | dict[int, dict[str, Any]] | None = None,
+) -> Callable[[F], F]: ...
+```
+
+**Purpose**: Attach OpenAPI metadata to an Azure Functions HTTP handler.
+
+**Parameters**:
+- `summary`: Short description shown in Swagger UI
+- `description`: Markdown-enabled detailed description
+- `tags`: Logical groups for organizing endpoints
+- `operation_id`: Custom operationId (auto-generated if omitted)
+- `route`: URL path override (auto-detected if omitted)
+- `method`: HTTP method override (auto-detected if omitted)
+- `parameters`: Path/query/header parameter schemas
+- `request_model`: Pydantic model for request body validation and schema
+- `request_body`: Raw requestBody schema dict (alternative to `request_model`)
+- `request_body_required`: Whether request body is mandatory
+- `response_model`: Pydantic model for success response (200/201)
+- `response`: Dict mapping status codes to response schemas
+- `security`: List of security requirement dicts
+- `security_scheme`: Security scheme definitions
+
+### register_openapi_metadata
+
+```python
+def register_openapi_metadata(
+    path: str,
+    method: str,
+    *,
+    operation_id: str | None = None,
+    summary: str = "",
+    description: str = "",
+    tags: list[str] | None = None,
+    request_body: dict[str, Any] | None = None,
+    request_body_required: bool = True,
+    response_model: type[BaseModel] | None = None,
+    response: dict[int, dict[str, Any]] | None = None,
+    parameters: list[dict[str, Any]] | None = None,
+    security: list[dict[str, list[str]]] | None = None,
+    security_scheme: dict[str, dict[str, Any]] | None = None,
+) -> None: ...
+```
+
+**Purpose**: Register OpenAPI metadata for dynamically-created endpoints (e.g., LangGraph).
+
+**Use when**: HTTP handlers are generated programmatically and cannot use the `@openapi()` decorator.
+
+**Parameters**: Same as `@openapi` decorator (minus routing auto-detection).
+
+### clear_openapi_registry
+
+```python
+def clear_openapi_registry() -> None: ...
+```
+
+**Purpose**: Remove all entries from the OpenAPI registry.
+
+**Use when**: Testing or rebuilding the registry from scratch.
+
+### generate_openapi_spec
+
+```python
+def generate_openapi_spec(
+    title: str = "API",
+    version: str = "1.0.0",
+    openapi_version: str = OPENAPI_VERSION_3_0,
+    description: str = "...",
+    security_schemes: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]: ...
+```
+
+**Purpose**: Compile all registered endpoints into an OpenAPI specification dictionary.
+
+**Returns**: OpenAPI spec dict (can be JSON-serialized or converted to YAML).
+
+**Parameters**:
+- `title`: API title (goes in info.title)
+- `version`: API version (goes in info.version)
+- `openapi_version`: OpenAPI spec version ("3.0.0" or "3.1.0")
+- `security_schemes`: Global security scheme definitions (e.g., {"BearerAuth": {"type": "http", "scheme": "bearer"}})
+
+### get_openapi_json
+
+```python
+def get_openapi_json(
+    title: str = "API",
+    version: str = "1.0.0",
+    openapi_version: str = OPENAPI_VERSION_3_0,
+    description: str = "...",
+    security_schemes: dict[str, dict[str, Any]] | None = None,
+) -> str: ...
+```
+
+**Purpose**: Generate OpenAPI spec as pretty-printed JSON string (UTF-8).
+
+**Returns**: JSON string ready for HTTP response or file write.
+
+### get_openapi_yaml
+
+```python
+def get_openapi_yaml(
+    title: str = "API",
+    version: str = "1.0.0",
+    openapi_version: str = OPENAPI_VERSION_3_0,
+    description: str = "...",
+    security_schemes: dict[str, dict[str, Any]] | None = None,
+) -> str: ...
+```
+
+**Purpose**: Generate OpenAPI spec as YAML string.
+
+**Returns**: YAML string ready for HTTP response or file write.
+
+### render_swagger_ui
+
+```python
+def render_swagger_ui(
+    title: str = "API Documentation",
+    openapi_url: str = "/api/openapi.json",
+    custom_csp: str | None = None,
+    enable_client_logging: bool = False,
+) -> HttpResponse: ...
+```
+
+**Purpose**: Render Swagger UI with enterprise security headers (CSP, HSTS).
+
+**Returns**: Azure Functions HttpResponse with HTML content.
+
+**Parameters**:
+- `title`: Page title for Swagger UI
+- `openapi_url`: URL to the OpenAPI spec JSON
+- `custom_csp`: Custom Content Security Policy (optional)
+- `enable_client_logging`: Enable browser-side response logging
+
+### Types
+
+```python
+from azure_functions_openapi import OpenAPIOperationMetadata
+
+@dataclass(frozen=True)
+class OpenAPIOperationMetadata:
+    path: str
+    method: str
+    operation_id: str | None = None
+    summary: str = ""
+    description: str = ""
+    tags: list[str] = ["default"]
+    request_body: dict[str, Any] | None = None
+    request_body_required: bool = True
+    response_model: type | None = None
+    response: dict[int, dict[str, Any]] = {}
+    parameters: list[dict[str, Any]] = []
+    security: list[dict[str, list[str]]] = []
+    security_scheme: dict[str, dict[str, Any]] = {}
+```
+
+### Exceptions
+
+```python
+class OpenAPISpecConfigError(ValueError):
+    """Raised for configuration errors (unsupported OpenAPI version, conflicting schemes, etc)."""
+    pass
+```
+
+### Constants
+
+```python
+OPENAPI_VERSION_3_0 = "3.0.0"
+OPENAPI_VERSION_3_1 = "3.1.0"
+```
+
+## Common Patterns
+
+### 1. Basic Decorated Endpoint
+
+```python
+from pydantic import BaseModel
+import azure.functions as func
+from azure_functions_openapi import openapi
+
+class GreetRequest(BaseModel):
+    name: str
+
+app = func.FunctionApp()
+
+@app.route(route="greet", methods=["POST"])
+@openapi(
+    summary="Greet a person",
+    description="Returns a personalized greeting",
+    request_model=GreetRequest,
+)
+def greet(req: func.HttpRequest) -> func.HttpResponse:
+    body = GreetRequest.model_validate_json(req.get_body())
+    return func.HttpResponse(f"Hello, {body.name}!")
+```
+
+### 2. Multiple Response Codes
+
+```python
+@openapi(
+    summary="Get user by ID",
+    tags=["Users"],
+    parameters=[
+        {"name": "user_id", "in": "path", "required": True, "schema": {"type": "integer"}}
+    ],
+    response_model=User,
+    response={
+        404: {"description": "User not found"},
+        500: {"description": "Internal server error"},
+    },
+)
+@app.route(route="users/{user_id}", methods=["GET"])
+def get_user(req: func.HttpRequest) -> func.HttpResponse:
+    user_id = req.route_params.get("user_id")
+    # ... logic ...
+    return func.HttpResponse(user.model_dump_json())
+```
+
+### 3. Security (Bearer Token)
+
+```python
+@openapi(
+    summary="Protected endpoint",
+    security=[{"BearerAuth": []}],
+    security_scheme={
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+    },
+)
+@app.route(route="protected", methods=["GET"])
+def protected(req: func.HttpRequest) -> func.HttpResponse:
+    auth = req.headers.get("Authorization")
+    if not auth or not auth.startswith("Bearer "):
+        return func.HttpResponse("Unauthorized", status_code=401)
+    # ... logic ...
+    return func.HttpResponse("OK")
+```
+
+### 4. Exposing OpenAPI Spec
+
+```python
+from azure_functions_openapi import get_openapi_json, render_swagger_ui
+
+@app.route(route="openapi.json", methods=["GET"])
+def openapi_spec(req: func.HttpRequest) -> func.HttpResponse:
+    spec = get_openapi_json(
+        title="My API",
+        version="1.0.0",
+        description="My Azure Functions API"
+    )
+    return func.HttpResponse(spec, mimetype="application/json")
+
+@app.route(route="docs", methods=["GET"])
+def swagger_ui(req: func.HttpRequest) -> func.HttpResponse:
+    return render_swagger_ui(
+        title="My API Docs",
+        openapi_url="/api/openapi.json"
+    )
+```
+
+### 5. Programmatic Registration (for dynamic endpoints)
+
+```python
+from azure_functions_openapi import register_openapi_metadata
+
+# Used by packages like azure-functions-langgraph
+register_openapi_metadata(
+    path="/api/chat/invoke",
+    method="POST",
+    summary="Chat endpoint",
+    description="Send a message to the chat agent",
+    request_body={
+        "required": True,
+        "content": {
+            "application/json": {
+                "schema": {"type": "object", "properties": {"message": {"type": "string"}}}
+            }
+        }
+    },
+    response={
+        200: {
+            "description": "Chat response",
+            "content": {
+                "application/json": {
+                    "schema": {"type": "object"}
+                }
+            }
+        }
+    },
+)
+```
+
+### 6. OpenAPI 3.1.0 with JSON Schema
+
+```python
+from azure_functions_openapi import OPENAPI_VERSION_3_1, get_openapi_yaml
+
+@app.route(route="openapi.yaml", methods=["GET"])
+def openapi_yaml(req: func.HttpRequest) -> func.HttpResponse:
+    spec = get_openapi_yaml(
+        title="My API",
+        version="1.0.0",
+        openapi_version=OPENAPI_VERSION_3_1,
+    )
+    return func.HttpResponse(spec, mimetype="application/yaml")
+```
+
+## Design Principles
+
+1. **Declarative**: Metadata is colocated with handler code via decorator or registry
+2. **Pydantic-native**: Models = schema (Pydantic models auto-convert to JSON Schema)
+3. **Registry-based**: All metadata collected in global registry, generated on-demand
+4. **Security-first**: Swagger UI includes CSP and HSTS headers by default
+5. **OpenAPI standard**: Compliant with OpenAPI 3.0.0 and 3.1.0 specs
+6. **No code generation**: Specs are generated at runtime (no static codegen step)
+
+## Limitations
+
+1. **Single app scope**: Registry is global; only one FunctionApp's endpoints per process
+2. **No automatic routing**: Metadata doesn't auto-wire routes (use `@app.route()` or LangGraph adapter)
+3. **Pydantic v2 only**: Requires Pydantic v2 for model validation
+4. **Manual cleanup**: Call `clear_openapi_registry()` between test suites if needed
+5. **No validation hooks**: Package generates schema; validation is your responsibility
+
+## Ecosystem Integration
+
+Used by:
+- `azure-functions-langgraph` — Auto-registers LangGraph routes
+- `azure-functions-validation` — Pairs with request/response validation
+- `azure-functions-logging` — Logs API calls structured
+
+Used alongside:
+- `azure.functions.FunctionApp` — Core Azure Functions v2 runtime
+- `pydantic` — For model definitions and JSON Schema generation
+- `fastapi-style` docs — Similar API to FastAPI/Starlette
