@@ -2,265 +2,639 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
-
-## [0.15.1] - 2026-03-29
-
-### Changed
-
-- Dependency updates: ruff 0.15.7, anchore/sbom-action 0.24.0, github/codeql-action 4.34.1
-
-### Docs
-
-- Sync docs/changelog.md with 0.15.0 release notes (#126)
-- Fix README Quick Start to wrap OpenAPI helpers in HttpResponse (#125)
-- Update README with Azure Functions Python DX Toolkit branding
-
-### Internal
-
-- Rename publish environment from production to release
-- Unify CI/CD workflow configurations
-
-## [0.15.0] - 2026-03-21
-
-### Added
-
-- Unified `requests` and `responses` decorator parameters for cleaner API declarations (#115)
-- Real Azure end-to-end test workflow (`e2e-azure.yml`) deploying to Consumption plan (`koreacentral`)
-- `docs/testing.md` — Real Azure E2E Tests section
-
-### Changed
-
-- **BREAKING**: Drop Pydantic v1 support, require `pydantic>=2.0,<3.0`
-- GitHub Actions versions upgraded to Node.js 24 compatible versions
-- Repository consistency fixes (AGENTS.md, .gitignore standardization)
-
-### Fixed
-
-- Apply `response_model` schema to first declared success response instead of synthetic 200 (#114)
-
-## [0.14.0] - 2026-03-15
-
-### Added
-
-- Separate exceptions into dedicated `exceptions` module
-- `--app` module import option and empty-paths guard to CLI
-
-### Changed
-
-- Extract `_ensure_default_response` helper and add unit tests
-- Extract `_build_spec` helper, sync docs
-
-### Fixed
-
-- Improve OpenAPI spec generation and logging
-- Enhance CLI error handling
-- Improve decorator imports and deepcopy usage
-- Enhance utils validation and error handling
-- Implement `--pretty` flag
-- Use stable action tags in label-sync workflow
-
-
-## [0.13.1] - 2026-03-14
-
 ### Bug Fixes
 
-- Fix `pyproject.toml` dependencies placement (was under `[project.urls]` instead of `[project]`), restoring CI
+- Resolve MkDocs strict-mode failures for nav and links (#154) (#155) 
 
 ### Documentation
 
-- Comprehensive documentation overhaul (MkDocs site with standardized nav)
-- Translated README files (Korean, Japanese, Chinese)
-- Standardized documentation quality across ecosystem
-
-### Miscellaneous Tasks
-
-- Unified tooling: Ruff (lint + format), pre-commit hooks, standardized Makefile
-
-## [0.13.0] - 2026-03-12
+- Add llms.txt for LLM-friendly documentation (#156) (#157) 
 
 ### Features
 
-- Add `security_scheme` parameter to `@openapi` decorator for declaring `components.securitySchemes` (#81)
-- Add `security_schemes` parameter to `generate_openapi_spec()`, `get_openapi_json()`, and `get_openapi_yaml()` for central scheme definitions
-- Per-decorator and central security schemes are merged automatically
-
-### Documentation
-
-- Document security scheme usage patterns in `docs/usage.md`
-## [0.12.0] - 2026-03-08
-
-> Note: Version `0.11.0` was published to PyPI on February 10, 2026, but its Git tag and GitHub release metadata were not preserved. Repository releases resume from `0.12.0`.
-
-### Features
-
-- Allow custom OpenAPI info description
-
-### Bug Fixes
-
-- Support `FunctionBuilder` inputs in the decorator
-- Normalize generated route paths
-- Ensure generated paths always include a leading slash
-- Limit the default `200` response fallback to operations with no explicit responses
-- Allow `codex/` branch names in maintenance workflows
-
-### Documentation
-
-- Position the project for the Azure Functions Python v2 programming model
-- Add repository planning documents and align root documentation
-- Add representative and complex example coverage guidance
-- Replace the README demo with generated spec and Swagger UI previews
-- Generate README preview assets from the representative `hello` example
-- Improve development and release guidance
-
-### Testing
-
-- Add smoke coverage for the representative example and the todo CRUD example
-- Raise coverage for CLI and utility paths
-
-### Miscellaneous Tasks
-
-- Align tooling, maintenance workflows, and docs dependencies
-- Apply remaining dependency updates
-- Support manual release dispatches
-- Harden release automation for explicit version releases
-
-## [0.10.0] - 2026-02-09
-
-### Features
-
-- Resolve deployment and OpenAPI security issue backlog
-
-### Bug Fixes
-
-- *(ci)* Resolve lint and deploy workflow validation errors
-- *(test)* Satisfy mypy type for security validation case
-- *(openapi)* Preserve explicit `200` response when `response_model` exists
-- *(validation)* Align fallback logs with strict behavior
-- *(validation)* Disallow whitespace in route paths
-- *(security)* Harden Swagger UI CSP and gate client logging
-- *(metrics)* Use `PerformanceMonitor` response-time average
-- *(openapi)* Drop error utilities
-- *(decorator)* Preserve validation errors
+- Add scan_validation_metadata bridge for zero-duplication OpenAPI (#158) 
 
 ### Other
 
-- Bump version to `0.10.0`
+- Bump version to 0.17.0 
 
 ### Refactor
 
-- Simplify branch strategy to GitHub Flow
-- Harden registry and runtime state handling
-
-### Documentation
-
-- Add governance, design principles, and LSP configuration
-- Fix CI badge workflow and tool versions
-- Improve core documentation (index, usage, API, installation, README)
-- Remove links to missing pages
-- Add comprehensive examples, tutorials, and configuration guide (#67)
-- Clarify supported Python versions in README
-- Align quality metrics and Python support policy
-- Normalize documentation casing and links
-- Remove internal operations guides
-- Drop non-HTTP examples
-- Remove redundant examples and guides
-- Drop the tutorials page
-- Merge Swagger UI config into usage
-- Trim API reference notes
-- Link to canonical root docs
-- Refresh contributing guidance
-- Align changelog with cleanup
-- Fix MkDocs navigation and links
-- Update changelog
-
-### Miscellaneous Tasks
-
-- Add security policies and incident response (#68)
-- Add performance monitoring and regression testing (#69)
-- Add release process and versioning documentation (#71)
-- Configure Dependabot for automated dependency updates (#72)
-- Add maintenance workflows and automation (#70)
-- Skip Codecov on Dependabot (#80)
-- *(ci)* Route Bandit scans through the Makefile security target
-- Ignore local oh-my-opencode config
-- *(ci)* Pin GitHub Actions to immutable SHAs
-- Remove redundant scripts directory
-- Remove monitoring utilities and update docs
-- Remove monitoring modules and CLI commands
-- *(cli)* Remove the `validate` command and document the external validator
-- Remove caching layer and update docs
-- *(docs)* Remove the performance guide and related artifacts
-- *(docs)* Remove monitoring references
-- *(lint)* Drop unused imports
-
-## [0.8.0] - 2026-01-22
-
-### Features
-
-- Add optional OpenAPI 3.1 output support (#30)
-
-### Documentation
-
-- Improve the security policy with GitHub Security Advisory guidance
+- Decouple bridge from azure-functions-validation via convention-based metadata 
 
 ### Testing
 
-- Fix test naming and add missing module tests (#28)
-
-### Miscellaneous Tasks
-
-- Bump version to `0.8.0` and update `CHANGELOG`
-
-## [0.7.0] - 2026-01-22
-
-### Features
-
-- Add Python 3.13 and 3.14 support (#29)
+- Update version assertion to 0.17.0 for upcoming release 
 
 ### Bug Fixes
 
-- Correct coverage measurement configuration (#19)
+- Apply Oracle PR review — terminology alignment 
+- Switch Mermaid fence format to fence_div_format for rendering 
 
 ### Documentation
 
-- Add community files to the repository root (#24)
+- Remove duplicate SUBSCRIPTION_ID assignment in Example 2 
+- Rewrite deployment guide for developer-friendly Azure Functions experience 
+- Add Azure deployment verification note to README (#150) 
+- Add Azure-verified sample output to README (#149) 
+- Add deployment guide for OpenAPI examples (#147) 
+- Align ecosystem positioning and document programmatic integration API 
+- Enable Mermaid diagram rendering on GitHub Pages 
+- Standardize architecture docs with Mermaid diagrams, Sources, See Also 
+- Add release process to AGENTS.md 
+
+### Features
+
+- Add register_openapi_metadata() programmatic API for v0.16.0 (#144) 
 
 ### Miscellaneous Tasks
 
-- Add GitHub issue templates
-- Align pre-commit hooks with `pyproject.toml` settings (#20)
-- Add `py.typed` marker for PEP 561 compliance (#21)
-- Add a pull request template (#23)
-- Add security scanning with Dependabot and CodeQL (#25)
-- Remove the obsolete `fix_tags.sh` script (#22)
-- Bump version to `0.7.0` and update `CHANGELOG`
+- *(deps)* Bump codecov/codecov-action from 5.5.3 to 6.0.0 (#130) 
+- *(deps)* Bump github/codeql-action from 4.34.1 to 4.35.1 (#129) 
+- *(deps)* Bump mypy from 1.19.1 to 1.20.0 (#132) 
+- *(deps)* Bump ruff from 0.15.7 to 0.15.8 (#131) 
+- Add automatic GitHub Release creation on tag push (#128) 
 
-## [0.6.1] - 2026-01-22
+### Testing
+
+- Align with_validation snapshots with 201 response schema (#134) 
+
+### Documentation
+
+- Sync docs/changelog.md with 0.15.0 release notes (#126) 
+- Fix README Quick Start to wrap OpenAPI helpers in HttpResponse (#125) 
+- Update README with Azure Functions Python DX Toolkit branding 
+
+### Miscellaneous Tasks
+
+- Release v0.15.1 
+- *(deps)* Bump ruff from 0.15.6 to 0.15.7 (#124) 
+- *(deps)* Bump anchore/sbom-action from 0.23.1 to 0.24.0 (#123) 
+- *(deps)* Bump github/codeql-action from 4.33.0 to 4.34.1 (#122) 
+- Add .venv-review-cli/ to .gitignore and set environment to pypi 
+- Use standard pypi environment name for Trusted Publisher 
+- Rename publish environment from production to release 
+- Unify CI/CD workflow configurations 
+
+### Bug Fixes
+
+- Apply response_model schema to first declared success response (#114) 
+- Add --no-cov and pytest-html artifact to e2e workflow 
+- Replace redundant mypy overrides+exclude with overrides only 
+
+### Documentation
+
+- Add real Azure e2e test section to testing.md and CHANGELOG 
+
+### Features
+
+- Add unified requests/responses decorator parameters (#115) 
+- Add real Azure e2e tests and CI workflow 
+- Drop Pydantic v1 support, require pydantic>=2.0,<3.0 
+
+### Miscellaneous Tasks
+
+- Release v0.15.0 
+- Remove AGENT.md refs from AGENTS.md, standardize .gitignore (#117) 
+- Fix ruff version, coverage threshold, pre-commit refs, remove orphan labels workflow (#116) 
+- *(deps)* Bump anchore/sbom-action from 0.23.0 to 0.23.1 (#104) 
+- *(deps)* Update mkdocstrings[python] requirement from <1.0 to <2.0 (#106) 
+- *(deps)* Bump codecov/codecov-action from 5.5.2 to 5.5.3 (#110) 
+- *(deps)* Bump ruff from 0.15.5 to 0.15.6 (#111) 
+- *(deps)* Bump github/codeql-action from 4.32.6 to 4.33.0 (#112) 
+- *(deps)* Bump azure/login from 2.3.0 to 3.0.0 (#113) 
+- Trigger e2e only on release tag push (v*) 
+- Upgrade GitHub Actions to Node.js 24 compatible versions 
+- Enforce coverage fail_under = 96 
+- Add keywords to pyproject.toml 
+- Add AGENTS.md, Typing classifier, test_public_api, Dev Status 4-Beta, .venv-review in .gitignore 
+
+### Bug Fixes
+
+- Improve openapi spec generation and logging 
+- Enhance CLI error handling 
+- Improve decorator imports and deepcopy usage 
+- Enhance utils validation and error handling 
+- Implement --pretty flag, extract _build_spec helper, sync docs 
+- Use stable action tags in label-sync workflow 
+
+### Documentation
+
+- Add CLI quick-start to README, improve Troubleshooting, add Pydantic v2 edge case tests 
+- Add codex agent guidance 
+
+### Features
+
+- Separate exceptions into dedicated module 
+- Add --app module import option and empty-paths guard to CLI 
 
 ### Other
 
-- Bump version to `0.6.1`
+- Bump version to 0.14.0 
 
 ### Refactor
 
-- Adopt Python 3.10 type hint syntax (PEP 604/585) (#9)
+- *(openapi)* Extract _ensure_default_response helper and add unit tests 
+
+### Testing
+
+- Add snapshot regression tests 
+
+### Bug Fixes
+
+- Move dependencies out of [project.urls] section in pyproject.toml 
+- Update mock assertions to match security_schemes parameter addition 
+- Resolve E501 line-too-long lint error in test 
+- Use repository-relative image paths in localized READMEs 
+- *(lint)* Fix import sort order in with_validation test 
+- *(tests)* Skip with_validation tests when azure-functions-validation not installed 
+- *(mypy)* Skip type-checking examples imported via tests 
 
 ### Documentation
 
-- Update changelog
+- Overhaul documentation to production quality 
+- Sync translated READMEs (ko, ja, zh-CN) with English 
+- Unify README — Title Case H1, add Why Use It and Ecosystem, reorder sections 
+- Add example-first design section to PRD 
+- Fix stale tool versions in development.md 
+- Fix broken code blocks with complete function bodies 
+- Expand all documentation pages to production quality 
+- Remove emojis from documentation and cliff.toml 
+- Sync Release badge to translated READMEs 
+- Refine localized README language switcher 
+- Add localized README translations 
+- *(readme)* Move disclaimer before license section 
+- *(readme)* Add Microsoft trademark disclaimer 
+- Document request and response schemas in quick start 
+- Keep the quick start simple without pydantic 
+- Keep the quick start concise and working 
 
-## [0.6.0] - 2026-01-21
+### Features
+
+- Add components.securitySchemes support (closes #81) 
+- *(examples)* Add with_validation example showing openapi and validation integration 
+
+### Miscellaneous Tasks
+
+- Add classifiers and project.urls to pyproject.toml 
+- Update pre-commit hook versions and unify forbid-korean targets 
 
 ### Other
 
-- Bump version to `0.6.0`
+- Bump version to 0.13.1 
 
-### Documentation
+### Refactor
 
-- Update changelog
+- *(examples)* Rename hello_openapi to hello and todo_crud_api to todo_crud 
 
 ### Styling
 
-- Format code with Ruff and Black
-- Resolve lint issues
+- Unify tooling — remove black, standardize pre-commit and Makefile 
+
+### Bug Fixes
+
+- Improve request_model/response_model validation with helpful error messages 
+
+### Documentation
+
+- Use working example 
+
+### Miscellaneous Tasks
+
+- Bump version to 0.12.1 
+- Publish releases through the production environment 
+- Use the stable trusted publishing action ref 
+- Use trusted publishing for releases 
+
+### Styling
+
+- Fix line length in error messages 
+
+### Bug Fixes
+
+- Support FunctionBuilder inputs in decorator 
+- Normalize generated route paths 
+- Make sure that all paths have a leading slash 
+- Include api server 
+- Limit default response fallback to empty responses 
+- Include default 200 response 
+- Allow dependabot branch names 
+
+### Documentation
+
+- Update changelog for 0.12.0 
+- Remove the VHS demo from openapi 
+- Remove the final terminal snapshot from the demo 
+- Add a generated spec preview to the openapi demo 
+- Run the representative example in the openapi demo 
+- Standardize repository planning documents 
+- Slow down openapi demo and add final snapshot 
+- Fix openapi demo rendering workflow 
+- Use workspace-based openapi demo setup 
+- Simplify Swagger preview capture 
+- Expand Swagger UI preview endpoint 
+- Automate Swagger UI preview generation 
+- Clarify README demo outcomes 
+- Show web preview in README demo 
+- Show generated OpenAPI output in demo 
+- Simplify VHS README demo scenario 
+- Add VHS README demo 
+- Document openapi example policy 
+- Classify openapi example coverage roles 
+- Position openapi for Azure Functions Python v2 
+- Improve development guide with prerequisites, workflow, and full Makefile reference 
+- Add release process guide 
+
+### Features
+
+- Allow custom OpenAPI info description 
+
+### Miscellaneous Tasks
+
+- Support manual openapi releases 
+- Ci: 
+- Pin openapi docs dependencies 
+- Align openapi docs dependencies 
+- Align openapi maintenance workflows 
+- *(openapi)* Format 
+- Apply remaining dependabot updates 
+- *(deps)* Bump actions/upload-artifact from 6.0.0 to 7.0.0 
+- *(deps)* Bump bandit from 1.9.3 to 1.9.4 
+- *(deps)* Bump ruff from 0.14.14 to 0.15.5 
+- Align tooling and repository maintenance 
+- Add git-cliff configuration and remove git-changelog dependency 
+
+### Other
+
+- Harden release automation 
+- Bump version to 0.12.0 
+- Fix explicit version releases 
+
+### Testing
+
+- Raise openapi coverage for cli and utils 
+- Cover todo CRUD example app 
+
+### Documentation
+
+- Update changelog 
+- Expand example setup guidance 
+- Remove authentication example 
+
+### Miscellaneous Tasks
+
+- *(examples)* Align requirements 
+
+### Other
+
+- Bump version to 0.10.1 
+
+### Bug Fixes
+
+- *(decorator)* Preserve validation errors 
+- *(openapi)* Drop error utilities 
+- *(metrics)* Use PerformanceMonitor response-time average 
+- *(security)* Harden Swagger UI CSP and gate client logging 
+- *(validation)* Disallow whitespace in route paths 
+- *(validation)* Align fallback logs with strict behavior 
+- *(openapi)* Preserve explicit 200 response when response_model exists 
+- *(test)* Satisfy mypy type for security validation case 
+- *(ci)* Resolve lint and deploy workflow validation errors 
+
+### Documentation
+
+- Update changelog 
+- Fix mkdocs nav and links 
+- Align changelog with cleanup 
+- Refresh contributing guidance 
+- Link to canonical root docs 
+- Trim api reference notes 
+- Merge swagger ui config into usage 
+- Drop tutorials page 
+- Remove redundant examples and guides 
+- Drop non-http examples 
+- Remove internal operations guides 
+- Normalize doc casing and links 
+- Align quality metrics and Python support policy 
+- Clarify supported Python versions in README 
+- Add comprehensive examples, tutorials, and configuration guide (#67) 
+- Remove links to missing pages 
+- Improve core documentation (index, usage, api, installation, README) 
+- Fix CI badge workflow and tool versions 
+- Fix CI badge workflow and tool versions 
+- Add governance, design principles, and LSP configuration 
+
+### Features
+
+- Resolve deployment and OpenAPI security issue backlog 
+
+### Miscellaneous Tasks
+
+- *(lint)* Drop unused imports 
+- *(docs)* Remove monitoring references 
+- *(docs)* Remove performance guide and related artifacts 
+- Remove caching layer and update docs 
+- *(cli)* Remove validate command and document external validator 
+- Remove monitoring modules and CLI commands 
+- Remove monitoring utilities and update docs 
+- Remove redundant scripts directory 
+- *(ci)* Pin GitHub Actions to immutable SHAs 
+- Ignore local oh-my-opencode config 
+- *(ci)* Route Bandit scans through Makefile security target 
+- *(deps)* Bump GitHub Actions versions in workflows 
+- *(deps)* Bump actions/setup-python from 4 to 6 
+- Skip codecov on dependabot (#80) 
+- Add maintenance workflows and automation (#70) 
+- Configure dependabot for automated dependency updates (#72) 
+- Add release process and versioning documentation (#71) 
+- Add performance monitoring and regression testing (#69) 
+- Add security policies and incident response (#68) 
+- *(deps)* Bump ruff from 0.11.13 to 0.14.13 
+- *(deps)* Bump mypy from 1.15.0 to 1.19.1 
+- *(deps)* Bump bandit from 1.8.3 to 1.9.3 
+- *(deps)* Bump black from 25.1.0 to 26.1.0 
+- *(deps)* Bump actions/checkout from 4 to 6 
+- *(deps)* Bump github/codeql-action from 3 to 4 
+- *(deps)* Bump codecov/codecov-action from 4 to 5 
+- *(deps)* Bump actions/setup-python from 5 to 6 
+
+### Other
+
+- Bump version to 0.10.0 
+
+### Refactor
+
+- Harden registry and runtime state handling 
+- Simplify branch strategy to GitHub Flow 
+
+### Documentation
+
+- Improve security policy with GitHub Security Advisory 
+
+### Features
+
+- Add optional OpenAPI 3.1 output support (#30) 
+
+### Miscellaneous Tasks
+
+- Bump version to 0.8.0 and update CHANGELOG 
+
+### Testing
+
+- Fix test naming and add missing module tests (#28) 
+
+### Bug Fixes
+
+- Correct coverage measurement configuration (#19) 
+
+### Documentation
+
+- Add community files to repository root (#24) 
+
+### Features
+
+- Add Python 3.13 and 3.14 support (#29) 
+
+### Miscellaneous Tasks
+
+- Bump version to 0.7.0 and update CHANGELOG 
+- Remove obsolete fix_tags.sh script (#22) 
+- *(deps)* Update dev dependencies to latest versions (#26) 
+- Add security scanning with Dependabot and CodeQL (#25) 
+- Add pull request template (#23) 
+- Add py.typed marker for PEP 561 compliance (#21) 
+- Align pre-commit hooks with pyproject.toml settings (#20) 
+- Add GitHub issue templates 
+
+### Documentation
+
+- Update changelog 
+
+### Other
+
+- Bump version to 0.6.1 
+
+### Refactor
+
+- Adopt Python 3.10 type hint syntax (PEP 604/585) (#9) 
+
+### Documentation
+
+- Update changelog 
+
+### Miscellaneous Tasks
+
+- Drop python 3.9 support 
+- Fix mypy strict type checks 
+
+### Other
+
+- Bump version to 0.6.0 
+
+### Styling
+
+- Resolve lint issues 
+- Format code with ruff and black 
+
+### Bug Fixes
+
+- Normalize pydantic schemas into components 
+
+### Documentation
+
+- Update changelog 
+- Enhance documentation with comprehensive guides 
+
+### Other
+
+- Bump version to 0.5.1 
+
+### Documentation
+
+- Update changelog 
+- Add comprehensive documentation and update configuration 
+- Update changelog 
+
+### Features
+
+- Enhance OpenAPI generation with caching and error handling 
+- Add server info, monitoring, and CLI tools 
+- Enhance Swagger UI security and input validation 
+- Add high-performance caching system 
+- Add comprehensive error handling system 
+
+### Miscellaneous Tasks
+
+- *(docs)* Fix hatch run by removing nonexistent docs env 
+- Fix version check path in release workflow 
+
+### Other
+
+- Bump version to 0.5.0 
+
+### Bug Fixes
+
+- *(makefile)* Correct Python version check to support 3.9+ 
+
+### Documentation
+
+- Update development guide to reflect Hatch and Makefile integration 
+
+### Miscellaneous Tasks
+
+- Add GitHub Actions release workflow 
+- *(docs)* Reuse Makefile install step in docs workflow 
+- *(docs)* Rename deploy-docs.yml to docs.yml for clearer workflow separation 
+- *(ci)* Replace test.yml with ci-test.yml for clarity and maintainability 
+- *(build)* Clean up config and align with Hatch-based Makefile execution 
+- Improve Makefile with Python 3.9+ check, .PHONY, and cross-platform venv support 
+
+### Other
+
+- Bump version to 0.4.1 
+- *(pyproject)* Configure hatch build and publish targets 
+- *(makefile)* Add Hatch-based automation for test, build, release 
+
+### Bug Fixes
+
+- Move isort settings under lint section in pyproject.toml 
+- *(example)* Resolve double /api prefix and update route in spec 
+- *(openapi)* Avoid requestBody for GET methods 
+- Add type hints and support Pydantic v2, clean test/lint output 
+
+### Documentation
+
+- Update full documentation and add OpenAPI preview 
+- *(readme)* Remove collapsed quickstart section and refine examples 
+- *(readme)* Fix unclosed code block after function example 
+- *(readme)* Revise Quick Start example 
+- Update development checklist in English and reflect current progress 
+- Restructure documentation with updated README and index 
+- Add placeholder markdown files to fix mkdocs build warnings 
+- Restructure mkdocs.yml with full nav and example sections 
+- *(readme)* Clarify that only Pydantic v2 is supported 
+- *(decorator)* Expand example section with Hello World and Pydantic CRUD 
+- Add comprehensive Usage Guide (docs/usage_guide.md) 
+- Add file header comment to decorator.py 
+- Add Quick Start section and refresh README badges 
+- *(todo_api)* Add detailed docstrings for all endpoints and models 
+- Add badges to README for PyPI, CI, Docs, and License 
+- Add mkdocs.md with instructions for local preview and GitHub Pages deployment 
+- Add detailed docstrings and usage examples to decorator and openapi modules 
+- Enhance index.md with project overview and documentation links 
+- Split development instructions into development.md 
+
+### Features
+
+- Add Swagger UI support and update example functions 
+- Add Pydantic v1/v2 compatibility and schema utils 
+- *(example)* Add complete CRUD implementation to todo_crud_api example 
+- *(example)* Add todo_api with create and list endpoints 
+
+### Miscellaneous Tasks
+
+- Release v0.4.0 
+- Release v0.4.0 
+- Add junit.xml to .gitignore 
+- Update pre-commit config to include black, ruff, mypy, and bandit 
+- Add pre-commit run to check command in Makefile 
+- Update imports and apply quality checks using ruff, black, mypy, and pytest 
+- Update ruff settings for Python 3.9, improve import sorting, and adjust linting options 
+- Upload coverage to Codecov only from Python 3.9 job 
+- Add multi-version test support for Python 3.9–3.12 
+- *(codecov)* Upload JUnit test results to Codecov for test insights 
+- *(codecov)* Simplify upload step and rely on auto file detection 
+- *(codecov)* Switch to tokenless upload so fork PRs report coverage 
+- *(coverage)* Ensure relative paths in coverage.xml via .coveragerc 
+- *(docs)* Pin MkDocs build workflow to Python 3.8 
+- *(codecov)* Add codecov.yml with build_root and status thresholds 
+- Fix Codecov upload path and add .coveragerc 
+- Add Codecov upload step with v5 action 
+- Run tests in dedicated venv to fix Makefile coverage path 
+- *(mypy)* Exclude examples directory from type checking 
+- *(pre-commit)* Configure mypy to use pyproject.toml 
+- Update dependencies or project settings 
+- Switch to make coverage in GitHub Actions workflow 
+- Verify mkdocs build before deploy and add [docs] extra to pyproject.toml 
+- Debug coverage.xml generation and allow 0% threshold 
+- Fix import error by adding PYTHONPATH for examples 
+- Add test workflow directory and GitHub Actions test.yml 
+- Update pre-commit hook versions 
+
+### Other
+
+- Add coverage and coverage-html targets to Makefile 
+
+### Refactor
+
+- *(example)* Rename todo_api to todo_crud_api 
+- *(openapi)* Remove hard-coded /api base path and servers entry 
+- *(decorator)* Reorder parameters and registry keys for clarity 
+- *(examples)* Replace obsolete openapi_json sample with hello_openapi and update tests 
+- *(example)* Drop Pydantic dependency and polish Markdown description 
+- *(example)* Apply typed openapi decorator to fix mypy issue 
+
+### Styling
+
+- *(readme)* Remove duplicate horizontal rules before Quick Start 
+
+### Testing
+
+- Align OpenAPI tests with /api prefix and enable pytest -v 
+- Add pytest-cov and configure coverage report for Codecov 
+
+### Documentation
+
+- Add full documentation with index, usage, contributing and mkdocs config 
+- Update milestones.md with latest project roadmap 
+- Update milestones.md with latest project roadmap 
+- Update MILESTONES.md to reflect v0.2.0 completion and outline M3 goals 
+- Generate changelog for v0.2.0 
+
+### Features
+
+- Add /openapi.yaml endpoint to return OpenAPI spec in YAML format 
+- Support markdown in description and update related OpenAPI spec tests 
+- Support operationId and tags in OpenAPI spec with tests 
+- Implement automatic inference of route and method from function app metadata 
+- Infer HTTP method and route path from decorator metadata 
+- Support response schema and examples in OpenAPI output 
+- Support OpenAPI parameters and requestBody in decorator and schema 
+
+### Miscellaneous Tasks
+
+- Release v0.3.0 
+- Add mypy config to ignore missing imports for PyYAML 
+- Ignore .github and .vscode directories 
+- Fix PYTHONPATH for tests and add __init__.py files 
+- Fix changelog generation to use local git-changelog binary 
+
+### Testing
+
+- Add OpenAPI spec test for cookie parameter support 
+- Add test for OpenAPI schema generation using Pydantic models 
+- Add tests/ directory for unit tests 
+
+### Documentation
+
+- Update milestones for v0.2.0 
+- Add development milestones checklist 
+
+### Features
+
+- Add OpenAPI decorator and spec generator with example function 
+
+### Miscellaneous Tasks
+
+- Release v0.2.0 
+- Normalize line endings to LF using .editorconfig 
+- Update ruff lint command to use 'check' subcommand 
+- Add pre-commit configuration 
+- *(pyproject)* Add git-changelog to dev dependencies 
+- *(makefile)* Add versioning, changelog, and release automation commands 
+- *(release)* Bump version to 0.1.1 
+- *(build)* Remove static version to enable hatch versioning 
+- Update Makefile with uv install and versioning commands 
+- Set initial version in __init__.py 
+- Add hatch-based versioning support 
+<!-- generated by git-cliff -->
