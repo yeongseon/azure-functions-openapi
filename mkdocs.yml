@@ -31,6 +31,7 @@ nav:
       - Hello OpenAPI: examples/hello.md
       - Todo API: examples/todo_crud.md
       - With Validation: examples/with_validation.md
+      - Bridge: examples/with_bridge.md
   - API Reference: api.md
   - Contributing:
       - Development: development.md

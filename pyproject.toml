@@ -35,7 +35,11 @@ dependencies = [
 Issues = "https://github.com/yeongseon/azure-functions-openapi/issues"
 
 [project.optional-dependencies]
+bridge = [
+    "azure-functions-validation>=0.6.0",
+]
 dev = [
+    "azure-functions-validation>=0.6.0",
     "bandit==1.9.4",
     "build",
     "coverage",

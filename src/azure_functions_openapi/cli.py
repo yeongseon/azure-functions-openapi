@@ -148,15 +148,17 @@ def handle_generate(args: argparse.Namespace) -> int:
                 "(e.g. --app function_app or --app function_app:app).",
                 file=sys.stderr,
             )
-            if getattr(args, "fail_on_empty_paths", False):
+            if getattr(args, "fail_on_empty_paths", False) is True:
                 return 1
 
         if args.format == "json":
             import json
+
             indent = 2 if getattr(args, "pretty", False) else None
             content = json.dumps(spec, indent=indent, ensure_ascii=False)
         else:
             import yaml
+
             content = yaml.safe_dump(spec, sort_keys=False, allow_unicode=True)
 
         if args.output:

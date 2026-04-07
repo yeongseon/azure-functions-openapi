@@ -119,6 +119,33 @@ def clear_openapi_registry() -> None: ...
 
 **Use when**: Testing or rebuilding the registry from scratch.
 
+### scan_validation_metadata
+
+```python
+def scan_validation_metadata(app: Any) -> None: ...
+```
+
+**Purpose**: Scan a FunctionApp's registered HTTP functions for `@validate_http` metadata and auto-register them in the OpenAPI registry.
+
+**Requires**: `pip install azure-functions-openapi[bridge]` (adds `azure-functions-validation` dependency)
+
+**Behavior**:
+- Iterates `app._function_builders` to find HTTP-triggered functions
+- Checks each handler for `_af_validation_metadata` attribute
+- Extracts body, query, path, headers, and response_model from validation metadata
+- Registers discovered models in the OpenAPI registry via `register_openapi_metadata()`
+- Explicit `@openapi` always takes precedence over discovered metadata
+- Conflicting models between `@openapi` and `@validate_http` raise `OpenAPISpecConfigError`
+
+**Use when**: You want zero-duplication OpenAPI docs from `@validate_http` decorators.
+
+**Example**:
+```python
+from azure_functions_openapi import scan_validation_metadata
+
+# Call after all routes are registered
+scan_validation_metadata(app)
+```
 ### generate_openapi_spec
 
 ```python

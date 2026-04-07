@@ -9,11 +9,16 @@ This page documents the public runtime API exposed by `azure-functions-openapi`.
 from azure_functions_openapi import (
     OPENAPI_VERSION_3_0,
     OPENAPI_VERSION_3_1,
+    OpenAPIOperationMetadata,
+    OpenAPISpecConfigError,
+    clear_openapi_registry,
     generate_openapi_spec,
     get_openapi_json,
     get_openapi_yaml,
     openapi,
+    register_openapi_metadata,
     render_swagger_ui,
+    scan_validation_metadata,
 )
 ```
 
@@ -22,20 +27,24 @@ from azure_functions_openapi import (
 | Symbol | Kind | Purpose |
 | --- | --- | --- |
 | `openapi` | decorator | Attach operation metadata to function handlers |
+| `register_openapi_metadata` | function | Register metadata for dynamically-created endpoints |
+| `clear_openapi_registry` | function | Remove all entries from the registry |
+| `scan_validation_metadata` | function | Auto-discover validation metadata from `@validate_http` handlers |
 | `generate_openapi_spec` | function | Build OpenAPI dictionary from decorator registry |
 | `get_openapi_json` | function | Build OpenAPI and serialize to JSON string |
 | `get_openapi_yaml` | function | Build OpenAPI and serialize to YAML string |
 | `render_swagger_ui` | function | Return Swagger UI `HttpResponse` |
+| `OpenAPIOperationMetadata` | dataclass | Frozen dataclass for operation metadata |
+| `OpenAPISpecConfigError` | exception | Raised for configuration errors |
 | `OPENAPI_VERSION_3_0` | constant | OpenAPI version string `"3.0.0"` |
 | `OPENAPI_VERSION_3_1` | constant | OpenAPI version string `"3.1.0"` |
-
 ## Decorator behavior model
 
 `@openapi` stores metadata in a thread-safe registry and the spec functions read from that registry to generate output.
 
 ```text
-@openapi metadata -> internal registry -> generate_openapi_spec -> JSON/YAML endpoint
-                                                    -> render_swagger_ui (browser docs)
+@openapi metadata ---------> internal registry --> generate_openapi_spec --> JSON/YAML endpoint
+                                                    @validate_http metadata --> scan_validation_metadata(app) --^       `--> render_swagger_ui (docs)
 ```
 
 !!! note
@@ -148,6 +157,36 @@ The sections below are generated directly from source docstrings.
 ### `render_swagger_ui`
 
 ::: azure_functions_openapi.render_swagger_ui
+
+
+## Bridge: Auto-discover validation metadata
+
+### `scan_validation_metadata`
+
+::: azure_functions_openapi.scan_validation_metadata
+
+Scans a `FunctionApp` for HTTP-triggered functions decorated with `@validate_http`
+and auto-registers their Pydantic models in the OpenAPI registry.
+
+```python
+from azure_functions_openapi import scan_validation_metadata
+
+# Call after all routes are registered
+scan_validation_metadata(app)
+```
+
+!!! info "Requires bridge extra"
+    Install with `pip install azure-functions-openapi[bridge]` to enable this feature.
+
+#### Merge rules
+
+| Scenario | Behavior |
+| --- | --- |
+| Only `@validate_http` | Auto-registers discovered models |
+| Only `@openapi` | Existing behavior unchanged |
+| Both with same models | Merges additional OpenAPI fields |
+| Both with different models | Raises `OpenAPISpecConfigError` |
+| Explicit `@openapi` | Always takes precedence |
 
 ## Related internals
 

@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import re
-from typing import Any, cast
+from typing import Any, cast, get_origin
+
+from pydantic import BaseModel, TypeAdapter
 
 from azure_functions_openapi.exceptions import OpenAPISpecConfigError
 
@@ -106,21 +108,22 @@ def model_to_schema(model_cls: Any, components: dict[str, Any] | None = None) ->
         dict[str, Any]: Schema with $ref to components.schemas.
     """
 
-    if not hasattr(model_cls, "model_json_schema"):
-        raise TypeError(
-            "model_to_schema expects a Pydantic v2 BaseModel subclass "
-            "(missing model_json_schema). Pydantic v1 is not supported."
-        )
-    schema = cast(
-        dict[str, Any],
-        model_cls.model_json_schema(ref_template="#/components/schemas/{model}"),
-    )
-
     if components is None:
         raise OpenAPISpecConfigError(
             "model_to_schema() requires a 'components' dict; got None. "
             "Pass the components dict from generate_openapi_spec() or provide an empty one."
         )
+
+    if isinstance(model_cls, type) and issubclass(model_cls, BaseModel):
+        schema = model_cls.model_json_schema(ref_template="#/components/schemas/{model}")
+    else:
+        if get_origin(model_cls) is None:
+            raise TypeError(
+                "model_to_schema expects a Pydantic v2 BaseModel subclass "
+                "(missing model_json_schema). Pydantic v1 is not supported."
+            )
+        return type_to_schema(model_cls, components)
+
     schemas = components.setdefault("schemas", {})
 
     normalized, definitions = _collect_schemas(schema)
@@ -147,6 +150,43 @@ def model_to_schema(model_cls: Any, components: dict[str, Any] | None = None) ->
 
     root_name = name_map.get(model_cls.__name__, model_cls.__name__)
     return {"$ref": f"#/components/schemas/{root_name}"}
+
+
+def type_to_schema(type_hint: Any, components: dict[str, Any] | None = None) -> dict[str, Any]:
+    if isinstance(type_hint, type) and issubclass(type_hint, BaseModel):
+        if components is None:
+            return type_hint.model_json_schema()
+        return model_to_schema(type_hint, components)
+
+    schema = TypeAdapter(type_hint).json_schema()
+    if components is None:
+        return schema
+
+    schemas = components.setdefault("schemas", {})
+    normalized, definitions = _collect_schemas(schema)
+
+    name_map: dict[str, str] = {}
+    for name, local_schema in definitions.items():
+        resolved_name = _resolve_name_collision(name, local_schema, schemas)
+        if resolved_name != name:
+            name_map[name] = resolved_name
+
+    if name_map:
+        normalized = cast(dict[str, Any], _rewrite_refs_with_map(normalized, name_map))
+        updated_definitions: dict[str, dict[str, Any]] = {}
+        for name, local_schema in definitions.items():
+            final_name = name_map.get(name, name)
+            updated_definitions[final_name] = cast(
+                dict[str, Any],
+                _rewrite_refs_with_map(local_schema, name_map),
+            )
+        definitions = updated_definitions
+
+    for name, local_schema in definitions.items():
+        if name not in schemas or schemas[name] != local_schema:
+            schemas[name] = local_schema
+
+    return normalized
 
 
 def validate_route_path(route: Any) -> bool:

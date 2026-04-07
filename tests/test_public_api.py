@@ -20,6 +20,7 @@ class TestAPISurface:
             "openapi",
             "register_openapi_metadata",
             "render_swagger_ui",
+            "scan_validation_metadata",
         }
 
     def test_version_is_0_16_0(self) -> None:
@@ -41,6 +42,7 @@ class TestAPISurface:
             openapi,
             register_openapi_metadata,
             render_swagger_ui,
+            scan_validation_metadata,
         )
 
     def test_openapi_is_importable_module(self) -> None:

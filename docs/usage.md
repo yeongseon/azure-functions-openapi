@@ -327,6 +327,28 @@ See [Troubleshooting](troubleshooting.md) for fixes.
 
 See [With Validation Example](examples/with_validation.md) for a complete setup.
 
+### Automatic bridge (zero-duplication)
+
+If you want OpenAPI specs generated automatically from `@validate_http` decorators
+without repeating models in `@openapi`, use `scan_validation_metadata()`:
+
+```python
+from azure_functions_openapi import scan_validation_metadata
+
+# After all routes are registered:
+scan_validation_metadata(app)
+```
+
+This scans the app's registered HTTP functions for `@validate_http` metadata
+and auto-registers them in the OpenAPI registry. Explicit `@openapi` decorators
+always take precedence.
+
+!!! info "Requires bridge extra"
+    Install with `pip install azure-functions-openapi[bridge]`.
+
+See [Bridge Example](examples/with_bridge.md) for a complete walkthrough.
+
+
 ## Next steps
 
 - Deep-dive decorator options: [Configuration](configuration.md)
