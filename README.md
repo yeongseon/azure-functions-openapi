@@ -271,13 +271,14 @@ This package is part of the **Azure Functions Python DX Toolkit**.
 
 | Package | Role |
 |---------|------|
-| [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph) | LangGraph deployment adapter for Azure Functions |
-| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) | Request/response validation and serialization |
 | **azure-functions-openapi** | OpenAPI spec generation and Swagger UI |
+| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) | Request/response validation and serialization |
+| [azure-functions-db](https://github.com/yeongseon/azure-functions-db) | Database bindings for SQL, PostgreSQL, MySQL, SQLite, and Cosmos DB |
+| [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph) | LangGraph deployment adapter for Azure Functions |
+| [azure-functions-scaffold](https://github.com/yeongseon/azure-functions-scaffold) | Project scaffolding CLI |
 | [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) | Structured logging and observability |
 | [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) | Pre-deploy diagnostic CLI |
-| [azure-functions-scaffold](https://github.com/yeongseon/azure-functions-scaffold) | Project scaffolding |
-| [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph) | Manifest-first graph runtime with Durable Functions |
+| [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph) | Manifest-first graph runtime with Durable Functions *(experimental)* |
 | [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) | Recipes and examples |
 
 ## For AI Coding Assistants
