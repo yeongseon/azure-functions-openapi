@@ -28,6 +28,51 @@ Azure Functions Python v2 has no built-in API documentation story:
 - **Hard to test** — consumers rely on tribal knowledge or external tools to discover your API
 - **Spec drift** — hand-written docs diverge from actual handler behavior over time
 
+## Before / After
+
+**❌ Without azure-functions-openapi** — maintain specs by hand
+
+```python
+# openapi_spec.json — manually written, manually updated
+{
+    "paths": {
+        "/api/users": {
+            "post": {
+                "summary": "Create user",
+                "requestBody": { "...": "..." },
+                "responses": { "200": { "...": "..." } }
+            }
+        }
+    }
+}
+
+# function_app.py — no connection to the spec above
+@app.route(route="users", methods=["POST"])
+def create_user(req):
+    ...
+```
+
+Spec drifts. Consumers guess. No Swagger UI.
+
+**✅ With azure-functions-openapi** — spec lives next to the handler
+
+```python
+@app.route(route="users", methods=["POST"])
+@openapi(
+    summary="Create user",
+    request_body={"type": "object", "properties": {"name": {"type": "string"}}},
+    response={200: {"description": "User created"}},
+)
+def create_user(req):
+    ...
+
+# Auto-generated endpoints:
+# GET /api/openapi.json  — always in sync
+# GET /api/docs          — Swagger UI included
+```
+
+Spec matches code. Always. Swagger UI out of the box.
+
 ## What it does
 
 - **`@openapi` decorator** — attach operation metadata directly to your handler
