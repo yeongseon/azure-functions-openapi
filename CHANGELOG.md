@@ -2,12 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+### Documentation
+
+- Add Before/After section to README (#167) 
+- Standardize ecosystem table in README 
+
+### Miscellaneous Tasks
+
+- Bump ruff from 0.15.8 to 0.15.10 (#164) 
+- *(deps)* Bump softprops/action-gh-release from 2.2.2 to 2.6.1 (#160) 
+- *(deps)* Bump ruff from 0.15.8 to 0.15.9 (#161) 
+
+### Other
+
+- Bump version to 0.17.1 
+
+### Refactor
+
+- Rename metadata attr to _azure_functions_metadata (#171) 
+
 ### Bug Fixes
 
 - Resolve MkDocs strict-mode failures for nav and links (#154) (#155) 
 
 ### Documentation
 
+- Update changelog 
 - Add llms.txt for LLM-friendly documentation (#156) (#157) 
 
 ### Features
