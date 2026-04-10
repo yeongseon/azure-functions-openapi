@@ -200,17 +200,17 @@ def _discovered_operation(
 # Packages in the Azure Functions Python DX Toolkit write per-namespace
 # dicts into this attribute so consumers can discover metadata without
 # importing the producing package.
-_HANDLER_METADATA_ATTR = "_azure_functions_toolkit_metadata"
+_HANDLER_METADATA_ATTR = "_azure_functions_metadata"
 
-# Legacy attribute written by azure-functions-validation <0.7.
-_LEGACY_METADATA_ATTR = "_af_validation_metadata"
+# Previous attribute name kept for one-release migration period.
+_LEGACY_HANDLER_METADATA_ATTR = "_azure_functions_toolkit_metadata"
 
 
 def _read_validation_hints(handler: Any) -> dict[str, Any] | None:
     """Read validation hints from a handler using the convention attribute.
 
-    Falls back to the legacy ``_af_validation_metadata`` attribute for
-    backward compatibility with azure-functions-validation <0.7.
+    Also checks the previous ``_azure_functions_toolkit_metadata`` attribute
+    for backward compatibility during the migration period.
 
     Returns a plain dict with keys matching ValidationHintsV1 (body, query,
     path, headers, response_model) or ``None`` if no metadata is found.
@@ -221,16 +221,12 @@ def _read_validation_hints(handler: Any) -> dict[str, Any] | None:
         if isinstance(hints, dict):
             return hints
 
-    # Legacy fallback: azure-functions-validation <0.7 wrote a dataclass.
-    legacy = getattr(handler, _LEGACY_METADATA_ATTR, None)
-    if legacy is not None:
-        return {
-            "body": getattr(legacy, "body", None),
-            "query": getattr(legacy, "query", None),
-            "path": getattr(legacy, "path", None),
-            "headers": getattr(legacy, "headers", None),
-            "response_model": getattr(legacy, "response_model", None),
-        }
+    # Migration fallback: previous attribute name.
+    legacy_meta = getattr(handler, _LEGACY_HANDLER_METADATA_ATTR, None)
+    if isinstance(legacy_meta, dict):
+        hints = legacy_meta.get("validation")
+        if isinstance(hints, dict):
+            return hints
 
     return None
 
@@ -238,7 +234,7 @@ def _read_validation_hints(handler: Any) -> dict[str, Any] | None:
 def scan_validation_metadata(app: Any) -> None:
     """Scan function builders for validation metadata and register OpenAPI operations.
 
-    This function reads the convention-based ``_azure_functions_toolkit_metadata``
+    This function reads the convention-based ``_azure_functions_metadata``
     attribute (namespace ``"validation"``) from each handler.  No import from
     ``azure-functions-validation`` is required.
     """

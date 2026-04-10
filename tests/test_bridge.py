@@ -291,21 +291,20 @@ def test_type_to_schema_without_components() -> None:
     assert "anyOf" in schema or "oneOf" in schema or "type" in schema
 
 
-def test_legacy_af_validation_metadata_fallback() -> None:
-    """Handlers with only the legacy _af_validation_metadata attribute are still discovered."""
-
-    @dataclass(frozen=True)
-    class LegacyMeta:
-        body: Any = None
-        query: Any = None
-        path: Any = None
-        headers: Any = None
-        response_model: Any = None
+def test_legacy_toolkit_metadata_attr_fallback() -> None:
+    """Handlers using the previous _azure_functions_toolkit_metadata attr are still discovered."""
 
     def handler(req: Any) -> Any:
         return req
 
-    setattr(handler, "_af_validation_metadata", LegacyMeta(body=CreateBody))
+    metadata = {
+        "body": CreateBody,
+        "query": None,
+        "path": None,
+        "headers": None,
+        "response_model": None,
+    }
+    setattr(handler, "_azure_functions_toolkit_metadata", {"validation": metadata})
     binding = MockBinding(route="users", methods=["POST"])
     fn = MockFunction(_name="create_user", _func=handler, _bindings=[binding])
     app = MockApp(_function_builders=[MockBuilder(_function=fn)])
