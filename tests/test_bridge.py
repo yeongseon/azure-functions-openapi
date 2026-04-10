@@ -290,28 +290,3 @@ def test_type_to_schema_without_components() -> None:
     schema = type_to_schema(ResponseModel | None)
     assert "anyOf" in schema or "oneOf" in schema or "type" in schema
 
-
-def test_legacy_af_validation_metadata_fallback() -> None:
-    """Handlers with only the legacy _af_validation_metadata attribute are still discovered."""
-
-    @dataclass(frozen=True)
-    class LegacyMeta:
-        body: Any = None
-        query: Any = None
-        path: Any = None
-        headers: Any = None
-        response_model: Any = None
-
-    def handler(req: Any) -> Any:
-        return req
-
-    setattr(handler, "_af_validation_metadata", LegacyMeta(body=CreateBody))
-    binding = MockBinding(route="users", methods=["POST"])
-    fn = MockFunction(_name="create_user", _func=handler, _bindings=[binding])
-    app = MockApp(_function_builders=[MockBuilder(_function=fn)])
-
-    scan_validation_metadata(app)
-
-    schema = get_openapi_registry()["post::/api/users"]["request_body"]
-    assert schema["type"] == "object"
-    assert "name" in schema["properties"]

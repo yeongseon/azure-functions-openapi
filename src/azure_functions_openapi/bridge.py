@@ -202,15 +202,9 @@ def _discovered_operation(
 # importing the producing package.
 _HANDLER_METADATA_ATTR = "_azure_functions_toolkit_metadata"
 
-# Legacy attribute written by azure-functions-validation <0.7.
-_LEGACY_METADATA_ATTR = "_af_validation_metadata"
-
 
 def _read_validation_hints(handler: Any) -> dict[str, Any] | None:
     """Read validation hints from a handler using the convention attribute.
-
-    Falls back to the legacy ``_af_validation_metadata`` attribute for
-    backward compatibility with azure-functions-validation <0.7.
 
     Returns a plain dict with keys matching ValidationHintsV1 (body, query,
     path, headers, response_model) or ``None`` if no metadata is found.
@@ -220,17 +214,6 @@ def _read_validation_hints(handler: Any) -> dict[str, Any] | None:
         hints = toolkit_meta.get("validation")
         if isinstance(hints, dict):
             return hints
-
-    # Legacy fallback: azure-functions-validation <0.7 wrote a dataclass.
-    legacy = getattr(handler, _LEGACY_METADATA_ATTR, None)
-    if legacy is not None:
-        return {
-            "body": getattr(legacy, "body", None),
-            "query": getattr(legacy, "query", None),
-            "path": getattr(legacy, "path", None),
-            "headers": getattr(legacy, "headers", None),
-            "response_model": getattr(legacy, "response_model", None),
-        }
 
     return None
 
