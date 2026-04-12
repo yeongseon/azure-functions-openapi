@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+import copy
 import logging
 from typing import Any, get_origin
 
@@ -202,18 +203,54 @@ def _discovered_operation(
 # importing the producing package.
 _HANDLER_METADATA_ATTR = "_azure_functions_metadata"
 
+# Maximum decorator depth to walk when chasing ``__wrapped__``.
+_MAX_WRAPPED_DEPTH = 16
+
+# Supported metadata protocol versions.
+_SUPPORTED_VERSIONS: frozenset[int] = frozenset({1})
+
 
 def _read_validation_hints(handler: Any) -> dict[str, Any] | None:
     """Read validation hints from a handler using the convention attribute.
 
-    Returns a plain dict with keys matching ValidationHintsV1 (body, query,
-    path, headers, response_model) or ``None`` if no metadata is found.
+    Walks the ``__wrapped__`` chain (outer → inner) looking for the first
+    handler that carries ``_azure_functions_metadata["validation"]``.  This
+    ensures that metadata set by an inner decorator is still discovered even
+    when additional decorators (e.g. ``@functools.wraps``) wrap the handler.
+
+    Version policy:
+    * Missing ``version`` key → accepted as v1 (backward-compatible).
+    * Present and supported → accepted.
+    * Present but malformed or unsupported → ``logger.warning()`` + skip.
+
+    Returns a *deep copy* of the validation dict so callers cannot mutate
+    the original handler attribute.
     """
-    toolkit_meta = getattr(handler, _HANDLER_METADATA_ATTR, None)
-    if isinstance(toolkit_meta, dict):
-        hints = toolkit_meta.get("validation")
-        if isinstance(hints, dict):
-            return hints
+    current: Any = handler
+    for _ in range(_MAX_WRAPPED_DEPTH):
+        toolkit_meta = getattr(current, _HANDLER_METADATA_ATTR, None)
+        if isinstance(toolkit_meta, dict):
+            # --- version gate ---
+            raw_version = toolkit_meta.get("version")
+            if raw_version is not None:
+                if not isinstance(raw_version, int) or raw_version not in _SUPPORTED_VERSIONS:
+                    logger.warning(
+                        "Skipping handler %r: unsupported metadata version %r"
+                        " (supported: %s)",
+                        current,
+                        raw_version,
+                        ", ".join(str(v) for v in sorted(_SUPPORTED_VERSIONS)),
+                    )
+                    return None
+            hints = toolkit_meta.get("validation")
+            if isinstance(hints, dict):
+                return copy.deepcopy(hints)
+
+        # Walk the __wrapped__ chain.
+        wrapped = getattr(current, "__wrapped__", None)
+        if wrapped is None or wrapped is current:
+            break
+        current = wrapped
 
     return None
 
