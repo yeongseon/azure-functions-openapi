@@ -1,6 +1,9 @@
 # tests/test_webhook_receiver_example.py
 # (file kept as test_hello_openapi_function_app.py so CI mapping stays stable)
 
+from datetime import datetime, timedelta, timezone
+import hashlib
+import hmac
 import importlib
 import json
 from typing import Any
@@ -15,7 +18,16 @@ from examples.webhook_receiver import function_app
 def _load_example_module() -> Any:
     with decorator_module._registry_lock:
         decorator_module._openapi_registry.clear()
-    return importlib.reload(function_app)
+    mod = importlib.reload(function_app)
+    # Reset in-memory stores across tests
+    mod._recent_deliveries.clear()
+    mod._seen_delivery_ids.clear()
+    return mod
+
+
+def _make_signature(payload: bytes, timestamp: str, secret: str) -> str:
+    signed_content = f"{timestamp}.{payload.decode()}".encode()
+    return "sha256=" + hmac.new(secret.encode(), signed_content, hashlib.sha256).hexdigest()
 
 
 def test_receive_webhook_valid() -> None:
@@ -93,8 +105,6 @@ def test_receive_webhook_non_object_body() -> None:
 
 def test_receive_webhook_signature_valid() -> None:
     fa = _load_example_module()
-    import hashlib
-    import hmac
 
     payload = json.dumps({
         "event_type": "order.completed",
@@ -103,14 +113,19 @@ def test_receive_webhook_signature_valid() -> None:
         "data": {},
     }).encode("utf-8")
     secret = "test-secret"
-    sig = "sha256=" + hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
+    timestamp = datetime.now(timezone.utc).isoformat()
+    sig = _make_signature(payload, timestamp, secret)
 
     req = func.HttpRequest(
         method="POST",
         url="/api/webhooks/orders",
         body=payload,
         params={},
-        headers={"Content-Type": "application/json", "X-Signature": sig},
+        headers={
+            "Content-Type": "application/json",
+            "X-Signature": sig,
+            "X-Webhook-Timestamp": timestamp,
+        },
     )
 
     with patch.dict("os.environ", {"WEBHOOK_SECRET": secret}):
@@ -120,6 +135,34 @@ def test_receive_webhook_signature_valid() -> None:
 
 
 def test_receive_webhook_signature_invalid() -> None:
+    fa = _load_example_module()
+    timestamp = datetime.now(timezone.utc).isoformat()
+    req = func.HttpRequest(
+        method="POST",
+        url="/api/webhooks/orders",
+        body=json.dumps({
+            "event_type": "order.completed",
+            "source": "shopify",
+            "occurred_at": "2026-04-12T00:00:00Z",
+            "data": {},
+        }).encode("utf-8"),
+        params={},
+        headers={
+            "Content-Type": "application/json",
+            "X-Signature": "sha256=bad",
+            "X-Webhook-Timestamp": timestamp,
+        },
+    )
+
+    with patch.dict("os.environ", {"WEBHOOK_SECRET": "test-secret"}):
+        resp = fa.receive_order_webhook(req)
+
+    assert resp.status_code == 401
+    assert "signature" in json.loads(resp.get_body())["error"].lower()
+
+
+def test_receive_webhook_missing_timestamp() -> None:
+    """When WEBHOOK_SECRET is set, X-Webhook-Timestamp is required."""
     fa = _load_example_module()
     req = func.HttpRequest(
         method="POST",
@@ -131,14 +174,79 @@ def test_receive_webhook_signature_invalid() -> None:
             "data": {},
         }).encode("utf-8"),
         params={},
-        headers={"Content-Type": "application/json", "X-Signature": "sha256=bad"},
+        headers={"Content-Type": "application/json", "X-Signature": "sha256=abc"},
     )
 
     with patch.dict("os.environ", {"WEBHOOK_SECRET": "test-secret"}):
         resp = fa.receive_order_webhook(req)
 
     assert resp.status_code == 401
-    assert "signature" in json.loads(resp.get_body())["error"].lower()
+    assert "Timestamp" in json.loads(resp.get_body())["error"]
+
+
+def test_receive_webhook_stale_timestamp() -> None:
+    """Webhooks older than 5 minutes are rejected."""
+    fa = _load_example_module()
+    secret = "test-secret"
+    old_timestamp = (datetime.now(timezone.utc) - timedelta(minutes=10)).isoformat()
+    payload = json.dumps({
+        "event_type": "order.completed",
+        "source": "shopify",
+        "occurred_at": "2026-04-12T00:00:00Z",
+        "data": {},
+    }).encode("utf-8")
+    sig = _make_signature(payload, old_timestamp, secret)
+
+    req = func.HttpRequest(
+        method="POST",
+        url="/api/webhooks/orders",
+        body=payload,
+        params={},
+        headers={
+            "Content-Type": "application/json",
+            "X-Signature": sig,
+            "X-Webhook-Timestamp": old_timestamp,
+        },
+    )
+
+    with patch.dict("os.environ", {"WEBHOOK_SECRET": secret}):
+        resp = fa.receive_order_webhook(req)
+
+    assert resp.status_code == 401
+    assert "expired" in json.loads(resp.get_body())["error"].lower()
+
+
+def test_receive_webhook_duplicate_delivery_id() -> None:
+    """Duplicate X-Delivery-Id headers are rejected with 409."""
+    fa = _load_example_module()
+    delivery_id = "dlv-unique-123"
+    payload = json.dumps({
+        "event_type": "order.completed",
+        "source": "shopify",
+        "occurred_at": "2026-04-12T00:00:00Z",
+        "data": {},
+    }).encode("utf-8")
+
+    def make_req() -> func.HttpRequest:
+        return func.HttpRequest(
+            method="POST",
+            url="/api/webhooks/orders",
+            body=payload,
+            params={},
+            headers={
+                "Content-Type": "application/json",
+                "X-Delivery-Id": delivery_id,
+            },
+        )
+
+    # First request succeeds
+    resp1 = fa.receive_order_webhook(make_req())
+    assert resp1.status_code == 202
+
+    # Second request with same delivery ID is rejected
+    resp2 = fa.receive_order_webhook(make_req())
+    assert resp2.status_code == 409
+    assert "Duplicate" in json.loads(resp2.get_body())["error"]
 
 
 def test_openapi_json_response() -> None:
@@ -149,7 +257,7 @@ def test_openapi_json_response() -> None:
     assert resp.status_code == 200
     payload = json.loads(resp.get_body())
     assert "paths" in payload
-    assert "/receive_order_webhook" in payload["paths"]
+    assert "/api/webhooks/orders" in payload["paths"]
 
 
 def test_openapi_yaml_response() -> None:

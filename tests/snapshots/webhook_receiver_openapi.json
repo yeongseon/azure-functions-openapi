@@ -6,11 +6,11 @@
     "description": "Auto-generated OpenAPI documentation. Markdown supported in descriptions (CommonMark)."
   },
   "paths": {
-    "/receive_order_webhook": {
-      "get": {
+    "/api/webhooks/orders": {
+      "post": {
         "summary": "Receive order webhook",
-        "description": "Accepts an inbound webhook event for asynchronous processing.\n\nIf `WEBHOOK_SECRET` is set, the `X-Signature` header is verified using HMAC-SHA256 before the payload is accepted.",
-        "operationId": "get_receive_order_webhook",
+        "description": "Accepts an inbound webhook event for asynchronous processing.\n\nIf `WEBHOOK_SECRET` is set, the `X-Signature` header is verified using HMAC-SHA256 (bound to `X-Webhook-Timestamp`) before the payload is accepted. Stale timestamps (>5 min) are rejected.\n\nDuplicate deliveries are rejected via the `X-Delivery-Id` header.",
+        "operationId": "post_receive_order_webhook",
         "tags": [
           "webhooks"
         ],
@@ -29,7 +29,20 @@
             "description": "Invalid request payload"
           },
           "401": {
-            "description": "Invalid webhook signature"
+            "description": "Invalid webhook signature or expired timestamp"
+          },
+          "409": {
+            "description": "Duplicate delivery (replay)"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              }
+            }
           }
         }
       }
@@ -61,6 +74,38 @@
           "received_at"
         ],
         "title": "WebhookAcceptedResponse",
+        "type": "object"
+      },
+      "WebhookEvent": {
+        "properties": {
+          "event_type": {
+            "description": "Event type, e.g. 'order.completed'.",
+            "title": "Event Type",
+            "type": "string"
+          },
+          "source": {
+            "description": "Origin system, e.g. 'shopify'.",
+            "title": "Source",
+            "type": "string"
+          },
+          "occurred_at": {
+            "description": "ISO-8601 timestamp of event occurrence.",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "data": {
+            "additionalProperties": true,
+            "description": "Arbitrary event payload.",
+            "title": "Data",
+            "type": "object"
+          }
+        },
+        "required": [
+          "event_type",
+          "source",
+          "occurred_at"
+        ],
+        "title": "WebhookEvent",
         "type": "object"
       }
     }

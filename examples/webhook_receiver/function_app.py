@@ -52,13 +52,18 @@ class WebhookAcceptedResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 _recent_deliveries: list[dict[str, Any]] = []
+_seen_delivery_ids: set[str] = set()
 
+# Maximum age (seconds) for webhook timestamp before rejection
+_MAX_WEBHOOK_AGE_SECONDS = 300  # 5 minutes
 
-def _verify_signature(payload: bytes, signature: str, secret: str) -> bool:
-    """Verify HMAC-SHA256 signature if configured."""
-    expected = "sha256=" + hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
+def _verify_signature(
+    payload: bytes, timestamp: str, signature: str, secret: str
+) -> bool:
+    """Verify HMAC-SHA256 signature bound to timestamp."""
+    signed_content = f"{timestamp}.{payload.decode()}".encode()
+    expected = "sha256=" + hmac.new(secret.encode(), signed_content, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature)
-
 
 # ---------------------------------------------------------------------------
 # Routes
@@ -67,11 +72,15 @@ def _verify_signature(payload: bytes, signature: str, secret: str) -> bool:
 
 @app.route(route="webhooks/orders", methods=["POST"], auth_level=func.AuthLevel.ANONYMOUS)
 @openapi(
+    route="/api/webhooks/orders",
+    method="post",
     summary="Receive order webhook",
     description=(
         "Accepts an inbound webhook event for asynchronous processing.\n\n"
         "If `WEBHOOK_SECRET` is set, the `X-Signature` header is verified "
-        "using HMAC-SHA256 before the payload is accepted."
+        "using HMAC-SHA256 (bound to `X-Webhook-Timestamp`) before the "
+        "payload is accepted. Stale timestamps (>5 min) are rejected.\n\n"
+        "Duplicate deliveries are rejected via the `X-Delivery-Id` header."
     ),
     tags=["webhooks"],
     request_model=WebhookEvent,
@@ -79,22 +88,60 @@ def _verify_signature(payload: bytes, signature: str, secret: str) -> bool:
     response={
         202: {"description": "Webhook accepted for processing"},
         400: {"description": "Invalid request payload"},
-        401: {"description": "Invalid webhook signature"},
+        401: {"description": "Invalid webhook signature or expired timestamp"},
+        409: {"description": "Duplicate delivery (replay)"},
     },
 )
 def receive_order_webhook(req: func.HttpRequest) -> func.HttpResponse:
+    # --- Replay protection: delivery ID deduplication ---
+    delivery_header_id = req.headers.get("X-Delivery-Id", "")
+    if delivery_header_id and delivery_header_id in _seen_delivery_ids:
+        logger.warning("Duplicate delivery ID rejected: %s", delivery_header_id)
+        return func.HttpResponse(
+            body=json.dumps({"error": "Duplicate delivery"}),
+            mimetype="application/json",
+            status_code=409,
+        )
+
     # --- Signature verification ---
     secret = os.environ.get("WEBHOOK_SECRET", "")
     if secret:
         sig = req.headers.get("X-Signature", "")
-        if not _verify_signature(req.get_body(), sig, secret):
+        timestamp = req.headers.get("X-Webhook-Timestamp", "")
+
+        # Reject missing timestamp when signature verification is enabled
+        if not timestamp:
+            return func.HttpResponse(
+                body=json.dumps({"error": "Missing X-Webhook-Timestamp header"}),
+                mimetype="application/json",
+                status_code=401,
+            )
+
+        # Reject stale webhooks
+        try:
+            ts = datetime.fromisoformat(timestamp)
+            age = (datetime.now(timezone.utc) - ts).total_seconds()
+            if abs(age) > _MAX_WEBHOOK_AGE_SECONDS:
+                logger.warning("Webhook timestamp too old: %s (age=%.0fs)", timestamp, age)
+                return func.HttpResponse(
+                    body=json.dumps({"error": "Webhook timestamp expired"}),
+                    mimetype="application/json",
+                    status_code=401,
+                )
+        except ValueError:
+            return func.HttpResponse(
+                body=json.dumps({"error": "Invalid X-Webhook-Timestamp format"}),
+                mimetype="application/json",
+                status_code=401,
+            )
+
+        if not _verify_signature(req.get_body(), timestamp, sig, secret):
             logger.warning("Webhook signature verification failed")
             return func.HttpResponse(
                 body=json.dumps({"error": "Invalid signature"}),
                 mimetype="application/json",
                 status_code=401,
             )
-
     # --- Parse body ---
     try:
         body = req.get_json()
@@ -122,6 +169,10 @@ def receive_order_webhook(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     logger.info("Received webhook: event_type=%s source=%s", event_type, source)
+
+    # Track delivery ID for deduplication
+    if delivery_header_id:
+        _seen_delivery_ids.add(delivery_header_id)
 
     entry = {
         "delivery_id": f"dlv_{uuid.uuid4().hex[:12]}",
