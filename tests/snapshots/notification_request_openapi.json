@@ -1,0 +1,130 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Notification API",
+    "version": "1.0.0",
+    "description": "Auto-generated OpenAPI documentation. Markdown supported in descriptions (CommonMark)."
+  },
+  "paths": {
+    "/get_notification_status": {
+      "get": {
+        "summary": "Get notification status",
+        "description": "Look up the delivery status of a previously queued notification.",
+        "operationId": "get_get_notification_status",
+        "tags": [
+          "notifications"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationStatusResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "notification_id",
+            "in": "query",
+            "required": true,
+            "description": "Notification ID returned from the send endpoint.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/send_notification": {
+      "get": {
+        "summary": "Send email notification",
+        "description": "Validate and queue an email notification for delivery.",
+        "operationId": "get_send_notification",
+        "tags": [
+          "notifications"
+        ],
+        "responses": {
+          "202": {
+            "description": "Notification queued for delivery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationAcceptedResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "NotificationAcceptedResponse": {
+        "properties": {
+          "notification_id": {
+            "description": "Unique notification identifier.",
+            "title": "Notification Id",
+            "type": "string"
+          },
+          "status": {
+            "default": "queued",
+            "description": "Processing status.",
+            "title": "Status",
+            "type": "string"
+          },
+          "queued_at": {
+            "description": "ISO-8601 timestamp.",
+            "title": "Queued At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "notification_id",
+          "queued_at"
+        ],
+        "title": "NotificationAcceptedResponse",
+        "type": "object"
+      },
+      "NotificationStatusResponse": {
+        "properties": {
+          "notification_id": {
+            "title": "Notification Id",
+            "type": "string"
+          },
+          "status": {
+            "description": "One of: queued, sending, delivered, failed.",
+            "title": "Status",
+            "type": "string"
+          },
+          "delivered_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Delivery timestamp.",
+            "title": "Delivered At"
+          }
+        },
+        "required": [
+          "notification_id",
+          "status"
+        ],
+        "title": "NotificationStatusResponse",
+        "type": "object"
+      }
+    }
+  }
+}

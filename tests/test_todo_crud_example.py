@@ -1,3 +1,6 @@
+# tests/test_report_jobs_example.py
+# (file kept as test_todo_crud_example.py so CI mapping stays stable)
+
 import importlib
 import json
 from typing import Any
@@ -5,90 +8,184 @@ from typing import Any
 import azure.functions as func
 
 import azure_functions_openapi.decorator as decorator_module
-from examples.todo_crud import function_app as todo_function_app
+from examples.report_jobs import function_app as report_function_app
 
 
 def _load_example_module() -> Any:
     with decorator_module._registry_lock:
         decorator_module._openapi_registry.clear()
-    return importlib.reload(todo_function_app)
+    return importlib.reload(report_function_app)
 
 
-def test_todo_crud_example_create_and_list() -> None:
-    function_app = _load_example_module()
-    create_request = func.HttpRequest(
+def test_submit_report_valid() -> None:
+    fa = _load_example_module()
+    payload = {
+        "report_type": "monthly_sales",
+        "date_from": "2026-01-01",
+        "date_to": "2026-01-31",
+        "format": "csv",
+    }
+    req = func.HttpRequest(
         method="POST",
-        url="/api/create_todo",
-        body=json.dumps({"title": "Ship examples"}).encode("utf-8"),
+        url="/api/reports",
+        body=json.dumps(payload).encode("utf-8"),
         params={},
         headers={"Content-Type": "application/json"},
     )
 
-    create_response = function_app.create_todo(create_request)
+    resp = fa.submit_report(req)
 
-    assert create_response.status_code == 201
-    assert json.loads(create_response.get_body()) == {
-        "id": 1,
-        "title": "Ship examples",
-        "done": False,
-    }
+    assert resp.status_code == 202
+    body = json.loads(resp.get_body())
+    assert body["status"] == "queued"
+    assert "job_id" in body
+    assert "created_at" in body
 
-    list_request = func.HttpRequest(
-        method="GET",
-        url="/api/list_todos",
-        body=b"",
+
+def test_submit_report_invalid_json() -> None:
+    fa = _load_example_module()
+    req = func.HttpRequest(
+        method="POST",
+        url="/api/reports",
+        body=b"not json",
         params={},
         headers={},
     )
-    list_response = function_app.list_todos(list_request)
 
-    assert list_response.status_code == 200
-    assert json.loads(list_response.get_body()) == {
-        "todos": [{"id": 1, "title": "Ship examples", "done": False}]
-    }
+    resp = fa.submit_report(req)
+
+    assert resp.status_code == 400
 
 
-def test_todo_crud_example_update_delete_and_spec() -> None:
-    function_app = _load_example_module()
-    function_app.TODOS.append({"id": 1, "title": "Ship examples", "done": False})
-
-    update_request = func.HttpRequest(
-        method="PUT",
-        url="/api/update_todo",
-        body=json.dumps({"id": 1, "title": "Ship examples now", "done": True}).encode("utf-8"),
+def test_get_report_status_found() -> None:
+    fa = _load_example_module()
+    # Submit a job first
+    submit_req = func.HttpRequest(
+        method="POST",
+        url="/api/reports",
+        body=json.dumps({
+            "report_type": "monthly_sales",
+            "date_from": "2026-01-01",
+            "date_to": "2026-01-31",
+        }).encode("utf-8"),
         params={},
         headers={"Content-Type": "application/json"},
     )
-    update_response = function_app.update_todo(update_request)
+    submit_resp = fa.submit_report(submit_req)
+    job_id = json.loads(submit_resp.get_body())["job_id"]
 
-    assert update_response.status_code == 200
-    assert json.loads(update_response.get_body()) == {
-        "id": 1,
-        "title": "Ship examples now",
-        "done": True,
-    }
+    # Check status
+    status_req = func.HttpRequest(
+        method="GET",
+        url=f"/api/reports/{job_id}/status",
+        body=b"",
+        route_params={"job_id": job_id},
+        params={},
+        headers={},
+    )
+    status_resp = fa.get_report_status(status_req)
 
-    spec_request = func.HttpRequest(
+    assert status_resp.status_code == 200
+    body = json.loads(status_resp.get_body())
+    assert body["job_id"] == job_id
+    assert body["status"] == "queued"
+
+
+def test_get_report_status_not_found() -> None:
+    fa = _load_example_module()
+    req = func.HttpRequest(
+        method="GET",
+        url="/api/reports/nonexistent/status",
+        body=b"",
+        route_params={"job_id": "nonexistent"},
+        params={},
+        headers={},
+    )
+
+    resp = fa.get_report_status(req)
+
+    assert resp.status_code == 404
+
+
+def test_download_report_not_ready() -> None:
+    fa = _load_example_module()
+    # Submit a job (status=queued, not completed)
+    submit_req = func.HttpRequest(
+        method="POST",
+        url="/api/reports",
+        body=json.dumps({
+            "report_type": "monthly_sales",
+            "date_from": "2026-01-01",
+            "date_to": "2026-01-31",
+        }).encode("utf-8"),
+        params={},
+        headers={"Content-Type": "application/json"},
+    )
+    submit_resp = fa.submit_report(submit_req)
+    job_id = json.loads(submit_resp.get_body())["job_id"]
+
+    # Try download (should fail — not completed)
+    download_req = func.HttpRequest(
+        method="GET",
+        url=f"/api/reports/{job_id}/download",
+        body=b"",
+        route_params={"job_id": job_id},
+        params={},
+        headers={},
+    )
+    download_resp = fa.download_report(download_req)
+
+    assert download_resp.status_code == 404
+
+
+def test_download_report_completed() -> None:
+    fa = _load_example_module()
+    # Submit and manually mark completed
+    submit_req = func.HttpRequest(
+        method="POST",
+        url="/api/reports",
+        body=json.dumps({
+            "report_type": "monthly_sales",
+            "date_from": "2026-01-01",
+            "date_to": "2026-01-31",
+        }).encode("utf-8"),
+        params={},
+        headers={"Content-Type": "application/json"},
+    )
+    submit_resp = fa.submit_report(submit_req)
+    job_id = json.loads(submit_resp.get_body())["job_id"]
+
+    # Simulate job completion
+    fa._jobs[job_id]["status"] = "completed"
+
+    download_req = func.HttpRequest(
+        method="GET",
+        url=f"/api/reports/{job_id}/download",
+        body=b"",
+        route_params={"job_id": job_id},
+        params={},
+        headers={},
+    )
+    download_resp = fa.download_report(download_req)
+
+    assert download_resp.status_code == 200
+    assert b"report_type" in download_resp.get_body()
+
+
+def test_openapi_spec_includes_report_paths() -> None:
+    fa = _load_example_module()
+    req = func.HttpRequest(
         method="GET",
         url="/api/openapi.json",
         body=b"",
         params={},
         headers={},
     )
-    spec_response = function_app.openapi_spec(spec_request)
 
-    assert spec_response.status_code == 200
-    payload = json.loads(spec_response.get_body())
-    assert "/api/create_todo" in payload["paths"]
+    resp = fa.openapi_spec(req)
 
-    delete_request = func.HttpRequest(
-        method="DELETE",
-        url="/api/delete_todo?id=1",
-        body=b"",
-        params={"id": "1"},
-        headers={},
-    )
-    delete_response = function_app.delete_todo(delete_request)
-
-    assert delete_response.status_code == 204
-    assert function_app.TODOS == []
+    assert resp.status_code == 200
+    payload = json.loads(resp.get_body())
+    assert "/submit_report" in payload["paths"]
+    # Verify security scheme is present
+    assert "BearerAuth" in payload.get("components", {}).get("securitySchemes", {})

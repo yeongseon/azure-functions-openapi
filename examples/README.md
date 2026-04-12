@@ -4,7 +4,7 @@
 
 | Role | Path | Description |
 | --- | --- | --- |
-| Representative | `examples/hello` | Minimal HTTP trigger plus OpenAPI JSON, YAML, and Swagger UI routes. |
-| Complex | `examples/todo_crud` | CRUD-style app with multiple operations, Pydantic models, and generated spec output. |
-| Integration | `examples/with_validation` | Uses `@openapi` and `@validate_http` together with shared Pydantic models. |
-| Bridge | `examples/with_bridge` | Uses only `@validate_http` and `scan_validation_metadata(app)` to auto-register OpenAPI models. |
+| Representative | `examples/webhook_receiver` | Webhook intake with HMAC-SHA256 signature verification. Shows `@openapi()` basics: `summary`, `description`, `tags`, `request_model`, `response_model`, `response`. |
+| Complex | `examples/report_jobs` | Async report generation with Bearer auth. Shows `security`, `security_scheme`, `OPENAPI_VERSION_3_1`, `generate_openapi_spec()`, `render_swagger_ui(custom_csp=..., enable_client_logging=True)`. |
+| Integration | `examples/notification_request` | Email notification with `@openapi` + `@validate_http` stacked. Shows `requests=`, `responses=` unified params and shared Pydantic models. |
+| Bridge | `examples/partner_import_bridge` | Partner data import with `scan_validation_metadata(app)`, `register_openapi_metadata()`, `OpenAPIOperationMetadata`, and `request_body_required`. |

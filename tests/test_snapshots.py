@@ -37,7 +37,7 @@ def _reload_example(module_path: str) -> None:
     """Clear registry and reload an example module to repopulate it.
 
     Skips the test if an optional dependency required by the example is not
-    installed (e.g. ``azure-functions-validation`` for the with_validation
+    installed (e.g. ``azure-functions-validation`` for the notification_request
     example).
     """
     with decorator_module._registry_lock:
@@ -78,19 +78,19 @@ def _assert_snapshot(spec: dict[str, Any], snapshot_name: str) -> None:
         )
 
 
-class TestTodoCrudSnapshot:
-    """Snapshot tests for the todo_crud example spec."""
+class TestWebhookReceiverSnapshot:
+    """Snapshot tests for the webhook_receiver example spec."""
 
     def test_openapi_3_0_spec(self) -> None:
-        """todo_crud OpenAPI 3.0 spec matches golden file."""
-        _reload_example("examples.todo_crud.function_app")
-        spec = generate_openapi_spec("Todo CRUD API", "1.0.0")
-        _assert_snapshot(spec, "todo_crud_openapi.json")
+        """webhook_receiver OpenAPI 3.0 spec matches golden file."""
+        _reload_example("examples.webhook_receiver.function_app")
+        spec = generate_openapi_spec("Webhook Receiver API", "1.0.0")
+        _assert_snapshot(spec, "webhook_receiver_openapi.json")
 
     def test_paths_are_deterministically_ordered(self) -> None:
         """Paths must be in sorted order (deterministic output)."""
-        _reload_example("examples.todo_crud.function_app")
-        spec = generate_openapi_spec("Todo CRUD API", "1.0.0")
+        _reload_example("examples.webhook_receiver.function_app")
+        spec = generate_openapi_spec("Webhook Receiver API", "1.0.0")
         path_keys = list(spec["paths"].keys())
         assert path_keys == sorted(path_keys), (
             f"Paths are not sorted: {path_keys}"
@@ -98,60 +98,104 @@ class TestTodoCrudSnapshot:
 
     def test_schemas_are_deterministically_ordered(self) -> None:
         """Component schemas must be in sorted order."""
-        _reload_example("examples.todo_crud.function_app")
-        spec = generate_openapi_spec("Todo CRUD API", "1.0.0")
+        _reload_example("examples.webhook_receiver.function_app")
+        spec = generate_openapi_spec("Webhook Receiver API", "1.0.0")
         schema_keys = list(spec.get("components", {}).get("schemas", {}).keys())
         assert schema_keys == sorted(schema_keys), (
             f"Schemas are not sorted: {schema_keys}"
         )
 
 
-class TestWithValidationSnapshot:
-    """Snapshot tests for the with_validation example spec."""
+class TestReportJobsSnapshot:
+    """Snapshot tests for the report_jobs example spec."""
 
     def test_openapi_3_0_spec(self) -> None:
-        """with_validation OpenAPI 3.0 spec matches golden file."""
-        _reload_example("examples.with_validation.function_app")
-        spec = generate_openapi_spec("Validation Example API", "1.0.0")
-        _assert_snapshot(spec, "with_validation_openapi.json")
+        """report_jobs OpenAPI 3.0 spec matches golden file."""
+        _reload_example("examples.report_jobs.function_app")
+        spec = generate_openapi_spec("Report Jobs API", "1.0.0")
+        _assert_snapshot(spec, "report_jobs_openapi.json")
 
     def test_paths_are_deterministically_ordered(self) -> None:
         """Paths must be in sorted order."""
-        _reload_example("examples.with_validation.function_app")
-        spec = generate_openapi_spec("Validation Example API", "1.0.0")
+        _reload_example("examples.report_jobs.function_app")
+        spec = generate_openapi_spec("Report Jobs API", "1.0.0")
+        path_keys = list(spec["paths"].keys())
+        assert path_keys == sorted(path_keys), (
+            f"Paths are not sorted: {path_keys}"
+        )
+
+    def test_schemas_are_deterministically_ordered(self) -> None:
+        """Component schemas must be in sorted order."""
+        _reload_example("examples.report_jobs.function_app")
+        spec = generate_openapi_spec("Report Jobs API", "1.0.0")
+        schema_keys = list(spec.get("components", {}).get("schemas", {}).keys())
+        assert schema_keys == sorted(schema_keys), (
+            f"Schemas are not sorted: {schema_keys}"
+        )
+
+
+class TestNotificationRequestSnapshot:
+    """Snapshot tests for the notification_request example spec."""
+
+    def test_openapi_3_0_spec(self) -> None:
+        """notification_request OpenAPI 3.0 spec matches golden file."""
+        _reload_example("examples.notification_request.function_app")
+        spec = generate_openapi_spec("Notification API", "1.0.0")
+        _assert_snapshot(spec, "notification_request_openapi.json")
+
+    def test_paths_are_deterministically_ordered(self) -> None:
+        """Paths must be in sorted order."""
+        _reload_example("examples.notification_request.function_app")
+        spec = generate_openapi_spec("Notification API", "1.0.0")
         path_keys = list(spec["paths"].keys())
         assert path_keys == sorted(path_keys), (
             f"Paths are not sorted: {path_keys}"
         )
 
 
-class TestTodoCrudSnapshot31:
-    """Snapshot tests for the todo_crud example spec (OpenAPI 3.1.0)."""
+class TestWebhookReceiverSnapshot31:
+    """Snapshot tests for the webhook_receiver example spec (OpenAPI 3.1.0)."""
 
     def test_openapi_3_1_spec(self) -> None:
-        """todo_crud OpenAPI 3.1 spec matches golden file."""
-        _reload_example("examples.todo_crud.function_app")
-        spec = generate_openapi_spec("Todo CRUD API", "1.0.0", openapi_version="3.1.0")
-        _assert_snapshot(spec, "todo_crud_openapi_31.json")
+        """webhook_receiver OpenAPI 3.1 spec matches golden file."""
+        _reload_example("examples.webhook_receiver.function_app")
+        spec = generate_openapi_spec("Webhook Receiver API", "1.0.0", openapi_version="3.1.0")
+        _assert_snapshot(spec, "webhook_receiver_openapi_31.json")
 
     def test_openapi_version_field_is_3_1(self) -> None:
         """Emitted 'openapi' field must be '3.1.0'."""
-        _reload_example("examples.todo_crud.function_app")
-        spec = generate_openapi_spec("Todo CRUD API", "1.0.0", openapi_version="3.1.0")
+        _reload_example("examples.webhook_receiver.function_app")
+        spec = generate_openapi_spec("Webhook Receiver API", "1.0.0", openapi_version="3.1.0")
         assert spec["openapi"] == "3.1.0"
 
 
-class TestWithValidationSnapshot31:
-    """Snapshot tests for the with_validation example spec (OpenAPI 3.1.0)."""
+class TestReportJobsSnapshot31:
+    """Snapshot tests for the report_jobs example spec (OpenAPI 3.1.0)."""
 
     def test_openapi_3_1_spec(self) -> None:
-        """with_validation OpenAPI 3.1 spec matches golden file."""
-        _reload_example("examples.with_validation.function_app")
-        spec = generate_openapi_spec("Validation Example API", "1.0.0", openapi_version="3.1.0")
-        _assert_snapshot(spec, "with_validation_openapi_31.json")
+        """report_jobs OpenAPI 3.1 spec matches golden file."""
+        _reload_example("examples.report_jobs.function_app")
+        spec = generate_openapi_spec("Report Jobs API", "1.0.0", openapi_version="3.1.0")
+        _assert_snapshot(spec, "report_jobs_openapi_31.json")
 
     def test_openapi_version_field_is_3_1(self) -> None:
         """Emitted 'openapi' field must be '3.1.0'."""
-        _reload_example("examples.with_validation.function_app")
-        spec = generate_openapi_spec("Validation Example API", "1.0.0", openapi_version="3.1.0")
+        _reload_example("examples.report_jobs.function_app")
+        spec = generate_openapi_spec("Report Jobs API", "1.0.0", openapi_version="3.1.0")
+        assert spec["openapi"] == "3.1.0"
+
+
+class TestNotificationRequestSnapshot31:
+    """Snapshot tests for the notification_request example spec (OpenAPI 3.1.0)."""
+
+    def test_openapi_3_1_spec(self) -> None:
+        """notification_request OpenAPI 3.1 spec matches golden file."""
+        _reload_example("examples.notification_request.function_app")
+        spec = generate_openapi_spec("Notification API", "1.0.0", openapi_version="3.1.0")
+        _assert_snapshot(spec, "notification_request_openapi_31.json")
+
+    def test_openapi_version_field_is_3_1(self) -> None:
+        """Emitted 'openapi' field must be '3.1.0'."""
+        _reload_example("examples.notification_request.function_app")
+        spec = generate_openapi_spec("Notification API", "1.0.0", openapi_version="3.1.0")
         assert spec["openapi"] == "3.1.0"

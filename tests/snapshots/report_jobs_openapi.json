@@ -1,0 +1,207 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Report Jobs API",
+    "version": "1.0.0",
+    "description": "Auto-generated OpenAPI documentation. Markdown supported in descriptions (CommonMark)."
+  },
+  "paths": {
+    "/download_report": {
+      "get": {
+        "summary": "Download report",
+        "description": "Download the generated report file. Only available when job status is 'completed'.",
+        "operationId": "get_download_report",
+        "tags": [
+          "reports"
+        ],
+        "responses": {
+          "200": {
+            "description": "Report file contents"
+          },
+          "404": {
+            "description": "Job not found or not completed"
+          }
+        },
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "description": "The report job identifier.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/get_report_status": {
+      "get": {
+        "summary": "Get report job status",
+        "description": "Poll the status of a previously submitted report job.",
+        "operationId": "get_get_report_status",
+        "tags": [
+          "reports"
+        ],
+        "responses": {
+          "200": {
+            "description": "Job status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportStatusResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found"
+          }
+        },
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "description": "The report job identifier.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/submit_report": {
+      "get": {
+        "summary": "Submit a report job",
+        "description": "Queue a new report generation job. Returns a job ID for status polling.",
+        "operationId": "get_submit_report",
+        "tags": [
+          "reports"
+        ],
+        "responses": {
+          "202": {
+            "description": "Report job queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportJobResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ReportJobResponse": {
+        "properties": {
+          "job_id": {
+            "description": "Unique job identifier.",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "status": {
+            "default": "queued",
+            "description": "Job status.",
+            "title": "Status",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "ISO-8601 timestamp.",
+            "title": "Created At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "created_at"
+        ],
+        "title": "ReportJobResponse",
+        "type": "object"
+      },
+      "ReportStatusResponse": {
+        "properties": {
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "status": {
+            "description": "One of: queued, processing, completed, failed.",
+            "title": "Status",
+            "type": "string"
+          },
+          "progress_pct": {
+            "default": 0,
+            "description": "Progress percentage (0-100).",
+            "title": "Progress Pct",
+            "type": "integer"
+          },
+          "download_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Available when status=completed.",
+            "title": "Download Url"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Error message when status=failed.",
+            "title": "Error"
+          }
+        },
+        "required": [
+          "job_id",
+          "status"
+        ],
+        "title": "ReportStatusResponse",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "API key or JWT token"
+      }
+    }
+  }
+}
