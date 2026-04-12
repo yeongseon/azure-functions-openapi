@@ -52,6 +52,38 @@ sequenceDiagram
 
 Note: `render_swagger_ui()` does not generate or embed the OpenAPI spec. It returns HTML that instructs the browser to fetch the spec from a configured URL. The CLI (`azure-functions-openapi generate`) is another on-demand consumer that imports the app module to trigger registration, then compiles the spec to file or stdout.
 
+## Request Flow and Runtime Relationship
+
+`@openapi` is a **metadata-only decorator**. It executes once at import time to register operation metadata in the in-process registry. It does not intercept, modify, or participate in HTTP request processing at runtime.
+
+```mermaid
+sequenceDiagram
+    participant Client as HTTP Client
+    participant Host as Azure Functions Host
+    participant Worker as Python Worker
+    participant Handler as Function Handler
+    participant Reg as _openapi_registry
+
+    rect rgb(240, 248, 255)
+    note over Worker,Reg: Import Time (startup)
+    Worker->>Worker: import function modules
+    Worker->>Reg: @openapi() registers metadata
+    end
+
+    rect rgb(255, 248, 240)
+    note over Client,Handler: Request Time (per invocation)
+    Client->>Host: HTTP Request
+    Host->>Worker: forward to Python worker
+    Worker->>Handler: invoke function handler directly
+    note over Reg: not involved in request path
+    Handler-->>Worker: return HttpResponse
+    Worker-->>Host: response
+    Host-->>Client: HTTP Response
+    end
+```
+
+The registry is consumed only when a client explicitly requests the spec (`GET /api/openapi.json`) or docs (`GET /api/docs`). Normal API requests bypass the registry entirely.
+
 ## Module Boundaries
 
 ```mermaid
