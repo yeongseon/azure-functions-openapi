@@ -1,0 +1,185 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Partner Import API",
+    "version": "1.0.0",
+    "description": "Auto-generated OpenAPI documentation. Markdown supported in descriptions (CommonMark)."
+  },
+  "paths": {
+    "/api/partners/import": {
+      "post": {
+        "summary": "Import partner records",
+        "description": "Batch import partner records from an external source.",
+        "operationId": "post_api_partners_import",
+        "tags": [
+          "partners"
+        ],
+        "responses": {
+          "200": {
+            "description": "Import completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportBatchResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportBatchRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partners/import/history": {
+      "get": {
+        "summary": "Get import history",
+        "description": "Retrieve the history of all partner import batches.",
+        "operationId": "get_api_partners_import_history",
+        "tags": [
+          "partners"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of import batches"
+          }
+        }
+      }
+    },
+    "/api/partners/purge": {
+      "delete": {
+        "summary": "Purge all partner data",
+        "description": "Remove all imported partner records. Use with caution.",
+        "operationId": "delete_api_partners_purge",
+        "tags": [
+          "partners"
+        ],
+        "responses": {
+          "200": {
+            "description": "All records purged"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ImportBatchRequest": {
+        "properties": {
+          "source": {
+            "description": "Import source system identifier.",
+            "title": "Source",
+            "type": "string"
+          },
+          "records": {
+            "description": "Records to import.",
+            "items": {
+              "$ref": "#/components/schemas/PartnerRecord"
+            },
+            "minItems": 1,
+            "title": "Records",
+            "type": "array"
+          },
+          "dry_run": {
+            "default": false,
+            "description": "If true, validate without persisting.",
+            "title": "Dry Run",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "source",
+          "records"
+        ],
+        "title": "ImportBatchRequest",
+        "type": "object"
+      },
+      "ImportBatchResponse": {
+        "properties": {
+          "batch_id": {
+            "description": "Unique batch identifier.",
+            "title": "Batch Id",
+            "type": "string"
+          },
+          "imported": {
+            "description": "Number of records imported.",
+            "title": "Imported",
+            "type": "integer"
+          },
+          "skipped": {
+            "default": 0,
+            "description": "Number of records skipped (duplicates).",
+            "title": "Skipped",
+            "type": "integer"
+          },
+          "status": {
+            "default": "completed",
+            "description": "Batch status.",
+            "title": "Status",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "ISO-8601 timestamp.",
+            "title": "Created At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "batch_id",
+          "imported",
+          "created_at"
+        ],
+        "title": "ImportBatchResponse",
+        "type": "object"
+      },
+      "PartnerRecord": {
+        "properties": {
+          "partner_id": {
+            "description": "External partner identifier.",
+            "title": "Partner Id",
+            "type": "string"
+          },
+          "name": {
+            "description": "Partner display name.",
+            "title": "Name",
+            "type": "string"
+          },
+          "data": {
+            "additionalProperties": true,
+            "description": "Arbitrary partner data.",
+            "title": "Data",
+            "type": "object"
+          }
+        },
+        "required": [
+          "partner_id",
+          "name"
+        ],
+        "title": "PartnerRecord",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    }
+  }
+}

@@ -19,6 +19,7 @@ class OpenAPIOperationMetadata:
     summary: str = ""
     description: str = ""
     tags: list[str] = field(default_factory=lambda: ["default"])
+    request_model: type | None = None
     request_body: dict[str, Any] | None = None
     request_body_required: bool = True
     response_model: type | None = None

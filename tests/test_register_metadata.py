@@ -296,3 +296,36 @@ def test_register_sanitizable_operation_id_accepted() -> None:
     entry = registry["post::/api/sanitize"]
     # sanitize_operation_id strips non-alphanumeric except underscore
     assert entry["operation_id"]  # non-empty after sanitization
+
+
+class DemoRequestModel(BaseModel):
+    prompt: str
+    max_tokens: int = 100
+
+
+def test_register_with_request_model() -> None:
+    """request_model should produce $ref schema in generated spec (no $defs)."""
+    register_openapi_metadata(
+        path="/api/with-request-model",
+        method="POST",
+        request_model=DemoRequestModel,
+    )
+
+    spec = generate_openapi_spec()
+    op = spec["paths"]["/api/with-request-model"]["post"]
+    assert op["requestBody"]["required"] is True
+    schema = op["requestBody"]["content"]["application/json"]["schema"]
+    assert "$ref" in schema
+    assert schema["$ref"] == "#/components/schemas/DemoRequestModel"
+    assert "DemoRequestModel" in spec["components"]["schemas"]
+
+
+def test_register_request_model_and_request_body_raises() -> None:
+    """Cannot provide both request_model and request_body."""
+    with pytest.raises(ValueError, match="Cannot provide both"):
+        register_openapi_metadata(
+            path="/api/both",
+            method="POST",
+            request_model=DemoRequestModel,
+            request_body={"type": "object"},
+        )
