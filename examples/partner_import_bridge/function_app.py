@@ -127,16 +127,53 @@ def get_import_history(req: func.HttpRequest) -> func.HttpResponse:
     )
 
 
+@app.function_name(name="purge_partners")
+@app.route(route="partners/purge", methods=["DELETE"], auth_level=func.AuthLevel.ANONYMOUS)
+def purge_partners(req: func.HttpRequest) -> func.HttpResponse:
+    """Remove all imported partner records."""
+    api_key = req.headers.get("X-API-Key", "")
+    if not api_key:
+        return func.HttpResponse(
+            json.dumps({"error": "Missing X-API-Key header"}),
+            mimetype="application/json",
+            status_code=401,
+        )
+
+    count = len(_partner_records)
+    _partner_records.clear()
+    logger.info("Purged %d partner records", count)
+
+    return func.HttpResponse(
+        json.dumps({"purged": count, "status": "completed"}),
+        mimetype="application/json",
+        status_code=200,
+    )
+
 # ---------------------------------------------------------------------------
 # Bridge: auto-register OpenAPI metadata from @validate_http decorators
+# When azure-functions-validation exposes handler metadata,
+# scan_validation_metadata(app) picks it up automatically. For versions
+# that do not yet export metadata, register manually below.
 # ---------------------------------------------------------------------------
 
 scan_validation_metadata(app)
 
 
 # ---------------------------------------------------------------------------
-# Programmatic metadata registration for non-decorated routes
+# Programmatic metadata registration
 # ---------------------------------------------------------------------------
+
+# Register the import endpoint (uses @validate_http with Pydantic models)
+register_openapi_metadata(
+    path="/api/partners/import",
+    method="POST",
+    summary="Import partner records",
+    description="Batch import partner records from an external source.",
+    tags=["partners"],
+    request_body=ImportBatchRequest.model_json_schema(),
+    response_model=ImportBatchResponse,
+    response={200: {"description": "Import completed"}},
+)
 
 # Register the history endpoint that doesn't use @validate_http
 register_openapi_metadata(

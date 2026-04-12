@@ -199,3 +199,47 @@ class TestNotificationRequestSnapshot31:
         _reload_example("examples.notification_request.function_app")
         spec = generate_openapi_spec("Notification API", "1.0.0", openapi_version="3.1.0")
         assert spec["openapi"] == "3.1.0"
+
+
+class TestPartnerImportBridgeSnapshot:
+    """Snapshot tests for the partner_import_bridge example spec."""
+
+    def test_openapi_3_0_spec(self) -> None:
+        """partner_import_bridge OpenAPI 3.0 spec matches golden file."""
+        _reload_example("examples.partner_import_bridge.function_app")
+        spec = generate_openapi_spec("Partner Import API", "1.0.0")
+        _assert_snapshot(spec, "partner_import_bridge_openapi.json")
+
+    def test_paths_are_deterministically_ordered(self) -> None:
+        """Paths must be in sorted order."""
+        _reload_example("examples.partner_import_bridge.function_app")
+        spec = generate_openapi_spec("Partner Import API", "1.0.0")
+        path_keys = list(spec["paths"].keys())
+        assert path_keys == sorted(path_keys), (
+            f"Paths are not sorted: {path_keys}"
+        )
+
+    def test_schemas_are_deterministically_ordered(self) -> None:
+        """Component schemas must be in sorted order."""
+        _reload_example("examples.partner_import_bridge.function_app")
+        spec = generate_openapi_spec("Partner Import API", "1.0.0")
+        schema_keys = list(spec.get("components", {}).get("schemas", {}).keys())
+        assert schema_keys == sorted(schema_keys), (
+            f"Schemas are not sorted: {schema_keys}"
+        )
+
+
+class TestPartnerImportBridgeSnapshot31:
+    """Snapshot tests for the partner_import_bridge example spec (OpenAPI 3.1.0)."""
+
+    def test_openapi_3_1_spec(self) -> None:
+        """partner_import_bridge OpenAPI 3.1 spec matches golden file."""
+        _reload_example("examples.partner_import_bridge.function_app")
+        spec = generate_openapi_spec("Partner Import API", "1.0.0", openapi_version="3.1.0")
+        _assert_snapshot(spec, "partner_import_bridge_openapi_31.json")
+
+    def test_openapi_version_field_is_3_1(self) -> None:
+        """Emitted 'openapi' field must be '3.1.0'."""
+        _reload_example("examples.partner_import_bridge.function_app")
+        spec = generate_openapi_spec("Partner Import API", "1.0.0", openapi_version="3.1.0")
+        assert spec["openapi"] == "3.1.0"
