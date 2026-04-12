@@ -18,9 +18,9 @@ tests/
   test_cli.py                    # CLI command parsing and generation
   test_utils.py                  # Schema conversion, route validation, sanitization
   test_utils_enhanced.py         # Additional utility edge cases
-  test_hello_openapi_function_app.py  # Smoke test for hello example
-  test_todo_crud_example.py      # Smoke test for todo_crud example
-  test_with_validation_example.py # Smoke test for with_validation example
+  test_hello_openapi_function_app.py  # Smoke test for webhook_receiver example
+  test_todo_crud_example.py      # Smoke test for report_jobs example
+  test_with_validation_example.py # Smoke test for notification_request example
 ```
 
 ## Running Tests

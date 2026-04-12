@@ -13,7 +13,7 @@ Now you want to deploy to Azure Functions and verify both your API endpoints and
 `azure-functions-openapi` adds OpenAPI support to Azure Functions Python apps.
 In this guide, you deploy example apps that provide:
 
-- Runtime API endpoints (`todo_crud`, `with_validation`)
+- Runtime API endpoints (`report_jobs`, `notification_request`)
 - Generated OpenAPI documents at `/api/openapi.json` and `/api/openapi.yaml`
 - Swagger UI at `/api/docs`
 - Security-focused response headers on the docs page (`Content-Security-Policy`, `X-Frame-Options`, HSTS, and others)
@@ -62,14 +62,14 @@ In this guide, you deploy example apps that provide:
 
 ---
 
-## Example 1: todo_crud
+## Example 1: report_jobs
 
-This is the primary guided path.
+This is the primary guided path. It demonstrates Bearer token authentication, async job submission, status polling, and file download.
 
 ### Step 1 — Move into the example project
 
 ```bash
-cd /data/GitHub/azure-functions-openapi/examples/todo_crud
+cd /data/GitHub/azure-functions-openapi/examples/report_jobs
 ```
 
 ### Step 2 — Create and activate a virtual environment
@@ -83,8 +83,7 @@ python -m pip install --upgrade pip
 ### Step 3 — Install dependencies
 
 ```bash
-pip install -r requirements.txt
-pip install azure-functions-openapi==0.16.0
+pip install azure-functions-openapi pydantic pyyaml
 ```
 
 ### Step 4 — Verify local app starts
@@ -97,7 +96,10 @@ func start
 In another terminal, verify one endpoint:
 
 ```bash
-curl -s -i http://localhost:7071/api/list_todos
+curl -s -i -X POST http://localhost:7071/api/reports \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer test-token-123" \
+  -d '{"report_type":"monthly_sales","date_from":"2026-01-01","date_to":"2026-01-31"}'
 ```
 
 Stop the local server with `Ctrl+C`.
@@ -114,10 +116,10 @@ az account set --subscription "$SUBSCRIPTION_ID"
 ### Step 6 — Define deployment variables
 
 ```bash
-RESOURCE_GROUP="rg-openapi-todo"
+RESOURCE_GROUP="rg-openapi-reports"
 LOCATION="koreacentral"
-STORAGE_ACCOUNT="stopenapitodo$(date +%s | tail -c 6)"
-FUNCTIONAPP_NAME="func-openapi-todo"
+STORAGE_ACCOUNT="stopenapirpt$(date +%s | tail -c 6)"
+FUNCTIONAPP_NAME="func-openapi-reports"
 BASE_URL="https://$FUNCTIONAPP_NAME.azurewebsites.net"
 ```
 
@@ -163,44 +165,43 @@ func azure functionapp publish "$FUNCTIONAPP_NAME"
 
 Expected function names include:
 
-- `create_todo`, `list_todos`, `get_todo`, `update_todo`, `delete_todo`
+- `submit_report`, `get_report_status`, `download_report`
 - `openapi_spec`, `openapi_yaml_spec`, `swagger_ui`
 
-### Step 11 — Verify CRUD API endpoints
+### Step 11 — Verify report API endpoints
 
-Create todo:
+Submit a report job:
 
 ```bash
-curl -s -i -X POST "$BASE_URL/api/create_todo" \
+curl -s -i -X POST "$BASE_URL/api/reports" \
   -H "Content-Type: application/json" \
-  -d '{"title":"Buy groceries"}'
+  -H "Authorization: Bearer test-token-123" \
+  -d '{"report_type":"monthly_sales","date_from":"2026-01-01","date_to":"2026-01-31"}'
 ```
 
-List todos:
+Check job status (replace `<job_id>` with the `job_id` from the response above):
 
 ```bash
-curl -s -i "$BASE_URL/api/list_todos"
+curl -s -i "$BASE_URL/api/reports/<job_id>/status" \
+  -H "Authorization: Bearer test-token-123"
 ```
 
-Get todo:
+Download report (available when status is `completed`):
 
 ```bash
-curl -s -i "$BASE_URL/api/get_todo?id=1"
+curl -s -i "$BASE_URL/api/reports/<job_id>/download" \
+  -H "Authorization: Bearer test-token-123"
 ```
 
-Update todo:
+Test unauthorized access (no Bearer token):
 
 ```bash
-curl -s -i -X PUT "$BASE_URL/api/update_todo" \
+curl -s -i -X POST "$BASE_URL/api/reports" \
   -H "Content-Type: application/json" \
-  -d '{"id":1,"title":"Buy groceries","done":true}'
+  -d '{"report_type":"monthly_sales","date_from":"2026-01-01","date_to":"2026-01-31"}'
 ```
 
-Delete todo:
-
-```bash
-curl -s -i -X DELETE "$BASE_URL/api/delete_todo?id=1"
-```
+Expected: `401 Unauthorized` with `{"error": "Missing or invalid Authorization header"}`.
 
 ### Step 12 — Verify OpenAPI JSON, YAML, and Swagger UI
 
@@ -239,14 +240,14 @@ Press `Ctrl+C` to stop log streaming.
 
 ---
 
-## Example 2: with_validation
+## Example 2: notification_request
 
 Try another example with request validation powered by `azure-functions-validation`.
 
 ### Step 1 — Move into the example project
 
 ```bash
-cd /data/GitHub/azure-functions-openapi/examples/with_validation
+cd /data/GitHub/azure-functions-openapi/examples/notification_request
 ```
 
 ### Step 2 — Install dependencies
@@ -255,17 +256,16 @@ cd /data/GitHub/azure-functions-openapi/examples/with_validation
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-pip install -r requirements.txt
-pip install azure-functions-openapi==0.16.0
+pip install azure-functions-openapi azure-functions-validation pydantic
 ```
 
 ### Step 3 — Set variables and create resources
 
 ```bash
-RESOURCE_GROUP="rg-openapi-validation"
+RESOURCE_GROUP="rg-openapi-notifications"
 LOCATION="koreacentral"
-STORAGE_ACCOUNT="stopenapival$(date +%s | tail -c 6)"
-FUNCTIONAPP_NAME="func-openapi-validation"
+STORAGE_ACCOUNT="stopenapintf$(date +%s | tail -c 6)"
+FUNCTIONAPP_NAME="func-openapi-notifications"
 BASE_URL="https://$FUNCTIONAPP_NAME.azurewebsites.net"
 
 az login
@@ -295,26 +295,26 @@ az functionapp create \
 func azure functionapp publish "$FUNCTIONAPP_NAME"
 ```
 
-Create user:
+Send email notification:
 
 ```bash
-curl -s -i -X POST "$BASE_URL/api/users" \
+curl -s -i -X POST "$BASE_URL/api/notifications/email" \
   -H "Content-Type: application/json" \
-  -d '{"name":"Alice","email":"alice@example.com"}'
+  -d '{"to":["alice@example.com"],"subject":"Test","body_text":"Hello from Azure"}'
 ```
 
-Get user:
+Check notification status (replace `<notification_id>` with the ID from the response above):
 
 ```bash
-curl -s -i "$BASE_URL/api/users/1"
+curl -s -i "$BASE_URL/api/notifications/status?notification_id=<notification_id>"
 ```
 
 Invalid payload (validation expected):
 
 ```bash
-curl -s -i -X POST "$BASE_URL/api/users" \
+curl -s -i -X POST "$BASE_URL/api/notifications/email" \
   -H "Content-Type: application/json" \
-  -d '{"name":"Alice"}'
+  -d '{"to":[],"subject":"","body_text":""}'
 ```
 
 Check docs endpoints:
@@ -409,7 +409,7 @@ az functionapp create \
 
 | Symptom | Usually means | How to fix |
 |---|---|---|
-| `ModuleNotFoundError` during publish | Missing or incomplete dependencies | Reinstall with `pip install -r requirements.txt` and republish |
+| `ModuleNotFoundError` during publish | Missing or incomplete dependencies | Reinstall with `pip install azure-functions-openapi pydantic` and republish |
 | `Can't find app with name` | Function App not ready yet | Wait 30-60 seconds and rerun publish |
 | Publish is very slow | First remote build is still running | Wait, then rerun once if it times out |
 
@@ -459,8 +459,8 @@ curl -s -i "$BASE_URL/api/docs"
 Azure resources keep billing until deleted.
 
 ```bash
-az group delete --name "rg-openapi-todo" --yes --no-wait
-az group delete --name "rg-openapi-validation" --yes --no-wait
+az group delete --name "rg-openapi-reports" --yes --no-wait
+az group delete --name "rg-openapi-notifications" --yes --no-wait
 ```
 
 Verify cleanup:

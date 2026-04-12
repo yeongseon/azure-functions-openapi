@@ -28,10 +28,10 @@ nav:
       - Choose a Plan: choose-a-plan.md
       - Deploy to Azure: deployment.md
   - Examples:
-      - Hello OpenAPI: examples/hello.md
-      - Todo API: examples/todo_crud.md
-      - With Validation: examples/with_validation.md
-      - Bridge: examples/with_bridge.md
+      - Webhook Receiver: examples/webhook_receiver.md
+      - Report Jobs: examples/report_jobs.md
+      - Notification Request: examples/notification_request.md
+      - Partner Import Bridge: examples/partner_import_bridge.md
   - API Reference: api.md
   - Contributing:
       - Development: development.md

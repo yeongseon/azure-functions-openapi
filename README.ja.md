@@ -135,7 +135,7 @@ func start
 
 ## Demo
 
-代表的な `hello` サンプルは、このライブラリを導入したときの結果全体を示します。
+代表的な `webhook_receiver` サンプルは、このライブラリを導入したときの結果全体を示します。
 
 - Azure Functions v2 の HTTP ハンドラーに `@openapi` を付与します。
 - パッケージがそのルートに対する実際の OpenAPI ドキュメントを生成します。
@@ -145,13 +145,13 @@ func start
 
 生成された OpenAPI ファイルは、同じサンプル実行から静的プレビューとして取得されています。そのため、この README には代表的な関数が実際に生成したドキュメントが表示されます。
 
-![OpenAPI spec preview](docs/assets/hello_openapi_spec_preview.png)
+![OpenAPI spec preview](docs/assets/webhook_receiver_openapi_spec_preview.png)
 
 ### Swagger UI Result
 
 以下の Web プレビューも同じ代表サンプルから生成されており、そのフローで作られた Swagger UI ページを自動的にレンダリングして取得したものです。
 
-![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
+![OpenAPI Swagger UI preview](docs/assets/webhook_receiver_swagger_ui_preview.png)
 
 ## Documentation
 

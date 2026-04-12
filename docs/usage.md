@@ -325,7 +325,7 @@ See [Troubleshooting](troubleshooting.md) for fixes.
 
 `azure-functions-openapi` works well with `azure-functions-validation` when you want runtime payload validation plus generated API docs from the same models.
 
-See [With Validation Example](examples/with_validation.md) for a complete setup.
+See [Notification Request Example](examples/notification_request.md) for a complete setup.
 
 ### Automatic bridge (zero-duplication)
 
@@ -348,7 +348,7 @@ always take precedence.
     written by `@validate_http` — no extra install step needed beyond having both
     packages in your project.
 
-See [Bridge Example](examples/with_bridge.md) for a complete walkthrough.
+See [Partner Import Bridge Example](examples/partner_import_bridge.md) for a complete walkthrough.
 
 
 ## Next steps

@@ -80,7 +80,7 @@ Yes. A common pattern is using the same Pydantic model for:
 - runtime validation (`@validate_http`)
 - OpenAPI schema generation (`@openapi`)
 
-See [With Validation Example](examples/with_validation.md).
+See [Notification Request Example](examples/notification_request.md).
 
 ## Can I assign multiple tags?
 

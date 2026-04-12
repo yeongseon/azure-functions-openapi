@@ -135,7 +135,7 @@ func start
 
 ## Demo
 
-代表性的 `hello` 示例展示了采用该库后的完整效果：
+代表性的 `webhook_receiver` 示例展示了采用该库后的完整效果：
 
 - 你为 Azure Functions v2 的 HTTP 处理函数添加 `@openapi`。
 - 该包会为该路由生成真实的 OpenAPI 文档。
@@ -145,13 +145,13 @@ func start
 
 生成的 OpenAPI 文件来自同一次示例运行，并被捕获为静态预览。因此，此 README 展示的就是代表性函数实际生成的文档。
 
-![OpenAPI spec preview](docs/assets/hello_openapi_spec_preview.png)
+![OpenAPI spec preview](docs/assets/webhook_receiver_openapi_spec_preview.png)
 
 ### Swagger UI Result
 
 下面的网页预览也来自同一个代表性示例，并由该示例流程生成的 Swagger UI 页面自动渲染和截图得到。
 
-![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
+![OpenAPI Swagger UI preview](docs/assets/webhook_receiver_swagger_ui_preview.png)
 
 ## Documentation
 
