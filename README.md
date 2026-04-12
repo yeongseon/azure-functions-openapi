@@ -274,7 +274,7 @@ The `/api/openapi.json`, `/api/openapi.yaml`, and `/api/docs` endpoints are also
 
 ## Demo
 
-The representative `hello` example shows the full outcome of adopting this library:
+The representative `webhook_receiver` example shows the full outcome of adopting this library:
 
 - You annotate an Azure Functions v2 HTTP handler with `@openapi`.
 - The package generates a real OpenAPI document for that route.
@@ -284,13 +284,13 @@ The representative `hello` example shows the full outcome of adopting this libra
 
 The generated OpenAPI file is captured as a static preview from the same example run, so the README shows the actual document produced by the representative function.
 
-![OpenAPI spec preview](docs/assets/hello_openapi_spec_preview.png)
+![OpenAPI spec preview](docs/assets/webhook_receiver_openapi_spec_preview.png)
 
 ### Swagger UI Result
 
 The web preview below is generated from the same representative example and captured automatically from the rendered Swagger UI page produced by that example flow.
 
-![OpenAPI Swagger UI preview](docs/assets/hello_openapi_swagger_ui_preview.png)
+![OpenAPI Swagger UI preview](docs/assets/webhook_receiver_swagger_ui_preview.png)
 
 ## When to use
 

@@ -18,9 +18,9 @@ tests/
   test_cli.py                    # CLI command parsing and generation
   test_utils.py                  # Schema conversion, route validation, sanitization
   test_utils_enhanced.py         # Additional utility edge cases
-  test_hello_openapi_function_app.py  # Smoke test for hello example
-  test_todo_crud_example.py      # Smoke test for todo_crud example
-  test_with_validation_example.py # Smoke test for with_validation example
+  test_hello_openapi_function_app.py  # Smoke test for webhook_receiver example
+  test_todo_crud_example.py      # Smoke test for report_jobs example
+  test_with_validation_example.py # Smoke test for notification_request example
 ```
 
 ## Running Tests
@@ -186,9 +186,9 @@ Smoke tests import each example's `function_app.py` and verify that the app obje
 exists and the OpenAPI registry is populated:
 
 ```python
-def test_hello_example_registers_metadata():
+def test_webhook_receiver_example_registers_metadata():
     import importlib
-    mod = importlib.import_module("examples.hello.function_app")
+    mod = importlib.import_module("examples.webhook_receiver.function_app")
     registry = get_openapi_registry()
     assert len(registry) > 0
 ```

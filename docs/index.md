@@ -143,7 +143,7 @@ Generate programmatically with:
 - [Configuration](configuration.md)
 - [Usage](usage.md)
 - [CLI](cli.md)
-- [Examples](examples/hello.md)
+- [Examples](examples/webhook_receiver.md)
 - [API Reference](api.md)
 - [Troubleshooting](troubleshooting.md)
 - [FAQ](faq.md)

@@ -115,11 +115,10 @@ Run `func start`, then open `http://localhost:7071/api/docs` for Swagger UI.
 
 | Role | Path | Pattern |
 |---|---|---|
-| Representative | `examples/hello` | Minimal HTTP trigger with OpenAPI and Swagger UI |
-| Representative | `examples/hello_openapi` | Extended OpenAPI metadata example |
-| Complex | `examples/todo_crud` | CRUD app with Pydantic models and generated spec |
-| Complex | `examples/todo_crud_api` | Full CRUD API with validation integration |
-| Integration | `examples/with_validation` | Combined `@openapi` and `@validate_http` |
+| Representative | `examples/webhook_receiver` | Webhook intake with HMAC-SHA256 verification |
+| Complex | `examples/report_jobs` | Async report generation with Bearer auth |
+| Integration | `examples/notification_request` | Combined `@openapi` and `@validate_http` |
+| Bridge | `examples/partner_import_bridge` | Bridge pattern with `register_openapi_metadata()` |
 
 All examples are smoke-tested in CI. New features must ship with a corresponding example
 or an extension to an existing one.

@@ -38,7 +38,7 @@ def _build_spec_preview_html(openapi_yaml: str) -> str:
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Hello OpenAPI Spec Preview</title>
+    <title>Webhook Receiver OpenAPI Spec Preview</title>
     <style>
       :root {{
         color-scheme: dark;
@@ -103,7 +103,7 @@ def _build_spec_preview_html(openapi_yaml: str) -> str:
     <main>
       <section class="panel">
         <div class="panel-header">
-          <span class="eyebrow">Generated from examples/hello</span>
+          <span class="eyebrow">Generated from examples/webhook_receiver</span>
           <h1>OpenAPI Output</h1>
           <p>
             The representative example produces this OpenAPI document before
@@ -162,7 +162,7 @@ def _build_preview(spec: dict[str, object]) -> dict[str, object]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Run the representative hello example and generate demo assets."
+        description="Run the representative webhook_receiver example and generate demo assets."
     )
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
@@ -176,19 +176,19 @@ def main() -> None:
     with decorator_module._registry_lock:
         decorator_module._openapi_registry.clear()
 
-    module = import_module("examples.hello.function_app")
+    module = import_module("examples.webhook_receiver.function_app")
     reload(module)
 
     openapi_yaml = get_openapi_yaml(
-        title="Hello OpenAPI Demo",
+        title="Webhook Receiver OpenAPI Demo",
         version="1.0.0",
     )
     openapi_json = get_openapi_json(
-        title="Hello OpenAPI Demo",
+        title="Webhook Receiver OpenAPI Demo",
         version="1.0.0",
     )
     swagger_response = render_swagger_ui(
-        title="Hello OpenAPI Demo",
+        title="Webhook Receiver OpenAPI Demo",
         openapi_url="/openapi.json",
     )
 
@@ -211,7 +211,7 @@ def main() -> None:
         default_flow_style=False,
     ).strip()
 
-    print("Representative example: examples/hello/function_app.py")
+    print("Representative example: examples/webhook_receiver/function_app.py")
     print(f"Generated: {output_dir / 'openapi.yaml'}")
     print(f"Generated: {spec_dir / 'index.html'}")
     print(f"Generated: {swagger_dir / 'index.html'}")

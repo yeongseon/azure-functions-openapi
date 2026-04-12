@@ -177,9 +177,9 @@ make precommit
 Examples in `examples/` are part of the supported API experience. They must remain
 functional and have smoke test coverage.
 
-- Keep one representative example for the minimal OpenAPI workflow (`hello`).
-- Keep one complex example for multi-endpoint behavior (`todo_crud`).
-- Keep one integration example (`with_validation`).
+- Keep one representative example for the minimal OpenAPI workflow (`webhook_receiver`).
+- Keep one complex example for multi-endpoint behavior (`report_jobs`).
+- Keep one integration example (`notification_request`).
 - Add or update smoke tests whenever an example changes.
 
 ## Reporting Issues

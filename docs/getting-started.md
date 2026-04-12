@@ -181,7 +181,7 @@ You should see:
 
 1. Add request validation and richer models ([Usage](usage.md))
 2. Configure security schemes and OpenAPI versions ([Configuration](configuration.md))
-3. Explore complete examples ([Hello](examples/hello.md), [Todo API](examples/todo_crud.md), [With Validation](examples/with_validation.md))
+3. Explore complete examples ([Webhook Receiver](examples/webhook_receiver.md), [Report Jobs](examples/report_jobs.md), [Notification Request](examples/notification_request.md), [Partner Import Bridge](examples/partner_import_bridge.md))
 
 ## Troubleshooting quick checks
 
