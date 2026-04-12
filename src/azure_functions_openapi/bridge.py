@@ -202,15 +202,9 @@ def _discovered_operation(
 # importing the producing package.
 _HANDLER_METADATA_ATTR = "_azure_functions_metadata"
 
-# Previous attribute name kept for one-release migration period.
-_LEGACY_HANDLER_METADATA_ATTR = "_azure_functions_toolkit_metadata"
-
 
 def _read_validation_hints(handler: Any) -> dict[str, Any] | None:
     """Read validation hints from a handler using the convention attribute.
-
-    Also checks the previous ``_azure_functions_toolkit_metadata`` attribute
-    for backward compatibility during the migration period.
 
     Returns a plain dict with keys matching ValidationHintsV1 (body, query,
     path, headers, response_model) or ``None`` if no metadata is found.
@@ -218,13 +212,6 @@ def _read_validation_hints(handler: Any) -> dict[str, Any] | None:
     toolkit_meta = getattr(handler, _HANDLER_METADATA_ATTR, None)
     if isinstance(toolkit_meta, dict):
         hints = toolkit_meta.get("validation")
-        if isinstance(hints, dict):
-            return hints
-
-    # Migration fallback: previous attribute name.
-    legacy_meta = getattr(handler, _LEGACY_HANDLER_METADATA_ATTR, None)
-    if isinstance(legacy_meta, dict):
-        hints = legacy_meta.get("validation")
         if isinstance(hints, dict):
             return hints
 
