@@ -66,10 +66,27 @@ In this guide, you deploy example apps that provide:
 
 This is the primary guided path. It demonstrates Bearer token authentication, async job submission, status polling, and file download.
 
-### Step 1 — Move into the example project
+### Step 1 — Create a Function App project from the example
+
+The `examples/` directories contain source modules, not standalone Azure Functions projects.
+Copy the example into a new project directory that has the required scaffolding:
 
 ```bash
-cd /data/GitHub/azure-functions-openapi/examples/report_jobs
+mkdir -p my-report-app
+cp examples/report_jobs/function_app.py my-report-app/
+
+# Create the required host.json (Azure Functions project root marker)
+cat > my-report-app/host.json << 'EOF'
+{
+  "version": "2.0",
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  }
+}
+EOF
+
+cd my-report-app
 ```
 
 ### Step 2 — Create and activate a virtual environment
@@ -83,13 +100,12 @@ python -m pip install --upgrade pip
 ### Step 3 — Install dependencies
 
 ```bash
-pip install azure-functions-openapi pydantic pyyaml
+pip install azure-functions azure-functions-openapi pydantic pyyaml
 ```
 
 ### Step 4 — Verify local app starts
 
 ```bash
-cp local.settings.json.example local.settings.json
 func start
 ```
 
@@ -244,10 +260,23 @@ Press `Ctrl+C` to stop log streaming.
 
 Try another example with request validation powered by `azure-functions-validation`.
 
-### Step 1 — Move into the example project
+### Step 1 — Create a Function App project from the example
 
 ```bash
-cd /data/GitHub/azure-functions-openapi/examples/notification_request
+mkdir -p my-notification-app
+cp examples/notification_request/function_app.py my-notification-app/
+
+cat > my-notification-app/host.json << 'EOF'
+{
+  "version": "2.0",
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  }
+}
+EOF
+
+cd my-notification-app
 ```
 
 ### Step 2 — Install dependencies
@@ -256,7 +285,7 @@ cd /data/GitHub/azure-functions-openapi/examples/notification_request
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-pip install azure-functions-openapi azure-functions-validation pydantic
+pip install azure-functions azure-functions-openapi azure-functions-validation pydantic
 ```
 
 ### Step 3 — Set variables and create resources

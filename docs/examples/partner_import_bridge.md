@@ -128,7 +128,23 @@ register_openapi_metadata(**vars(_bulk_delete_meta))
 
 ## Run locally
 
+The `examples/` directories contain source modules, not standalone Function App projects.
+To run locally, copy the example into a project directory with the required `host.json`:
+
 ```bash
+mkdir -p my-bridge-app
+cp examples/partner_import_bridge/function_app.py my-bridge-app/
+cat > my-bridge-app/host.json << 'EOF'
+{
+  "version": "2.0",
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  }
+}
+EOF
+
+cd my-bridge-app
 python -m venv .venv
 source .venv/bin/activate
 pip install azure-functions azure-functions-openapi azure-functions-validation pydantic

@@ -110,7 +110,23 @@ def get_notification_status(
 
 ## Run locally
 
+The `examples/` directories contain source modules, not standalone Function App projects.
+To run locally, copy the example into a project directory with the required `host.json`:
+
 ```bash
+mkdir -p my-notification-app
+cp examples/notification_request/function_app.py my-notification-app/
+cat > my-notification-app/host.json << 'EOF'
+{
+  "version": "2.0",
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  }
+}
+EOF
+
+cd my-notification-app
 python -m venv .venv
 source .venv/bin/activate
 pip install azure-functions azure-functions-openapi azure-functions-validation pydantic

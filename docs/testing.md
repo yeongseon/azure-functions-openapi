@@ -186,9 +186,9 @@ Smoke tests import each example's `function_app.py` and verify that the app obje
 exists and the OpenAPI registry is populated:
 
 ```python
-def test_hello_example_registers_metadata():
+def test_webhook_receiver_example_registers_metadata():
     import importlib
-    mod = importlib.import_module("examples.hello.function_app")
+    mod = importlib.import_module("examples.webhook_receiver.function_app")
     registry = get_openapi_registry()
     assert len(registry) > 0
 ```

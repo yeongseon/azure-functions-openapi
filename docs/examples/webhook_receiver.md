@@ -70,7 +70,23 @@ def receive_order_webhook(req: func.HttpRequest) -> func.HttpResponse:
 
 ## Run locally
 
+The `examples/` directories contain source modules, not standalone Function App projects.
+To run locally, copy the example into a project directory with the required `host.json`:
+
 ```bash
+mkdir -p my-webhook-app
+cp examples/webhook_receiver/function_app.py my-webhook-app/
+cat > my-webhook-app/host.json << 'EOF'
+{
+  "version": "2.0",
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  }
+}
+EOF
+
+cd my-webhook-app
 python -m venv .venv
 source .venv/bin/activate
 pip install azure-functions azure-functions-openapi pydantic

@@ -125,7 +125,23 @@ render_swagger_ui(
 
 ## Run locally
 
+The `examples/` directories contain source modules, not standalone Function App projects.
+To run locally, copy the example into a project directory with the required `host.json`:
+
 ```bash
+mkdir -p my-report-app
+cp examples/report_jobs/function_app.py my-report-app/
+cat > my-report-app/host.json << 'EOF'
+{
+  "version": "2.0",
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  }
+}
+EOF
+
+cd my-report-app
 python -m venv .venv
 source .venv/bin/activate
 pip install azure-functions azure-functions-openapi pydantic pyyaml
