@@ -83,6 +83,31 @@ _BEARER_SCHEME = {
 _BEARER_SECURITY = [{"BearerAuth": []}]
 
 
+def _check_bearer_auth(req: func.HttpRequest) -> func.HttpResponse | None:
+    """Validate Bearer token from the Authorization header.
+
+    Returns an error response if the token is missing or malformed.
+    In production, replace the token check with JWT verification or
+    a lookup against your auth provider.
+    """
+    auth_header = req.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return func.HttpResponse(
+            json.dumps({"error": "Missing or invalid Authorization header"}),
+            mimetype="application/json",
+            status_code=401,
+        )
+    token = auth_header[len("Bearer "):]
+    if not token:
+        return func.HttpResponse(
+            json.dumps({"error": "Empty bearer token"}),
+            mimetype="application/json",
+            status_code=401,
+        )
+    # In production: verify JWT signature, expiry, audience, etc.
+    logger.info("Authenticated request with bearer token")
+    return None
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -90,6 +115,8 @@ _BEARER_SECURITY = [{"BearerAuth": []}]
 
 @app.route(route="reports", methods=["POST"], auth_level=func.AuthLevel.ANONYMOUS)
 @openapi(
+    route="/api/reports",
+    method="post",
     summary="Submit a report job",
     description="Queue a new report generation job. Returns a job ID for status polling.",
     tags=["reports"],
@@ -104,7 +131,9 @@ _BEARER_SECURITY = [{"BearerAuth": []}]
     security_scheme=_BEARER_SCHEME,
 )
 def submit_report(req: func.HttpRequest) -> func.HttpResponse:
-    # In production: validate Authorization header here
+    auth_error = _check_bearer_auth(req)
+    if auth_error:
+        return auth_error
     try:
         body = req.get_json()
     except ValueError:
@@ -136,6 +165,8 @@ def submit_report(req: func.HttpRequest) -> func.HttpResponse:
     route="reports/{job_id}/status", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS
 )
 @openapi(
+    route="/api/reports/{job_id}/status",
+    method="get",
     summary="Get report job status",
     description="Poll the status of a previously submitted report job.",
     tags=["reports"],
@@ -157,6 +188,9 @@ def submit_report(req: func.HttpRequest) -> func.HttpResponse:
     security_scheme=_BEARER_SCHEME,
 )
 def get_report_status(req: func.HttpRequest) -> func.HttpResponse:
+    auth_error = _check_bearer_auth(req)
+    if auth_error:
+        return auth_error
     job_id = req.route_params.get("job_id", "")
     job = _jobs.get(job_id)
     if not job:
@@ -181,6 +215,8 @@ def get_report_status(req: func.HttpRequest) -> func.HttpResponse:
     route="reports/{job_id}/download", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS
 )
 @openapi(
+    route="/api/reports/{job_id}/download",
+    method="get",
     summary="Download report",
     description="Download the generated report file. Only available when job status is 'completed'.",
     tags=["reports"],
@@ -201,6 +237,9 @@ def get_report_status(req: func.HttpRequest) -> func.HttpResponse:
     security_scheme=_BEARER_SCHEME,
 )
 def download_report(req: func.HttpRequest) -> func.HttpResponse:
+    auth_error = _check_bearer_auth(req)
+    if auth_error:
+        return auth_error
     job_id = req.route_params.get("job_id", "")
     job = _jobs.get(job_id)
     if not job or job["status"] != "completed":

@@ -6,7 +6,50 @@
     "description": "Auto-generated OpenAPI documentation. Markdown supported in descriptions (CommonMark)."
   },
   "paths": {
-    "/download_report": {
+    "/api/reports": {
+      "post": {
+        "summary": "Submit a report job",
+        "description": "Queue a new report generation job. Returns a job ID for status polling.",
+        "operationId": "post_submit_report",
+        "tags": [
+          "reports"
+        ],
+        "responses": {
+          "202": {
+            "description": "Report job queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportJobResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/{job_id}/download": {
       "get": {
         "summary": "Download report",
         "description": "Download the generated report file. Only available when job status is 'completed'.",
@@ -40,7 +83,7 @@
         ]
       }
     },
-    "/get_report_status": {
+    "/api/reports/{job_id}/status": {
       "get": {
         "summary": "Get report job status",
         "description": "Poll the status of a previously submitted report job.",
@@ -80,43 +123,19 @@
           }
         ]
       }
-    },
-    "/submit_report": {
-      "get": {
-        "summary": "Submit a report job",
-        "description": "Queue a new report generation job. Returns a job ID for status polling.",
-        "operationId": "get_submit_report",
-        "tags": [
-          "reports"
-        ],
-        "responses": {
-          "202": {
-            "description": "Report job queued",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReportJobResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
     }
   },
   "components": {
     "schemas": {
+      "ReportFormat": {
+        "enum": [
+          "csv",
+          "pdf",
+          "xlsx"
+        ],
+        "title": "ReportFormat",
+        "type": "string"
+      },
       "ReportJobResponse": {
         "properties": {
           "job_id": {
@@ -141,6 +160,43 @@
           "created_at"
         ],
         "title": "ReportJobResponse",
+        "type": "object"
+      },
+      "ReportRequest": {
+        "properties": {
+          "report_type": {
+            "description": "Report type, e.g. 'monthly_sales'.",
+            "title": "Report Type",
+            "type": "string"
+          },
+          "date_from": {
+            "description": "Start date (ISO-8601).",
+            "title": "Date From",
+            "type": "string"
+          },
+          "date_to": {
+            "description": "End date (ISO-8601).",
+            "title": "Date To",
+            "type": "string"
+          },
+          "format": {
+            "$ref": "#/components/schemas/ReportFormat",
+            "default": "csv",
+            "description": "Output format."
+          },
+          "filters": {
+            "additionalProperties": true,
+            "description": "Optional filters.",
+            "title": "Filters",
+            "type": "object"
+          }
+        },
+        "required": [
+          "report_type",
+          "date_from",
+          "date_to"
+        ],
+        "title": "ReportRequest",
         "type": "object"
       },
       "ReportStatusResponse": {

@@ -10,6 +10,9 @@ import azure.functions as func
 import azure_functions_openapi.decorator as decorator_module
 from examples.report_jobs import function_app as report_function_app
 
+_AUTH_HEADERS = {"Content-Type": "application/json", "Authorization": "Bearer test-token"}
+_AUTH_HEADER_ONLY = {"Authorization": "Bearer test-token"}
+
 
 def _load_example_module() -> Any:
     with decorator_module._registry_lock:
@@ -30,7 +33,7 @@ def test_submit_report_valid() -> None:
         url="/api/reports",
         body=json.dumps(payload).encode("utf-8"),
         params={},
-        headers={"Content-Type": "application/json"},
+        headers=_AUTH_HEADERS,
     )
 
     resp = fa.submit_report(req)
@@ -49,12 +52,33 @@ def test_submit_report_invalid_json() -> None:
         url="/api/reports",
         body=b"not json",
         params={},
-        headers={},
+        headers=_AUTH_HEADER_ONLY,
     )
 
     resp = fa.submit_report(req)
 
     assert resp.status_code == 400
+
+
+def test_submit_report_unauthorized() -> None:
+    fa = _load_example_module()
+    req = func.HttpRequest(
+        method="POST",
+        url="/api/reports",
+        body=json.dumps({
+            "report_type": "monthly_sales",
+            "date_from": "2026-01-01",
+            "date_to": "2026-01-31",
+        }).encode("utf-8"),
+        params={},
+        headers={"Content-Type": "application/json"},
+    )
+
+    resp = fa.submit_report(req)
+
+    assert resp.status_code == 401
+    body = json.loads(resp.get_body())
+    assert "Authorization" in body["error"] or "authorization" in body["error"].lower()
 
 
 def test_get_report_status_found() -> None:
@@ -69,7 +93,7 @@ def test_get_report_status_found() -> None:
             "date_to": "2026-01-31",
         }).encode("utf-8"),
         params={},
-        headers={"Content-Type": "application/json"},
+        headers=_AUTH_HEADERS,
     )
     submit_resp = fa.submit_report(submit_req)
     job_id = json.loads(submit_resp.get_body())["job_id"]
@@ -81,7 +105,7 @@ def test_get_report_status_found() -> None:
         body=b"",
         route_params={"job_id": job_id},
         params={},
-        headers={},
+        headers=_AUTH_HEADER_ONLY,
     )
     status_resp = fa.get_report_status(status_req)
 
@@ -99,12 +123,28 @@ def test_get_report_status_not_found() -> None:
         body=b"",
         route_params={"job_id": "nonexistent"},
         params={},
-        headers={},
+        headers=_AUTH_HEADER_ONLY,
     )
 
     resp = fa.get_report_status(req)
 
     assert resp.status_code == 404
+
+
+def test_get_report_status_unauthorized() -> None:
+    fa = _load_example_module()
+    req = func.HttpRequest(
+        method="GET",
+        url="/api/reports/some-id/status",
+        body=b"",
+        route_params={"job_id": "some-id"},
+        params={},
+        headers={},
+    )
+
+    resp = fa.get_report_status(req)
+
+    assert resp.status_code == 401
 
 
 def test_download_report_not_ready() -> None:
@@ -119,7 +159,7 @@ def test_download_report_not_ready() -> None:
             "date_to": "2026-01-31",
         }).encode("utf-8"),
         params={},
-        headers={"Content-Type": "application/json"},
+        headers=_AUTH_HEADERS,
     )
     submit_resp = fa.submit_report(submit_req)
     job_id = json.loads(submit_resp.get_body())["job_id"]
@@ -131,7 +171,7 @@ def test_download_report_not_ready() -> None:
         body=b"",
         route_params={"job_id": job_id},
         params={},
-        headers={},
+        headers=_AUTH_HEADER_ONLY,
     )
     download_resp = fa.download_report(download_req)
 
@@ -150,7 +190,7 @@ def test_download_report_completed() -> None:
             "date_to": "2026-01-31",
         }).encode("utf-8"),
         params={},
-        headers={"Content-Type": "application/json"},
+        headers=_AUTH_HEADERS,
     )
     submit_resp = fa.submit_report(submit_req)
     job_id = json.loads(submit_resp.get_body())["job_id"]
@@ -164,7 +204,7 @@ def test_download_report_completed() -> None:
         body=b"",
         route_params={"job_id": job_id},
         params={},
-        headers={},
+        headers=_AUTH_HEADER_ONLY,
     )
     download_resp = fa.download_report(download_req)
 
@@ -186,6 +226,6 @@ def test_openapi_spec_includes_report_paths() -> None:
 
     assert resp.status_code == 200
     payload = json.loads(resp.get_body())
-    assert "/submit_report" in payload["paths"]
+    assert "/api/reports" in payload["paths"]
     # Verify security scheme is present
     assert "BearerAuth" in payload.get("components", {}).get("securitySchemes", {})
