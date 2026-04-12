@@ -123,7 +123,11 @@ def send_notification(
             "schema": {"type": "string"},
         }
     ],
-    responses=NotificationStatusResponse,
+    response_model=NotificationStatusResponse,
+    response={
+        200: {"description": "Notification status"},
+        404: {"description": "Notification not found"},
+    },
 )
 @validate_http(query=NotificationStatusQuery, response_model=NotificationStatusResponse)
 def get_notification_status(

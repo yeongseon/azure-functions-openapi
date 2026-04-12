@@ -170,7 +170,7 @@ register_openapi_metadata(
     summary="Import partner records",
     description="Batch import partner records from an external source.",
     tags=["partners"],
-    request_body=ImportBatchRequest.model_json_schema(),
+    request_model=ImportBatchRequest,
     response_model=ImportBatchResponse,
     response={200: {"description": "Import completed"}},
 )

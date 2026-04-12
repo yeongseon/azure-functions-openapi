@@ -182,6 +182,7 @@ def submit_report(req: func.HttpRequest) -> func.HttpResponse:
     response_model=ReportStatusResponse,
     response={
         200: {"description": "Job status"},
+        401: {"description": "Unauthorized"},
         404: {"description": "Job not found"},
     },
     security=_BEARER_SECURITY,
@@ -231,6 +232,7 @@ def get_report_status(req: func.HttpRequest) -> func.HttpResponse:
     ],
     response={
         200: {"description": "Report file contents"},
+        401: {"description": "Unauthorized"},
         404: {"description": "Job not found or not completed"},
     },
     security=_BEARER_SECURITY,

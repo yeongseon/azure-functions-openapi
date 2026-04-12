@@ -120,6 +120,12 @@ def receive_order_webhook(req: func.HttpRequest) -> func.HttpResponse:
         # Reject stale webhooks
         try:
             ts = datetime.fromisoformat(timestamp)
+            if ts.tzinfo is None:
+                return func.HttpResponse(
+                    body=json.dumps({"error": "X-Webhook-Timestamp must include timezone"}),
+                    mimetype="application/json",
+                    status_code=401,
+                )
             age = (datetime.now(timezone.utc) - ts).total_seconds()
             if abs(age) > _MAX_WEBHOOK_AGE_SECONDS:
                 logger.warning("Webhook timestamp too old: %s (age=%.0fs)", timestamp, age)

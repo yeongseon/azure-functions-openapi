@@ -52,7 +52,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Notification status",
             "content": {
               "application/json": {
                 "schema": {
@@ -60,6 +60,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Notification not found"
           }
         },
         "parameters": [

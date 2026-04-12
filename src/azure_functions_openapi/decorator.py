@@ -292,6 +292,7 @@ def register_openapi_metadata(
     summary: str = "",
     description: str = "",
     tags: list[str] | None = None,
+    request_model: type[BaseModel] | None = None,
     request_body: dict[str, Any] | None = None,
     request_body_required: bool = True,
     response_model: type[BaseModel] | None = None,
@@ -319,6 +320,9 @@ def register_openapi_metadata(
         Longer Markdown-enabled description.
     tags:
         List of group tags. Defaults to ``["default"]``.
+    request_model:
+        Pydantic model for the request body schema. Mutually exclusive
+        with ``request_body``.
     request_body:
         Raw requestBody schema dict.
     request_body_required:
@@ -349,6 +353,11 @@ def register_openapi_metadata(
     if method_upper not in valid_methods:
         raise ValueError(f"Invalid HTTP method: {method!r}. Must be one of {sorted(valid_methods)}")
 
+    if request_model is not None and request_body is not None:
+        raise ValueError(
+            f"Cannot provide both 'request_model' and 'request_body' for {method_upper} {path}."
+        )
+
     # Fix #2: Validate route using existing validation (consistent with decorator)
     _validate_and_sanitize_route(path, f"{method_upper} {path}")
 
@@ -373,8 +382,8 @@ def register_openapi_metadata(
     )
     validated_tags = _validate_tags(tags, registry_key) if tags else ["default"]
 
-    if response_model is not None:
-        _validate_models(None, response_model, registry_key)
+    if request_model is not None or response_model is not None:
+        _validate_models(request_model, response_model, registry_key)
 
     with _registry_lock:
         _openapi_registry[registry_key] = {
@@ -388,7 +397,7 @@ def register_openapi_metadata(
             "parameters": validated_parameters,
             "security": validated_security,
             "security_scheme": validated_security_scheme,
-            "request_model": None,
+        "request_model": request_model,
             "request_body": request_body,
             "request_body_required": request_body_required,
             "response_model": response_model,

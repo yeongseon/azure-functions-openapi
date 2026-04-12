@@ -216,6 +216,37 @@ def test_receive_webhook_stale_timestamp() -> None:
     assert "expired" in json.loads(resp.get_body())["error"].lower()
 
 
+def test_receive_webhook_naive_timestamp_rejected() -> None:
+    """Timestamps without timezone info are rejected as 401."""
+    fa = _load_example_module()
+    secret = "test-secret"
+    naive_timestamp = "2026-04-12T00:00:00"  # No timezone
+    payload = json.dumps({
+        "event_type": "order.completed",
+        "source": "shopify",
+        "occurred_at": "2026-04-12T00:00:00Z",
+        "data": {},
+    }).encode("utf-8")
+    sig = _make_signature(payload, naive_timestamp, secret)
+
+    req = func.HttpRequest(
+        method="POST",
+        url="/api/webhooks/orders",
+        body=payload,
+        params={},
+        headers={
+            "Content-Type": "application/json",
+            "X-Signature": sig,
+            "X-Webhook-Timestamp": naive_timestamp,
+        },
+    )
+
+    with patch.dict("os.environ", {"WEBHOOK_SECRET": secret}):
+        resp = fa.receive_order_webhook(req)
+
+    assert resp.status_code == 401
+    assert "timezone" in json.loads(resp.get_body())["error"].lower()
+
 def test_receive_webhook_duplicate_delivery_id() -> None:
     """Duplicate X-Delivery-Id headers are rejected with 409."""
     fa = _load_example_module()
