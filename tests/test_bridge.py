@@ -426,9 +426,40 @@ class TestVersionValidation:
         with caplog.at_level("WARNING", logger="azure_functions_openapi.bridge"):
             _read_validation_hints(handler)
 
-        assert any("unsupported metadata version" in m for m in caplog.messages)
+        assert any("unsupported version" in m for m in caplog.messages)
         assert any("42" in m for m in caplog.messages)
 
+
+    def test_outer_invalid_version_inner_valid_discovered(self) -> None:
+        """Invalid version on outer should not block valid inner metadata."""
+        inner: Any = lambda req: req  # noqa: E731
+        setattr(inner, _HANDLER_METADATA_ATTR, {
+            "version": 1,
+            "validation": {"body": CreateBody},
+        })
+
+        outer: Any = lambda req: inner(req)  # noqa: E731
+        setattr(outer, _HANDLER_METADATA_ATTR, {
+            "version": 999,
+            "validation": {"body": ResponseModel},
+        })
+        outer.__wrapped__ = inner
+
+        result = _read_validation_hints(outer)
+        assert result is not None
+        # Inner metadata (v1) is discovered, not the outer (v999)
+        assert result["body"] is CreateBody
+
+    def test_boolean_version_rejected(self) -> None:
+        """version=True is a bool, not int — should be rejected."""
+        handler = lambda req: req  # noqa: E731
+        setattr(handler, _HANDLER_METADATA_ATTR, {
+            "version": True,
+            "validation": {"body": CreateBody},
+        })
+
+        result = _read_validation_hints(handler)
+        assert result is None
 
 class TestDeepCopyMutationSafety:
     """Returned hints are deep copies — mutating them doesn't affect the handler."""

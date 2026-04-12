@@ -221,7 +221,7 @@ def _read_validation_hints(handler: Any) -> dict[str, Any] | None:
     Version policy:
     * Missing ``version`` key → accepted as v1 (backward-compatible).
     * Present and supported → accepted.
-    * Present but malformed or unsupported → ``logger.warning()`` + skip.
+    * Present but malformed or unsupported → ``logger.warning()`` + continue walking.
 
     Returns a *deep copy* of the validation dict so callers cannot mutate
     the original handler attribute.
@@ -233,15 +233,20 @@ def _read_validation_hints(handler: Any) -> dict[str, Any] | None:
             # --- version gate ---
             raw_version = toolkit_meta.get("version")
             if raw_version is not None:
-                if not isinstance(raw_version, int) or raw_version not in _SUPPORTED_VERSIONS:
+                if type(raw_version) is not int or raw_version not in _SUPPORTED_VERSIONS:
                     logger.warning(
-                        "Skipping handler %r: unsupported metadata version %r"
+                        "Skipping metadata on %r: unsupported version %r"
                         " (supported: %s)",
                         current,
                         raw_version,
                         ", ".join(str(v) for v in sorted(_SUPPORTED_VERSIONS)),
                     )
-                    return None
+                    # Continue walking; an inner handler may have valid metadata.
+                    wrapped = getattr(current, "__wrapped__", None)
+                    if wrapped is None or wrapped is current:
+                        break
+                    current = wrapped
+                    continue
             hints = toolkit_meta.get("validation")
             if isinstance(hints, dict):
                 return copy.deepcopy(hints)
