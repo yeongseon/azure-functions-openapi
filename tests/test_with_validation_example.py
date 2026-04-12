@@ -44,7 +44,7 @@ def test_send_notification_valid() -> None:
 
     resp = fa.send_notification(req)
 
-    assert resp.status_code == 200
+    assert resp.status_code == 202
     body = json.loads(resp.get_body())
     assert body["status"] == "queued"
     assert "notification_id" in body
@@ -145,4 +145,4 @@ def test_openapi_spec_includes_notification_paths() -> None:
 
     assert resp.status_code == 200
     payload = json.loads(resp.get_body())
-    assert "/send_notification" in payload["paths"]
+    assert "/api/notifications/email" in payload["paths"]

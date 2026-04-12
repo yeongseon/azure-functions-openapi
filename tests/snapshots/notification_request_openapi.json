@@ -6,7 +6,42 @@
     "description": "Auto-generated OpenAPI documentation. Markdown supported in descriptions (CommonMark)."
   },
   "paths": {
-    "/get_notification_status": {
+    "/api/notifications/email": {
+      "post": {
+        "summary": "Send email notification",
+        "description": "Validate and queue an email notification for delivery.",
+        "operationId": "post_send_notification",
+        "tags": [
+          "notifications"
+        ],
+        "responses": {
+          "202": {
+            "description": "Notification queued for delivery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationAcceptedResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailNotificationRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notifications/status": {
       "get": {
         "summary": "Get notification status",
         "description": "Look up the delivery status of a previously queued notification.",
@@ -38,35 +73,61 @@
           }
         ]
       }
-    },
-    "/send_notification": {
-      "get": {
-        "summary": "Send email notification",
-        "description": "Validate and queue an email notification for delivery.",
-        "operationId": "get_send_notification",
-        "tags": [
-          "notifications"
-        ],
-        "responses": {
-          "202": {
-            "description": "Notification queued for delivery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotificationAcceptedResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation error"
-          }
-        }
-      }
     }
   },
   "components": {
     "schemas": {
+      "EmailNotificationRequest": {
+        "properties": {
+          "to": {
+            "description": "Recipient email addresses.",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "To",
+            "type": "array"
+          },
+          "subject": {
+            "description": "Email subject line.",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject",
+            "type": "string"
+          },
+          "body_text": {
+            "description": "Plain-text email body.",
+            "title": "Body Text",
+            "type": "string"
+          },
+          "body_html": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Optional HTML email body.",
+            "title": "Body Html"
+          },
+          "priority": {
+            "default": "normal",
+            "description": "Priority: low, normal, high.",
+            "title": "Priority",
+            "type": "string"
+          }
+        },
+        "required": [
+          "to",
+          "subject",
+          "body_text"
+        ],
+        "title": "EmailNotificationRequest",
+        "type": "object"
+      },
       "NotificationAcceptedResponse": {
         "properties": {
           "notification_id": {

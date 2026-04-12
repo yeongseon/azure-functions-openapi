@@ -9,6 +9,7 @@ Demonstrates:
 from __future__ import annotations
 
 import logging
+import json
 import uuid
 from datetime import datetime, timezone
 
@@ -69,6 +70,8 @@ _notifications: dict[str, dict[str, str]] = {}
 @app.function_name(name="send_notification")
 @app.route(route="notifications/email", methods=["POST"], auth_level=func.AuthLevel.ANONYMOUS)
 @openapi(
+    route="/api/notifications/email",
+    method="post",
     summary="Send email notification",
     description="Validate and queue an email notification for delivery.",
     tags=["notifications"],
@@ -82,7 +85,7 @@ _notifications: dict[str, dict[str, str]] = {}
 @validate_http(body=EmailNotificationRequest, response_model=NotificationAcceptedResponse)
 def send_notification(
     req: func.HttpRequest, body: EmailNotificationRequest
-) -> NotificationAcceptedResponse:
+) -> func.HttpResponse:
     logger.info("Queuing email notification to %d recipients", len(body.to))
 
     notification_id = f"ntf_{uuid.uuid4().hex[:12]}"
@@ -93,7 +96,12 @@ def send_notification(
     }
     _notifications[notification_id] = entry
 
-    return NotificationAcceptedResponse(**entry)
+    result = NotificationAcceptedResponse(**entry)
+    return func.HttpResponse(
+        body=result.model_dump_json(),
+        mimetype="application/json",
+        status_code=202,
+    )
 
 
 @app.function_name(name="get_notification_status")
@@ -101,6 +109,8 @@ def send_notification(
     route="notifications/status", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS
 )
 @openapi(
+    route="/api/notifications/status",
+    method="get",
     summary="Get notification status",
     description="Look up the delivery status of a previously queued notification.",
     tags=["notifications"],
