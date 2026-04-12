@@ -10,6 +10,7 @@ import pytest
 from azure_functions_openapi.bridge import (
     _HANDLER_METADATA_ATTR,
     _model_to_parameters,
+    _read_validation_hints,
     scan_validation_metadata,
 )
 from azure_functions_openapi.decorator import (
@@ -290,3 +291,206 @@ def test_type_to_schema_without_components() -> None:
     schema = type_to_schema(ResponseModel | None)
     assert "anyOf" in schema or "oneOf" in schema or "type" in schema
 
+
+# ---------------------------------------------------------------------------
+# Tests for _read_validation_hints enhancements (Issue #172)
+# ---------------------------------------------------------------------------
+
+
+class TestWrappedChainTraversal:
+    """Verify __wrapped__ chain walking finds metadata on inner handlers."""
+
+    def test_metadata_on_inner_wrapped_handler(self) -> None:
+        """Metadata set on an inner handler is found through __wrapped__."""
+        inner: Any = lambda req: req  # noqa: E731
+        setattr(inner, _HANDLER_METADATA_ATTR, {"validation": {"body": CreateBody}})
+
+        outer: Any = lambda req: inner(req)  # noqa: E731
+        outer.__wrapped__ = inner
+
+        result = _read_validation_hints(outer)
+        assert result is not None
+        assert result["body"] is CreateBody
+
+    def test_metadata_on_outer_wins(self) -> None:
+        """When both outer and inner have metadata, outer wins (first match)."""
+        inner: Any = lambda req: req  # noqa: E731
+        setattr(inner, _HANDLER_METADATA_ATTR, {"validation": {"body": CreateBody}})
+
+        outer: Any = lambda req: inner(req)  # noqa: E731
+        setattr(outer, _HANDLER_METADATA_ATTR, {"validation": {"response_model": ResponseModel}})
+        outer.__wrapped__ = inner
+
+        result = _read_validation_hints(outer)
+        assert result is not None
+        assert "response_model" in result
+        assert "body" not in result
+
+    def test_no_metadata_in_chain(self) -> None:
+        """Returns None when no handler in the chain has metadata."""
+        inner: Any = lambda req: req  # noqa: E731
+        outer: Any = lambda req: inner(req)  # noqa: E731
+        outer.__wrapped__ = inner
+
+        assert _read_validation_hints(outer) is None
+
+    def test_deeply_nested_wrapped_chain(self) -> None:
+        """Metadata is found several levels deep."""
+        bottom: Any = lambda req: req  # noqa: E731
+        setattr(bottom, _HANDLER_METADATA_ATTR, {"validation": {"body": CreateBody}})
+
+        current: Any = bottom
+        for _ in range(5):
+            wrapper: Any = lambda req, fn=current: fn(req)  # noqa: E731
+            wrapper.__wrapped__ = current
+            current = wrapper
+
+        result = _read_validation_hints(current)
+        assert result is not None
+        assert result["body"] is CreateBody
+
+    def test_self_referencing_wrapped_stops(self) -> None:
+        """A handler whose __wrapped__ points to itself doesn't loop."""
+        handler: Any = lambda req: req  # noqa: E731
+        handler.__wrapped__ = handler
+
+        # Should not hang; just returns None
+        assert _read_validation_hints(handler) is None
+
+
+class TestVersionValidation:
+    """Verify version gating in _read_validation_hints."""
+
+    def test_missing_version_accepted(self) -> None:
+        """No 'version' key is treated as v1 — accepted."""
+        handler = lambda req: req  # noqa: E731
+        setattr(handler, _HANDLER_METADATA_ATTR, {"validation": {"body": CreateBody}})
+
+        result = _read_validation_hints(handler)
+        assert result is not None
+        assert result["body"] is CreateBody
+
+    def test_version_1_accepted(self) -> None:
+        """Explicit version=1 is accepted."""
+        handler = lambda req: req  # noqa: E731
+        setattr(handler, _HANDLER_METADATA_ATTR, {
+            "version": 1,
+            "validation": {"body": CreateBody},
+        })
+
+        result = _read_validation_hints(handler)
+        assert result is not None
+        assert result["body"] is CreateBody
+
+    def test_unsupported_version_skipped(self) -> None:
+        """Unsupported integer version emits warning and returns None."""
+        handler = lambda req: req  # noqa: E731
+        setattr(handler, _HANDLER_METADATA_ATTR, {
+            "version": 999,
+            "validation": {"body": CreateBody},
+        })
+
+        result = _read_validation_hints(handler)
+        assert result is None
+
+    def test_malformed_version_string_skipped(self) -> None:
+        """Non-int version (e.g. string) emits warning and returns None."""
+        handler = lambda req: req  # noqa: E731
+        setattr(handler, _HANDLER_METADATA_ATTR, {
+            "version": "1",
+            "validation": {"body": CreateBody},
+        })
+
+        result = _read_validation_hints(handler)
+        assert result is None
+
+    def test_malformed_version_float_skipped(self) -> None:
+        """Float version is rejected (only int accepted)."""
+        handler = lambda req: req  # noqa: E731
+        setattr(handler, _HANDLER_METADATA_ATTR, {
+            "version": 1.0,
+            "validation": {"body": CreateBody},
+        })
+
+        result = _read_validation_hints(handler)
+        assert result is None
+
+    def test_unsupported_version_warning_logged(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Warning is logged with handler repr and unsupported version."""
+        handler = lambda req: req  # noqa: E731
+        setattr(handler, _HANDLER_METADATA_ATTR, {
+            "version": 42,
+            "validation": {"body": CreateBody},
+        })
+
+        with caplog.at_level("WARNING", logger="azure_functions_openapi.bridge"):
+            _read_validation_hints(handler)
+
+        assert any("unsupported version" in m for m in caplog.messages)
+        assert any("42" in m for m in caplog.messages)
+
+
+    def test_outer_invalid_version_inner_valid_discovered(self) -> None:
+        """Invalid version on outer should not block valid inner metadata."""
+        inner: Any = lambda req: req  # noqa: E731
+        setattr(inner, _HANDLER_METADATA_ATTR, {
+            "version": 1,
+            "validation": {"body": CreateBody},
+        })
+
+        outer: Any = lambda req: inner(req)  # noqa: E731
+        setattr(outer, _HANDLER_METADATA_ATTR, {
+            "version": 999,
+            "validation": {"body": ResponseModel},
+        })
+        outer.__wrapped__ = inner
+
+        result = _read_validation_hints(outer)
+        assert result is not None
+        # Inner metadata (v1) is discovered, not the outer (v999)
+        assert result["body"] is CreateBody
+
+    def test_boolean_version_rejected(self) -> None:
+        """version=True is a bool, not int — should be rejected."""
+        handler = lambda req: req  # noqa: E731
+        setattr(handler, _HANDLER_METADATA_ATTR, {
+            "version": True,
+            "validation": {"body": CreateBody},
+        })
+
+        result = _read_validation_hints(handler)
+        assert result is None
+
+class TestDeepCopyMutationSafety:
+    """Returned hints are deep copies — mutating them doesn't affect the handler."""
+
+    def test_mutation_does_not_affect_handler(self) -> None:
+        handler = lambda req: req  # noqa: E731
+        original_meta = {"body": CreateBody, "extra": {"nested": "value"}}
+        setattr(handler, _HANDLER_METADATA_ATTR, {"validation": original_meta})
+
+        result = _read_validation_hints(handler)
+        assert result is not None
+
+        # Mutate the returned copy
+        result["injected"] = "attack"
+        result["extra"]["nested"] = "mutated"
+
+        # Original is untouched
+        stored = getattr(handler, _HANDLER_METADATA_ATTR)["validation"]
+        assert "injected" not in stored
+        assert stored["extra"]["nested"] == "value"
+
+    def test_successive_reads_are_independent(self) -> None:
+        handler = lambda req: req  # noqa: E731
+        setattr(handler, _HANDLER_METADATA_ATTR, {
+            "validation": {"body": CreateBody, "extra": {"key": "original"}},
+        })
+
+        first = _read_validation_hints(handler)
+        assert first is not None
+        first["extra"]["key"] = "changed"
+
+        second = _read_validation_hints(handler)
+        assert second is not None
+        assert second["extra"]["key"] == "original"
