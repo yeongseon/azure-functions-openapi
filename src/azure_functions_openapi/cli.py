@@ -51,16 +51,16 @@ def main() -> int:
 Examples:
   # Generate OpenAPI spec (registry populated at runtime — no --app needed
   # when this command runs inside the same process that loaded your app)
-  azure-functions-openapi generate --title "My API" --version "1.0.0"
+  azure-functions-openapi-python generate --title "My API" --version "1.0.0"
 
   # Import your function app module so @openapi decorators are registered
-  azure-functions-openapi generate --app function_app --title "My API"
+  azure-functions-openapi-python generate --app function_app --title "My API"
 
   # module:variable format: module is imported, variable existence is validated
-  azure-functions-openapi generate --app function_app:app --title "My API"
+  azure-functions-openapi-python generate --app function_app:app --title "My API"
 
   # Generate and save to file
-  azure-functions-openapi generate --output openapi.json --format json
+  azure-functions-openapi-python generate --output openapi.json --format json
         """,
     )
 

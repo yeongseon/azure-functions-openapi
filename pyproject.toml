@@ -1,5 +1,5 @@
 [project]
-name = "azure-functions-openapi"
+name = "azure-functions-openapi-python"
 description = "OpenAPI (Swagger) integration for Azure Functions Python v2 programming model"
 keywords = ["azure-functions", "azure", "python", "v2", "openapi", "swagger", "rest-api", "serverless"]
 authors = [{ name = "Yeongseon Choe", email = "yeongseon.choe@gmail.com" }]
@@ -29,10 +29,10 @@ dependencies = [
 ]
 
     [project.urls]
-    Homepage = "https://yeongseon.github.io/azure-functions-openapi/"
-    Documentation = "https://yeongseon.github.io/azure-functions-openapi/"
-    Repository = "https://github.com/yeongseon/azure-functions-openapi"
-Issues = "https://github.com/yeongseon/azure-functions-openapi/issues"
+    Homepage = "https://yeongseon.github.io/azure-functions-openapi-python/"
+    Documentation = "https://yeongseon.github.io/azure-functions-openapi-python/"
+    Repository = "https://github.com/yeongseon/azure-functions-openapi-python"
+Issues = "https://github.com/yeongseon/azure-functions-openapi-python/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -57,7 +57,7 @@ docs = [
 ]
 
 [project.scripts]
-azure-functions-openapi = "azure_functions_openapi.cli:main"
+azure-functions-openapi-python = "azure_functions_openapi.cli:main"
 
 [build-system]
 requires = ["hatchling"]

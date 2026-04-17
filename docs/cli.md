@@ -1,17 +1,17 @@
 # CLI Guide
 
-`azure-functions-openapi` ships with a CLI entry point for generating OpenAPI output from decorated handlers.
+`azure-functions-openapi-python` ships with a CLI entry point for generating OpenAPI output from decorated handlers.
 
 ## Install
 
 ```bash
-pip install azure-functions-openapi
+pip install azure-functions-openapi-python
 ```
 
 Then verify:
 
 ```bash
-azure-functions-openapi --help
+azure-functions-openapi-python --help
 ```
 
 ## Command overview
@@ -25,7 +25,7 @@ Current command set:
 ### Basic usage
 
 ```bash
-azure-functions-openapi generate
+azure-functions-openapi-python generate
 ```
 
 By default this prints JSON to stdout using:
@@ -39,43 +39,43 @@ By default this prints JSON to stdout using:
 Generate JSON to stdout:
 
 ```bash
-azure-functions-openapi generate --title "Todo API" --version "1.2.0"
+azure-functions-openapi-python generate --title "Todo API" --version "1.2.0"
 ```
 
 Generate YAML to stdout:
 
 ```bash
-azure-functions-openapi generate --format yaml --title "Todo API"
+azure-functions-openapi-python generate --format yaml --title "Todo API"
 ```
 
 Write JSON to file:
 
 ```bash
-azure-functions-openapi generate --output openapi.json --format json
+azure-functions-openapi-python generate --output openapi.json --format json
 ```
 
 Write YAML to file:
 
 ```bash
-azure-functions-openapi generate --output openapi.yaml --format yaml
+azure-functions-openapi-python generate --output openapi.yaml --format yaml
 ```
 
 Generate OpenAPI 3.1 output:
 
 ```bash
-azure-functions-openapi generate --openapi-version 3.1 --output openapi-3.1.json
+azure-functions-openapi-python generate --openapi-version 3.1 --output openapi-3.1.json
 ```
 
 Import your function app so routes are registered:
 
 ```bash
-azure-functions-openapi generate --app function_app --title "Todo API"
+azure-functions-openapi-python generate --app function_app --title "Todo API"
 ```
 
 Pretty-print JSON output:
 
 ```bash
-azure-functions-openapi generate --app function_app --pretty --output openapi.json
+azure-functions-openapi-python generate --app function_app --pretty --output openapi.json
 ```
 
 ### Options reference
@@ -129,9 +129,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install tools
-        run: pip install azure-functions-openapi openapi-spec-validator
+        run: pip install azure-functions-openapi-python openapi-spec-validator
       - name: Generate spec
-        run: azure-functions-openapi generate --openapi-version 3.1 --output openapi.json
+        run: azure-functions-openapi-python generate --openapi-version 3.1 --output openapi.json
       - name: Validate spec
         run: openapi-spec-validator openapi.json
 ```
@@ -149,13 +149,13 @@ jobs:
 - Pass `--app <module>` so decorated routes are registered before generation:
 
   ```bash
-  azure-functions-openapi generate --app function_app --title "My API"
+  azure-functions-openapi-python generate --app function_app --title "My API"
   ```
 
 - Use `module:variable` syntax when the `FunctionApp` instance is not named `app`:
 
   ```bash
-  azure-functions-openapi generate --app function_app:my_app --title "My API"
+  azure-functions-openapi-python generate --app function_app:my_app --title "My API"
   ```
 ### Unsupported version error
 

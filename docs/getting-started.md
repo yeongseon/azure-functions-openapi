@@ -15,12 +15,12 @@ Before you begin, make sure you have:
 - An Azure Functions Python v2 app (`func.FunctionApp`)
 
 !!! warning
-    `azure-functions-openapi` targets the Azure Functions Python v2 decorator model. It does not support the legacy `function.json` model.
+    `azure-functions-openapi-python` targets the Azure Functions Python v2 decorator model. It does not support the legacy `function.json` model.
 
 ## Install dependencies
 
 ```bash
-pip install azure-functions azure-functions-openapi
+pip install azure-functions azure-functions-openapi-python
 ```
 
 If you use Pydantic models in your function contracts:

@@ -1,6 +1,6 @@
 # Development Guide
 
-This guide covers how to set up a local development environment, run tests, and manage code quality for **azure-functions-openapi**, using Hatch and a Makefile for workflow automation.
+This guide covers how to set up a local development environment, run tests, and manage code quality for **azure-functions-openapi-python**, using Hatch and a Makefile for workflow automation.
 
 ---
 
@@ -17,7 +17,7 @@ This guide covers how to set up a local development environment, run tests, and 
 ## Project Structure
 
 ```text
-azure-functions-openapi/
+azure-functions-openapi-python/
 ├── src/
 │   └── azure_functions_openapi/
 │       ├── __init__.py
@@ -51,8 +51,8 @@ azure-functions-openapi/
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/yeongseon/azure-functions-openapi.git
-    cd azure-functions-openapi
+    git clone https://github.com/yeongseon/azure-functions-openapi-python.git
+    cd azure-functions-openapi-python
     ```
 
 2. **Create environment and install dependencies**:

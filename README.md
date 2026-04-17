@@ -1,13 +1,13 @@
 # Azure Functions OpenAPI
 
-[![PyPI](https://img.shields.io/pypi/v/azure-functions-openapi.svg)](https://pypi.org/project/azure-functions-openapi/)
-[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-openapi/)
-[![CI](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/ci-test.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/ci-test.yml)
-[![Release](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/publish-pypi.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/publish-pypi.yml)
-[![Security Scans](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/security.yml)
-[![codecov](https://codecov.io/gh/yeongseon/azure-functions-openapi/branch/main/graph/badge.svg)](https://codecov.io/gh/yeongseon/azure-functions-openapi)
+[![PyPI](https://img.shields.io/pypi/v/azure-functions-openapi-python.svg)](https://pypi.org/project/azure-functions-openapi-python/)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-openapi-python/)
+[![CI](https://github.com/yeongseon/azure-functions-openapi-python/actions/workflows/ci-test.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi-python/actions/workflows/ci-test.yml)
+[![Release](https://github.com/yeongseon/azure-functions-openapi-python/actions/workflows/publish-pypi.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi-python/actions/workflows/publish-pypi.yml)
+[![Security Scans](https://github.com/yeongseon/azure-functions-openapi-python/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi-python/actions/workflows/security.yml)
+[![codecov](https://codecov.io/gh/yeongseon/azure-functions-openapi-python/branch/main/graph/badge.svg)](https://codecov.io/gh/yeongseon/azure-functions-openapi-python)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
-[![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-openapi/)
+[![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-openapi-python/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Read this in: [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
@@ -37,12 +37,12 @@ Azure Functions Python v2 has no built-in API documentation story:
 
 ## FastAPI comparison
 
-| Feature | FastAPI | azure-functions-openapi |
+| Feature | FastAPI | azure-functions-openapi-python |
 |---------|---------|------------------------|
 | API docs generation | Built-in from type hints | `@openapi` decorator on handlers |
 | Swagger UI | `/docs` auto-served | `render_swagger_ui()` endpoint |
 | OpenAPI spec | Auto-generated `/openapi.json` | `get_openapi_json()` endpoint |
-| CLI spec export | N/A | `azure-functions-openapi generate` |
+| CLI spec export | N/A | `azure-functions-openapi-python generate` |
 | Pydantic integration | Native | `request_model=` / `response_model=` |
 
 ## Scope
@@ -68,22 +68,22 @@ Generate an OpenAPI spec from your decorated function app:
 
 ```bash
 # Install
-pip install azure-functions-openapi
+pip install azure-functions-openapi-python
 
 # Generate spec from a function app module (registers @openapi routes)
-azure-functions-openapi generate --app function_app --title "My API" --format json
+azure-functions-openapi-python generate --app function_app --title "My API" --format json
 
 # Write to file with pretty-printing
-azure-functions-openapi generate --app function_app --title "My API" --pretty --output openapi.json
+azure-functions-openapi-python generate --app function_app --title "My API" --pretty --output openapi.json
 
 # YAML output
-azure-functions-openapi generate --app function_app --format yaml --output openapi.yaml
+azure-functions-openapi-python generate --app function_app --format yaml --output openapi.yaml
 ```
 
 Pass `module:variable` when the `FunctionApp` instance has a non-default name:
 
 ```bash
-azure-functions-openapi generate --app function_app:my_app --title "My API"
+azure-functions-openapi-python generate --app function_app:my_app --title "My API"
 ```
 
 See the [CLI Guide](docs/cli.md) for all options and CI integration examples.
@@ -91,14 +91,14 @@ See the [CLI Guide](docs/cli.md) for all options and CI integration examples.
 ## Installation
 
 ```bash
-pip install azure-functions-openapi
+pip install azure-functions-openapi-python
 ```
 
 Your Function App dependencies should include:
 
 ```text
 azure-functions
-azure-functions-openapi
+azure-functions-openapi-python
 ```
 
 ## Quick Start
@@ -216,7 +216,7 @@ The web preview below is generated from the same representative example and capt
 
 ## Documentation
 
-- Full docs: [yeongseon.github.io/azure-functions-openapi](https://yeongseon.github.io/azure-functions-openapi/)
+- Full docs: [yeongseon.github.io/azure-functions-openapi-python](https://yeongseon.github.io/azure-functions-openapi-python/)
 - Smoke-tested examples: `examples/`
 - [Installation Guide](docs/installation.md)
 - [Usage Guide](docs/usage.md)
@@ -229,12 +229,12 @@ Part of the **Azure Functions Python DX Toolkit**:
 
 | Package | Role |
 |---------|------|
-| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) | Request and response validation |
-| **azure-functions-openapi** | OpenAPI spec and Swagger UI |
-| [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) | Structured logging and observability |
-| [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) | Pre-deploy diagnostic CLI |
-| [azure-functions-scaffold](https://github.com/yeongseon/azure-functions-scaffold) | Project scaffolding |
-| [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) | Recipes and examples |
+| [azure-functions-validation-python](https://github.com/yeongseon/azure-functions-validation-python) | Request and response validation |
+| **azure-functions-openapi-python** | OpenAPI spec and Swagger UI |
+| [azure-functions-logging-python](https://github.com/yeongseon/azure-functions-logging-python) | Structured logging and observability |
+| [azure-functions-doctor-python](https://github.com/yeongseon/azure-functions-doctor-python) | Pre-deploy diagnostic CLI |
+| [azure-functions-scaffold-python](https://github.com/yeongseon/azure-functions-scaffold-python) | Project scaffolding |
+| [azure-functions-cookbook-python](https://github.com/yeongseon/azure-functions-cookbook-python) | Recipes and examples |
 
 ## Disclaimer
 

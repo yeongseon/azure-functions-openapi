@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Use this guide to diagnose common `azure-functions-openapi` issues in local development and CI.
+Use this guide to diagnose common `azure-functions-openapi-python` issues in local development and CI.
 
 ## 1) Swagger UI not loading
 
@@ -72,7 +72,7 @@ print(get_openapi_registry().keys())
 
 ### What the library does
 
-`azure-functions-openapi` requires Pydantic v2. If you are using Pydantic v1, upgrade to v2 before using this library.
+`azure-functions-openapi-python` requires Pydantic v2. If you are using Pydantic v1, upgrade to v2 before using this library.
 
 ### Common mistakes
 
@@ -139,7 +139,7 @@ Keep them aligned by design:
 ### Example
 
 ```bash
-azure-functions-openapi generate --format json --openapi-version 3.1 --output openapi.json
+azure-functions-openapi-python generate --format json --openapi-version 3.1 --output openapi.json
 ```
 
 ## 7) Swagger UI loads but `Try it out` fails

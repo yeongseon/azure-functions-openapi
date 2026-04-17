@@ -1,6 +1,6 @@
 # Architecture
 
-This document explains how `azure-functions-openapi` transforms decorator metadata into OpenAPI output and Swagger UI responses.
+This document explains how `azure-functions-openapi-python` transforms decorator metadata into OpenAPI output and Swagger UI responses.
 
 ## High-level design
 
@@ -90,7 +90,7 @@ Headers added include:
 
 Responsibilities:
 
-- parse `azure-functions-openapi generate` command
+- parse `azure-functions-openapi-python generate` command
 - output JSON/YAML to stdout or file
 - choose OpenAPI version (`3.0` or `3.1`)
 

@@ -37,7 +37,7 @@ def _reload_example(module_path: str) -> None:
     """Clear registry and reload an example module to repopulate it.
 
     Skips the test if an optional dependency required by the example is not
-    installed (e.g. ``azure-functions-validation`` for the with_validation
+    installed (e.g. ``azure-functions-validation-python`` for the with_validation
     example).
     """
     with decorator_module._registry_lock:

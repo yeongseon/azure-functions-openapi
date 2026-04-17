@@ -1,6 +1,6 @@
 # Examples
 
-`azure-functions-openapi` ships three smoke-tested examples:
+`azure-functions-openapi-python` ships three smoke-tested examples:
 
 | Role | Path | Description |
 | --- | --- | --- |

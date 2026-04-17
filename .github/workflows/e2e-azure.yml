@@ -49,7 +49,7 @@ jobs:
           az group create \
             --name "${{ steps.names.outputs.rg }}" \
             --location "$AZURE_LOCATION" \
-            --tags purpose=e2e repo=azure-functions-openapi run="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+            --tags purpose=e2e repo=azure-functions-openapi-python run="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
 
       - name: Deploy infra (Bicep)
         run: |

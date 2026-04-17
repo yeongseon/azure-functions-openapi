@@ -11,7 +11,7 @@ structure, and terminology must stay aligned across repositories.
 
 ## Repository Identity
 
-- Project: `azure-functions-openapi`
+- Project: `azure-functions-openapi-python`
 - Project type: Python library
 - Runtime scope: Azure Functions Python v2 programming model
 - Minimum supported Python: `3.10`

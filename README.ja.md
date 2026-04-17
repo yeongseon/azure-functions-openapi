@@ -1,13 +1,13 @@
 # Azure Functions OpenAPI
 
-[![PyPI](https://img.shields.io/pypi/v/azure-functions-openapi.svg)](https://pypi.org/project/azure-functions-openapi/)
-[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-openapi/)
-[![CI](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/ci-test.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/ci-test.yml)
-[![Release](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/release.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/release.yml)
-[![Security Scans](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi/actions/workflows/security.yml)
-[![codecov](https://codecov.io/gh/yeongseon/azure-functions-openapi/branch/main/graph/badge.svg)](https://codecov.io/gh/yeongseon/azure-functions-openapi)
+[![PyPI](https://img.shields.io/pypi/v/azure-functions-openapi-python.svg)](https://pypi.org/project/azure-functions-openapi-python/)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-openapi-python/)
+[![CI](https://github.com/yeongseon/azure-functions-openapi-python/actions/workflows/ci-test.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi-python/actions/workflows/ci-test.yml)
+[![Release](https://github.com/yeongseon/azure-functions-openapi-python/actions/workflows/release.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi-python/actions/workflows/release.yml)
+[![Security Scans](https://github.com/yeongseon/azure-functions-openapi-python/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-openapi-python/actions/workflows/security.yml)
+[![codecov](https://codecov.io/gh/yeongseon/azure-functions-openapi-python/branch/main/graph/badge.svg)](https://codecov.io/gh/yeongseon/azure-functions-openapi-python)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
-[![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-openapi/)
+[![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-openapi-python/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 他の言語: [English](README.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
@@ -16,7 +16,7 @@
 
 ## Why Use It
 
-Azure Functions の HTTP API をドキュメント化するには、通常、別途 OpenAPI スペックを手作業で管理する必要があります。`azure-functions-openapi` はデコレータ付きハンドラーからスペックを自動生成し、ドキュメントとコードの同期を維持します。
+Azure Functions の HTTP API をドキュメント化するには、通常、別途 OpenAPI スペックを手作業で管理する必要があります。`azure-functions-openapi-python` はデコレータ付きハンドラーからスペックを自動生成し、ドキュメントとコードの同期を維持します。
 
 ## Scope
 
@@ -38,14 +38,14 @@ Azure Functions の HTTP API をドキュメント化するには、通常、別
 ## Installation
 
 ```bash
-pip install azure-functions-openapi
+pip install azure-functions-openapi-python
 ```
 
 Function App の依存関係には次を含めてください。
 
 ```text
 azure-functions
-azure-functions-openapi
+azure-functions-openapi-python
 ```
 
 ## Quick Start
@@ -155,7 +155,7 @@ func start
 
 ## Documentation
 
-- 全ドキュメント: [yeongseon.github.io/azure-functions-openapi](https://yeongseon.github.io/azure-functions-openapi/)
+- 全ドキュメント: [yeongseon.github.io/azure-functions-openapi-python](https://yeongseon.github.io/azure-functions-openapi-python/)
 - スモークテスト済みサンプル: `examples/`
 - [Installation Guide](docs/installation.md)
 - [Usage Guide](docs/usage.md)
@@ -164,11 +164,11 @@ func start
 
 ## Ecosystem
 
-- [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) — リクエストとレスポンスのバリデーション
-- [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) — 構造化ロギング
-- [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) — 診断 CLI
-- [azure-functions-scaffold](https://github.com/yeongseon/azure-functions-scaffold) — プロジェクトスキャフォールディング
-- [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) — レシピとサンプル
+- [azure-functions-validation-python](https://github.com/yeongseon/azure-functions-validation-python) — リクエストとレスポンスのバリデーション
+- [azure-functions-logging-python](https://github.com/yeongseon/azure-functions-logging-python) — 構造化ロギング
+- [azure-functions-doctor-python](https://github.com/yeongseon/azure-functions-doctor-python) — 診断 CLI
+- [azure-functions-scaffold-python](https://github.com/yeongseon/azure-functions-scaffold-python) — プロジェクトスキャフォールディング
+- [azure-functions-cookbook-python](https://github.com/yeongseon/azure-functions-cookbook-python) — レシピとサンプル
 
 ## Disclaimer
 

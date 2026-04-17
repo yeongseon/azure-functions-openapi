@@ -188,4 +188,4 @@ Expected behavior:
 
 ## Next example
 
-See [With Validation Example](with_validation.md) for integration with `azure-functions-validation` so runtime validation and OpenAPI docs share the same models.
+See [With Validation Example](with_validation.md) for integration with `azure-functions-validation-python` so runtime validation and OpenAPI docs share the same models.

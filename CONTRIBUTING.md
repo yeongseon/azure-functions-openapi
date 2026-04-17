@@ -1,6 +1,6 @@
 # Contributing Guide
 
-We welcome contributions to the `azure-functions-openapi` project.
+We welcome contributions to the `azure-functions-openapi-python` project.
 
 ## Branch Strategy
 

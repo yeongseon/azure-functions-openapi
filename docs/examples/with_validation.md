@@ -2,8 +2,8 @@
 
 This example shows how to combine:
 
-- `azure-functions-openapi` for OpenAPI documentation
-- `azure-functions-validation` for runtime request/response validation
+- `azure-functions-openapi-python` for OpenAPI documentation
+- `azure-functions-validation-python` for runtime request/response validation
 
 Source: `examples/with_validation/function_app.py`
 
@@ -115,7 +115,7 @@ curl -X POST "http://localhost:7071/api/users" \
 Expected behavior:
 
 - request fails validation
-- response status and payload come from `azure-functions-validation`
+- response status and payload come from `azure-functions-validation-python`
 
 ### 3) Get user (valid)
 

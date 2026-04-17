@@ -4,4 +4,4 @@
 
 azure-functions
 # Requires Python >=3.10
-azure-functions-openapi
+azure-functions-openapi-python

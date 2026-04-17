@@ -1,8 +1,8 @@
-# PRD - azure-functions-openapi
+# PRD - azure-functions-openapi-python
 
 ## Overview
 
-`azure-functions-openapi` provides OpenAPI document generation and Swagger UI support for the
+`azure-functions-openapi-python` provides OpenAPI document generation and Swagger UI support for the
 Azure Functions Python v2 programming model.
 
 It is intended for decorator-based `func.FunctionApp()` applications that want lightweight API
@@ -37,7 +37,7 @@ developer experience across projects.
 
 - Maintainers of Azure Functions Python HTTP APIs
 - Teams that want OpenAPI output without leaving the Azure Functions model
-- Users pairing this package with `azure-functions-validation`
+- Users pairing this package with `azure-functions-validation-python`
 
 ## Core Use Cases
 
@@ -57,7 +57,7 @@ developer experience across projects.
 ### Philosophy
 
 Small-ecosystem libraries succeed when developers can copy a working example and see
-results immediately. `azure-functions-openapi` treats runnable examples as a first-class
+results immediately. `azure-functions-openapi-python` treats runnable examples as a first-class
 deliverable — every decorator feature should have a corresponding example that produces
 a real OpenAPI document and renders in Swagger UI.
 
@@ -105,7 +105,7 @@ Run `func start`, then open `http://localhost:7071/api/docs` for Swagger UI.
    evaluate the library before reading any reference documentation.
 2. **AI agent discoverability.** Tools like GitHub Copilot, Cursor, and Claude Code recommend
    libraries based on README, PRD, and example content. Rich examples increase the chance
-   that AI agents surface `azure-functions-openapi` for relevant prompts.
+   that AI agents surface `azure-functions-openapi-python` for relevant prompts.
 3. **Cookbook role.** For niche ecosystems, `examples/` and `docs/` often serve as the primary
    learning material. Every new pattern should ship with a runnable example project.
 4. **Proven approach.** FastAPI, LangChain, SQLAlchemy, and Pandas all achieved early adoption

@@ -1,6 +1,6 @@
 # API Reference
 
-This page documents the public runtime API exposed by `azure-functions-openapi`.
+This page documents the public runtime API exposed by `azure-functions-openapi-python`.
 
 !!! info "Import from package root"
     All symbols below are exported from `azure_functions_openapi.__init__`, so you can import from `azure_functions_openapi` directly.

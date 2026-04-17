@@ -1,10 +1,10 @@
 # Usage Guide
 
-This guide shows how to document Azure Functions Python v2 HTTP handlers with `azure-functions-openapi` using production-ready patterns.
+This guide shows how to document Azure Functions Python v2 HTTP handlers with `azure-functions-openapi-python` using production-ready patterns.
 
 ## Before you start
 
-- Install package: `pip install azure-functions-openapi`
+- Install package: `pip install azure-functions-openapi-python`
 - Use Azure Functions Python v2 programming model (`func.FunctionApp`)
 - Ensure your app has explicit routes for OpenAPI JSON/YAML and Swagger UI
 
@@ -323,7 +323,7 @@ See [Troubleshooting](troubleshooting.md) for fixes.
 
 ## Validation package integration
 
-`azure-functions-openapi` works well with `azure-functions-validation` when you want runtime payload validation plus generated API docs from the same models.
+`azure-functions-openapi-python` works well with `azure-functions-validation-python` when you want runtime payload validation plus generated API docs from the same models.
 
 See [With Validation Example](examples/with_validation.md) for a complete setup.
 

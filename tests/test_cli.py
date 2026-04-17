@@ -19,13 +19,13 @@ class TestMain:
 
     def test_no_command_prints_help_and_returns_1(self) -> None:
         """Test that no command prints help and returns exit code 1."""
-        with mock.patch.object(sys, "argv", ["azure-functions-openapi"]):
+        with mock.patch.object(sys, "argv", ["azure-functions-openapi-python"]):
             result = main()
             assert result == 1
 
     def test_unknown_command_exits_with_error(self) -> None:
         """Test that unknown command exits with SystemExit (argparse behavior)."""
-        with mock.patch.object(sys, "argv", ["azure-functions-openapi", "unknown"]):
+        with mock.patch.object(sys, "argv", ["azure-functions-openapi-python", "unknown"]):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code == 2  # argparse exits with code 2 for errors
@@ -293,7 +293,7 @@ class TestCLIIntegration:
     def test_generate_command_via_main(self) -> None:
         """Test generate command through main()."""
         with mock.patch.object(
-            sys, "argv", ["azure-functions-openapi", "generate", "--title", "CLI Test"]
+            sys, "argv", ["azure-functions-openapi-python", "generate", "--title", "CLI Test"]
         ):
             with mock.patch("builtins.print") as mock_print:
                 result = main()
@@ -308,7 +308,7 @@ class TestCLIIntegration:
         with mock.patch.object(
             sys,
             "argv",
-            ["azure-functions-openapi", "generate", "--openapi-version", "3.1"],
+            ["azure-functions-openapi-python", "generate", "--openapi-version", "3.1"],
         ):
             with mock.patch("builtins.print") as mock_print:
                 result = main()
@@ -327,7 +327,7 @@ class TestCLIIntegration:
                 sys,
                 "argv",
                 [
-                    "azure-functions-openapi",
+                    "azure-functions-openapi-python",
                     "generate",
                     "--title",
                     "Full Test",
@@ -357,7 +357,7 @@ class TestMainExceptionHandling:
     def test_main_catches_exception_from_handle_generate(self) -> None:
         """When handle_generate raises, main() catches and returns 1."""
         with mock.patch.object(
-            sys, "argv", ["azure-functions-openapi", "generate"]
+            sys, "argv", ["azure-functions-openapi-python", "generate"]
         ):
             with mock.patch(
                 "azure_functions_openapi.cli.handle_generate",
@@ -605,7 +605,7 @@ class TestCLIAppFlag:
         with mock.patch.object(
             sys,
             "argv",
-            ["azure-functions-openapi", "generate", "--app", "function_app"],
+            ["azure-functions-openapi-python", "generate", "--app", "function_app"],
         ):
             with mock.patch("azure_functions_openapi.cli._import_app_module") as mock_import:
                 with mock.patch("builtins.print"):
@@ -619,7 +619,7 @@ class TestCLIAppFlag:
         with mock.patch.object(
             sys,
             "argv",
-            ["azure-functions-openapi", "generate", "--app", "function_app:app"],
+            ["azure-functions-openapi-python", "generate", "--app", "function_app:app"],
         ):
             with mock.patch("azure_functions_openapi.cli._import_app_module") as mock_import:
                 with mock.patch("builtins.print"):
@@ -691,7 +691,7 @@ class TestFailOnEmptyPaths:
         with mock.patch.object(
             sys,
             "argv",
-            ["azure-functions-openapi", "generate", "--fail-on-empty-paths"],
+            ["azure-functions-openapi-python", "generate", "--fail-on-empty-paths"],
         ):
             empty_spec = {
                 "openapi": "3.0.0",

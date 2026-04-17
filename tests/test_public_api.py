@@ -1,4 +1,4 @@
-"""Tests for the public API surface of azure-functions-openapi."""
+"""Tests for the public API surface of azure-functions-openapi-python."""
 
 import azure_functions_openapi
 

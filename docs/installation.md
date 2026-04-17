@@ -13,7 +13,7 @@ This library is **not** compatible with the legacy `function.json`-based v1 mode
 ## Install from PyPI
 
 ```bash
-pip install azure-functions-openapi
+pip install azure-functions-openapi-python
 ```
 
 ### Verify the installation
@@ -27,13 +27,13 @@ python -c "import azure_functions_openapi; print(azure_functions_openapi.__versi
 Install the `dev` extras for local development:
 
 ```bash
-pip install azure-functions-openapi[dev]
+pip install azure-functions-openapi-python[dev]
 ```
 
 Install the `docs` extras to build the documentation site locally:
 
 ```bash
-pip install azure-functions-openapi[docs]
+pip install azure-functions-openapi-python[docs]
 ```
 
 ## Add to requirements.txt
@@ -43,7 +43,7 @@ SDK and this library are listed:
 
 ```text
 azure-functions
-azure-functions-openapi
+azure-functions-openapi-python
 ```
 
 If your endpoints use Pydantic models for request or response schemas, add Pydantic
@@ -58,8 +58,8 @@ pydantic>=2.0
 Clone the repository and create a virtual environment:
 
 ```bash
-git clone https://github.com/yeongseon/azure-functions-openapi.git
-cd azure-functions-openapi
+git clone https://github.com/yeongseon/azure-functions-openapi-python.git
+cd azure-functions-openapi-python
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e .[dev]
@@ -119,7 +119,7 @@ COPY . /home/site/wwwroot
 Upgrade to the latest release:
 
 ```bash
-pip install --upgrade azure-functions-openapi
+pip install --upgrade azure-functions-openapi-python
 ```
 
 Check the [Changelog](changelog.md) for breaking changes before upgrading across

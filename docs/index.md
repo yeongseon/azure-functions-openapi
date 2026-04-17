@@ -1,6 +1,6 @@
 # Azure Functions OpenAPI
 
-`azure-functions-openapi` adds OpenAPI documentation and Swagger UI to Azure Functions Python v2 apps without maintaining a separate spec file.
+`azure-functions-openapi-python` adds OpenAPI documentation and Swagger UI to Azure Functions Python v2 apps without maintaining a separate spec file.
 
 !!! tip "5-second rule"
     If your team can read one function and immediately see the API contract, you are using this library correctly.

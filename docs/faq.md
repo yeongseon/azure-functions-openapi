@@ -54,8 +54,8 @@ return render_swagger_ui(
 Use the CLI:
 
 ```bash
-azure-functions-openapi generate --output openapi.json --format json
-azure-functions-openapi generate --output openapi.yaml --format yaml
+azure-functions-openapi-python generate --output openapi.json --format json
+azure-functions-openapi-python generate --output openapi.yaml --format yaml
 ```
 
 Or write strings in Python:
@@ -73,7 +73,7 @@ pip install openapi-spec-validator
 openapi-spec-validator openapi.json
 ```
 
-## Does this integrate with `azure-functions-validation`?
+## Does this integrate with `azure-functions-validation-python`?
 
 Yes. A common pattern is using the same Pydantic model for:
 

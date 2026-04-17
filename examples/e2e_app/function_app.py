@@ -1,4 +1,4 @@
-"""E2E test function app for azure-functions-openapi.
+"""E2E test function app for azure-functions-openapi-python.
 
 Exposes minimal routes that the e2e test suite can call
 against a real Azure Functions Consumption host.

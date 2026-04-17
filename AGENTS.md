@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Purpose
-`azure-functions-openapi` provides OpenAPI generation and validation support for Python Azure Functions.
+`azure-functions-openapi-python` provides OpenAPI generation and validation support for Python Azure Functions.
 
 ## Read First
 - `README.md`

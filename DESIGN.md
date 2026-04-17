@@ -1,6 +1,6 @@
 # DESIGN.md
 
-Design Principles for `azure-functions-openapi`
+Design Principles for `azure-functions-openapi-python`
 
 ## Purpose
 
@@ -32,8 +32,8 @@ This project does not aim to:
 
 ## Integration Boundaries
 
-- Runtime validation belongs to `azure-functions-validation`.
-- Diagnostics belong to `azure-functions-doctor`.
+- Runtime validation belongs to `azure-functions-validation-python`.
+- Diagnostics belong to `azure-functions-doctor-python`.
 - This repository owns OpenAPI metadata capture, document generation, and documentation UI helpers.
 
 ## Compatibility Policy

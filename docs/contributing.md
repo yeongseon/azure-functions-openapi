@@ -1,6 +1,6 @@
 # Contributing Guide
 
-We welcome contributions to the `azure-functions-openapi` project.
+We welcome contributions to the `azure-functions-openapi-python` project.
 
 ## Getting Started
 
@@ -8,8 +8,8 @@ We welcome contributions to the `azure-functions-openapi` project.
 2. Clone your fork locally:
 
 ```bash
-git clone https://github.com/<your-username>/azure-functions-openapi.git
-cd azure-functions-openapi
+git clone https://github.com/<your-username>/azure-functions-openapi-python.git
+cd azure-functions-openapi-python
 ```
 
 3. Set up the development environment:
@@ -193,4 +193,4 @@ Open an issue on GitHub with:
 
 ## Code of Conduct
 
-Be respectful and inclusive. See the [Code of Conduct](https://github.com/yeongseon/azure-functions-openapi/blob/main/CODE_OF_CONDUCT.md) for details.
+Be respectful and inclusive. See the [Code of Conduct](https://github.com/yeongseon/azure-functions-openapi-python/blob/main/CODE_OF_CONDUCT.md) for details.

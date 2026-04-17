@@ -14,7 +14,7 @@ except ImportError:
 
 pytestmark = pytest.mark.skipif(
     not HAS_VALIDATION,
-    reason="azure-functions-validation not installed",
+    reason="azure-functions-validation-python not installed",
 )
 
 def _load_example_module() -> Any:
