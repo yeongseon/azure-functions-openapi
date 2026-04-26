@@ -24,7 +24,7 @@ class TestAPISurface:
         }
 
     def test_version_is_0_17_1(self) -> None:
-        assert azure_functions_openapi.__version__ == "0.17.1"
+        assert azure_functions_openapi.__version__ == "0.18.0"
 
     def test_version_is_string(self) -> None:
         assert isinstance(azure_functions_openapi.__version__, str)
