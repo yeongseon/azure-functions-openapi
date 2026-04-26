@@ -6,8 +6,13 @@ from unittest.mock import patch
 
 from pydantic import BaseModel
 import pytest
+import yaml
 
-from azure_functions_openapi.decorator import openapi
+from azure_functions_openapi.decorator import (
+    clear_openapi_registry,
+    openapi,
+    register_openapi_metadata,
+)
 from azure_functions_openapi.openapi import (
     DEFAULT_OPENAPI_INFO_DESCRIPTION,
     _ensure_default_response,
@@ -870,3 +875,32 @@ def test_ensure_default_response_noop_with_non_200_entry() -> None:
     _ensure_default_response(existing)
     assert "200" not in existing
     assert "404" in existing
+
+
+def test_get_openapi_json_accepts_empty_route_prefix() -> None:
+    clear_openapi_registry()
+    register_openapi_metadata(path="/users", method="get")
+
+    spec = json.loads(get_openapi_json(route_prefix=""))
+
+    assert "/users" in spec["paths"]
+    assert "/api/users" not in spec["paths"]
+
+
+def test_get_openapi_yaml_accepts_custom_route_prefix() -> None:
+    clear_openapi_registry()
+    register_openapi_metadata(path="/users", method="get")
+
+    spec = yaml.safe_load(get_openapi_yaml(route_prefix="/v1"))
+
+    assert "/v1/users" in spec["paths"]
+    assert "/api/users" not in spec["paths"]
+
+
+def test_get_openapi_json_default_route_prefix_matches_runtime_url() -> None:
+    clear_openapi_registry()
+    register_openapi_metadata(path="/users", method="get")
+
+    spec = json.loads(get_openapi_json())
+
+    assert "/api/users" in spec["paths"]

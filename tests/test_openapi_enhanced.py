@@ -188,6 +188,7 @@ class TestGetOpenAPIJSONEnhanced:
                 description="Auto-generated OpenAPI documentation. "
                 "Markdown supported in descriptions (CommonMark).",
                 security_schemes=None,
+                route_prefix="/api",
             )
 
     def test_get_openapi_json_error(self) -> None:
@@ -214,6 +215,7 @@ class TestGetOpenAPIJSONEnhanced:
                 "3.0.0",
                 description="Custom description",
                 security_schemes=None,
+                route_prefix="/api",
             )
 
     def test_get_openapi_json_logging(self) -> None:
@@ -249,6 +251,7 @@ class TestGetOpenAPIYAMLEnhanced:
                 description="Auto-generated OpenAPI documentation. "
                 "Markdown supported in descriptions (CommonMark).",
                 security_schemes=None,
+                route_prefix="/api",
             )
 
     def test_get_openapi_yaml_error(self) -> None:
@@ -275,6 +278,7 @@ class TestGetOpenAPIYAMLEnhanced:
                 "3.0.0",
                 description="Custom description",
                 security_schemes=None,
+                route_prefix="/api",
             )
 
     def test_get_openapi_yaml_logging(self) -> None:

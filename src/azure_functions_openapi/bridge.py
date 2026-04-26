@@ -13,6 +13,7 @@ from azure_functions_openapi.decorator import (
     register_openapi_metadata,
 )
 from azure_functions_openapi.exceptions import OpenAPISpecConfigError
+from azure_functions_openapi.routes import DEFAULT_ROUTE_PREFIX, normalize_route_prefix
 from azure_functions_openapi.utils import type_to_schema
 
 logger = logging.getLogger(__name__)
@@ -29,23 +30,6 @@ def _normalize_method(method: Any) -> str:
     return str(value).lower()
 
 
-DEFAULT_ROUTE_PREFIX = "/api"
-
-
-def _normalize_route_prefix(route_prefix: str) -> str:
-    """Normalize a user-supplied ``route_prefix`` to canonical form.
-
-    The Azure Functions ``host.json`` contract treats the prefix as a path
-    segment without a trailing slash; an empty string means "no prefix".
-    """
-    prefix = (route_prefix or "").strip()
-    if not prefix:
-        return ""
-    if not prefix.startswith("/"):
-        prefix = f"/{prefix}"
-    return prefix.rstrip("/")
-
-
 def _normalize_path(
     route: str | None,
     function_name: str,
@@ -58,7 +42,7 @@ def _normalize_path(
     serves. Pass ``""`` for hosts that disable the prefix and any other
     value (e.g. ``"/v1"``) for custom prefixes.
     """
-    prefix = _normalize_route_prefix(route_prefix)
+    prefix = normalize_route_prefix(route_prefix)
     raw = (route or function_name or "").strip()
     if not raw:
         raw = function_name
