@@ -354,6 +354,39 @@ always take precedence.
 See [Partner Import Bridge Example](examples/partner_import_bridge.md) for a complete walkthrough.
 
 
+## Import path migration
+
+The internal module previously named `azure_functions_openapi.openapi` was
+renamed to `azure_functions_openapi.spec` to remove a naming conflict with the
+public `@openapi` decorator. The old module path remains as a deprecation shim
+that emits `DeprecationWarning` and will be removed in a future release.
+
+Update any imports as follows:
+
+**Deprecated** (still works, emits `DeprecationWarning`):
+
+```python
+from azure_functions_openapi.openapi import get_openapi_json, get_openapi_yaml
+```
+
+**Canonical internal path**:
+
+```python
+from azure_functions_openapi.spec import get_openapi_json, get_openapi_yaml
+```
+
+**Recommended public API** (preferred for application code):
+
+```python
+from azure_functions_openapi import get_openapi_json, get_openapi_yaml
+```
+
+The root package re-exports `get_openapi_json`, `get_openapi_yaml`,
+`generate_openapi_spec`, `OPENAPI_VERSION_3_0`, `OPENAPI_VERSION_3_1`,
+`openapi`, and `render_swagger_ui`, so most user code can import everything
+directly from `azure_functions_openapi` without referencing internal
+submodules.
+
 ## Next steps
 
 - Deep-dive decorator options: [Configuration](configuration.md)

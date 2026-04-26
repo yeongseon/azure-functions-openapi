@@ -2,7 +2,7 @@
 import json
 
 from azure_functions_openapi.decorator import openapi
-from azure_functions_openapi.openapi import get_openapi_json
+from azure_functions_openapi.spec import get_openapi_json
 
 
 def _register_http_trigger() -> None:

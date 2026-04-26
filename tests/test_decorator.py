@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 import azure_functions_openapi.decorator as decorator_module
 from azure_functions_openapi.decorator import get_openapi_registry, openapi
-from azure_functions_openapi.openapi import generate_openapi_spec
+from azure_functions_openapi.spec import generate_openapi_spec
 
 
 def _clear_registry() -> None:
@@ -313,7 +313,7 @@ def test_openapi_registers_request_body_required_default() -> None:
 
 def test_openapi_registers_request_body_required_false() -> None:
     """request_body_required=False is stored in registry and used in spec."""
-    from azure_functions_openapi.openapi import generate_openapi_spec
+    from azure_functions_openapi.spec import generate_openapi_spec
 
     @openapi(
         summary="Optional body",

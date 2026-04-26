@@ -140,7 +140,7 @@ The sections below are generated directly from source docstrings.
 
 ### `openapi`
 
-::: azure_functions_openapi.openapi
+::: azure_functions_openapi.decorator.openapi
 
 ### `generate_openapi_spec`
 

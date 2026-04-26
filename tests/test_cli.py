@@ -744,7 +744,7 @@ class TestRoutePrefix:
 
 class TestDescription:
     def test_description_default_uses_library_default(self) -> None:
-        from azure_functions_openapi.openapi import DEFAULT_OPENAPI_INFO_DESCRIPTION
+        from azure_functions_openapi.spec import DEFAULT_OPENAPI_INFO_DESCRIPTION
 
         with mock.patch.object(sys, "argv", ["azure-functions-openapi", "generate"]):
             with mock.patch("azure_functions_openapi.cli.generate_openapi_spec") as mock_gen:
