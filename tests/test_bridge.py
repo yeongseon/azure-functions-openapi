@@ -566,3 +566,36 @@ def test_scan_normalizes_prefix_with_trailing_slash() -> None:
     scan_validation_metadata(app, route_prefix="v1/")
 
     assert "post::/v1/users" in get_openapi_registry()
+
+
+def test_scan_does_not_treat_substring_match_as_already_prefixed() -> None:
+    """A route like ``/apiary`` shares ``/api`` as a prefix string but is not
+    actually under the ``/api`` route prefix. The composer must require the
+    prefix be followed by ``/`` (or be an exact match) before treating the
+    route as already prefixed; otherwise ``/apiary`` would be left bare and
+    the deployed URL ``/api/apiary`` would not appear in the spec.
+    """
+    app = _make_app(route="/apiary", metadata={"body": CreateBody})
+
+    scan_validation_metadata(app, route_prefix="/api")
+
+    assert "post::/api/apiary" in get_openapi_registry()
+    assert "post::/apiary" not in get_openapi_registry()
+
+
+def test_scan_does_not_treat_apidocs_as_already_prefixed() -> None:
+    app = _make_app(route="/apidocs", metadata={"body": CreateBody})
+
+    scan_validation_metadata(app, route_prefix="/api")
+
+    assert "post::/api/apidocs" in get_openapi_registry()
+    assert "post::/apidocs" not in get_openapi_registry()
+
+
+def test_scan_treats_exact_prefix_match_as_already_prefixed() -> None:
+    app = _make_app(route="/api", metadata={"body": CreateBody})
+
+    scan_validation_metadata(app, route_prefix="/api")
+
+    assert "post::/api" in get_openapi_registry()
+    assert "post::/api/api" not in get_openapi_registry()
