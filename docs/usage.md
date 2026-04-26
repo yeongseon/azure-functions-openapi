@@ -10,6 +10,9 @@ This guide shows how to document Azure Functions Python v2 HTTP handlers with `a
 
 See [Installation](installation.md) and [Getting Started](getting-started.md) first.
 
+For configurable URL prefixes (custom or empty `host.json` `routePrefix`),
+see [Route Prefix](route-prefix.md).
+
 ## End-to-end baseline
 
 ```python

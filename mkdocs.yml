@@ -23,6 +23,7 @@ nav:
   - User Guide:
       - Usage: usage.md
       - CLI: cli.md
+      - Route Prefix: route-prefix.md
       - Architecture: architecture.md
   - Deployment:
       - Choose a Plan: choose-a-plan.md

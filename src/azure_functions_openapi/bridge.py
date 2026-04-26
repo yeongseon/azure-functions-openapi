@@ -29,19 +29,46 @@ def _normalize_method(method: Any) -> str:
     return str(value).lower()
 
 
-def _normalize_path(route: str | None, function_name: str) -> str:
+DEFAULT_ROUTE_PREFIX = "/api"
+
+
+def _normalize_route_prefix(route_prefix: str) -> str:
+    """Normalize a user-supplied ``route_prefix`` to canonical form.
+
+    The Azure Functions ``host.json`` contract treats the prefix as a path
+    segment without a trailing slash; an empty string means "no prefix".
+    """
+    prefix = (route_prefix or "").strip()
+    if not prefix:
+        return ""
+    if not prefix.startswith("/"):
+        prefix = f"/{prefix}"
+    return prefix.rstrip("/")
+
+
+def _normalize_path(
+    route: str | None,
+    function_name: str,
+    route_prefix: str = DEFAULT_ROUTE_PREFIX,
+) -> str:
+    """Compose a path key for the OpenAPI registry from a binding route.
+
+    ``route_prefix`` mirrors ``host.json`` ``extensions.http.routePrefix`` so
+    that scans stay consistent with the runtime URLs Azure Functions actually
+    serves. Pass ``""`` for hosts that disable the prefix and any other
+    value (e.g. ``"/v1"``) for custom prefixes.
+    """
+    prefix = _normalize_route_prefix(route_prefix)
     raw = (route or function_name or "").strip()
     if not raw:
         raw = function_name
     if not raw.startswith("/"):
         raw = f"/{raw}"
-    if raw == "/api" or raw.startswith("/api/"):
+    if not prefix:
         return raw
-    if raw.startswith("/api/"):
+    if raw == prefix or raw.startswith(f"{prefix}/"):
         return raw
-    if raw.startswith("/api") and len(raw) > 4 and raw[4] == "/":
-        return raw
-    return f"/api{raw}"
+    return f"{prefix}{raw}"
 
 
 def _extract_http_binding(function_obj: Any) -> Any | None:
@@ -178,9 +205,7 @@ def _model_to_parameters(model_cls: type, location: str) -> list[dict[str, Any]]
 def _discovered_operation(
     function_name: str, metadata: dict[str, Any], path: str, method: str
 ) -> dict[str, Any]:
-    request_body = (
-        type_to_schema(metadata["body"]) if metadata.get("body") is not None else None
-    )
+    request_body = type_to_schema(metadata["body"]) if metadata.get("body") is not None else None
     parameters: list[dict[str, Any]] = []
     if metadata.get("query") is not None:
         parameters.extend(_model_to_parameters(metadata["query"], "query"))
@@ -196,6 +221,7 @@ def _discovered_operation(
         "parameters": parameters,
         "response_model": metadata.get("response_model"),
     }
+
 
 # Convention-based handler metadata attribute name.
 # Packages in the Azure Functions Python DX Toolkit write per-namespace
@@ -235,8 +261,7 @@ def _read_validation_hints(handler: Any) -> dict[str, Any] | None:
             if raw_version is not None:
                 if type(raw_version) is not int or raw_version not in _SUPPORTED_VERSIONS:
                     logger.warning(
-                        "Skipping metadata on %r: unsupported version %r"
-                        " (supported: %s)",
+                        "Skipping metadata on %r: unsupported version %r (supported: %s)",
                         current,
                         raw_version,
                         ", ".join(str(v) for v in sorted(_SUPPORTED_VERSIONS)),
@@ -260,12 +285,16 @@ def _read_validation_hints(handler: Any) -> dict[str, Any] | None:
     return None
 
 
-def scan_validation_metadata(app: Any) -> None:
+def scan_validation_metadata(app: Any, route_prefix: str = DEFAULT_ROUTE_PREFIX) -> None:
     """Scan function builders for validation metadata and register OpenAPI operations.
 
     This function reads the convention-based ``_azure_functions_metadata``
     attribute (namespace ``"validation"``) from each handler.  No import from
     ``azure-functions-validation`` is required.
+
+    ``route_prefix`` mirrors ``host.json`` ``extensions.http.routePrefix``
+    (default ``"/api"``). Pass ``""`` for hosts that disable the prefix or
+    a custom value such as ``"/v1"`` to match a non-default deployment.
     """
     builders = getattr(app, "_function_builders", None)
     if not builders:
@@ -291,7 +320,7 @@ def scan_validation_metadata(app: Any) -> None:
             )
             continue
 
-        path = _normalize_path(getattr(binding, "route", None), function_name)
+        path = _normalize_path(getattr(binding, "route", None), function_name, route_prefix)
         methods = _extract_methods(binding)
 
         for method in methods:

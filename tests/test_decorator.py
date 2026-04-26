@@ -102,7 +102,7 @@ def test_openapi_accepts_function_builder_when_decorator_is_outermost() -> None:
     assert registry["hello"]["summary"] == "Hello"
     assert registry["hello"]["description"] == "Returns plain text."
 
-    spec = generate_openapi_spec()
+    spec = generate_openapi_spec(route_prefix="")
     assert "/hello" in spec["paths"]
 
 
@@ -274,9 +274,8 @@ def test_openapi_raises_error_when_requests_and_request_model_provided() -> None
         def conflicting_requests_func() -> None:
             pass
 
-    assert (
-        "Cannot provide both 'requests' and 'request_model'/'request_body'."
-        in str(exc_info.value)
+    assert "Cannot provide both 'requests' and 'request_model'/'request_body'." in str(
+        exc_info.value
     )
 
 
@@ -298,6 +297,7 @@ def test_openapi_raises_error_when_responses_and_response_model_provided() -> No
 
 def test_openapi_registers_request_body_required_default() -> None:
     """request_body_required defaults to True and is stored in registry."""
+
     @openapi(
         summary="Required body by default",
         method="post",
@@ -329,6 +329,6 @@ def test_openapi_registers_request_body_required_false() -> None:
     registry = get_openapi_registry()
     assert registry["optional_body_func"]["request_body_required"] is False
 
-    spec = generate_openapi_spec()
+    spec = generate_openapi_spec(route_prefix="")
     rb = spec["paths"]["/optional-body"]["post"]["requestBody"]
     assert rb["required"] is False

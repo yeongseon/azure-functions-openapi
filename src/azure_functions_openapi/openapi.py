@@ -19,6 +19,30 @@ OPENAPI_VERSION_3_1 = "3.1.0"
 DEFAULT_OPENAPI_INFO_DESCRIPTION = (
     "Auto-generated OpenAPI documentation. Markdown supported in descriptions (CommonMark)."
 )
+DEFAULT_ROUTE_PREFIX = "/api"
+
+
+def _normalize_route_prefix(route_prefix: str) -> str:
+    """Canonicalize a route prefix (no trailing slash; ``""`` means no prefix)."""
+    prefix = (route_prefix or "").strip()
+    if not prefix:
+        return ""
+    if not prefix.startswith("/"):
+        prefix = f"/{prefix}"
+    return prefix.rstrip("/")
+
+
+def _apply_route_prefix(path: str, prefix: str) -> str:
+    """Prepend ``prefix`` to ``path`` unless ``path`` is already prefixed.
+
+    Idempotent so that authors who write ``route="/api/users"`` are not
+    double-prefixed when the spec is generated with the default ``/api``.
+    """
+    if not prefix:
+        return path
+    if path == prefix or path.startswith(f"{prefix}/"):
+        return path
+    return f"{prefix}{path}"
 
 
 def _ensure_default_response(
@@ -106,6 +130,7 @@ def generate_openapi_spec(
     openapi_version: str = OPENAPI_VERSION_3_0,
     description: str = DEFAULT_OPENAPI_INFO_DESCRIPTION,
     security_schemes: dict[str, dict[str, Any]] | None = None,
+    route_prefix: str = DEFAULT_ROUTE_PREFIX,
 ) -> dict[str, Any]:
     """
     Compile an OpenAPI specification from the registry.
@@ -117,6 +142,11 @@ def generate_openapi_spec(
         description: Description for the OpenAPI info object
         security_schemes: Security scheme definitions for components.securitySchemes.
             Example: {"BearerAuth": {"type": "http", "scheme": "bearer"}}
+        route_prefix: HTTP route prefix from ``host.json``
+            (``extensions.http.routePrefix``). Defaults to ``"/api"``. Pass
+            ``""`` for hosts that disable the prefix or a custom value such
+            as ``"/v1"``. Routes that already start with the prefix are not
+            re-prefixed.
 
     Returns:
         OpenAPI specification dictionary
@@ -127,6 +157,8 @@ def generate_openapi_spec(
             f"{OPENAPI_VERSION_3_0}, {OPENAPI_VERSION_3_1}"
         )
 
+    normalized_prefix = _normalize_route_prefix(route_prefix)
+
     try:
         registry = get_openapi_registry()
         paths: dict[str, dict[str, Any]] = {}
@@ -136,7 +168,8 @@ def generate_openapi_spec(
             try:
                 logical_name = meta.get("function_name") or func_name
                 # route & method --------------------------------------------------
-                path = f"/{(meta.get('route') or logical_name).lstrip('/')}"
+                raw_path = f"/{(meta.get('route') or logical_name).lstrip('/')}"
+                path = _apply_route_prefix(raw_path, normalized_prefix)
                 method = (meta.get("method") or "get").lower()
 
                 # responses -------------------------------------------------------
@@ -324,7 +357,9 @@ def get_openapi_json(
     """
     try:
         spec = generate_openapi_spec(
-            title, version, openapi_version,
+            title,
+            version,
+            openapi_version,
             description=description,
             security_schemes=security_schemes,
         )
@@ -357,7 +392,9 @@ def get_openapi_yaml(
     """
     try:
         spec = generate_openapi_spec(
-            title, version, openapi_version,
+            title,
+            version,
+            openapi_version,
             description=description,
             security_schemes=security_schemes,
         )
