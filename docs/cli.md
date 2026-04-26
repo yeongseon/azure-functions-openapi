@@ -85,10 +85,13 @@ azure-functions-openapi generate --app function_app --pretty --output openapi.js
 | `--app` | - | `module` or `module:var` | - | Import module before generating so `@openapi` decorators register routes |
 | `--title` | - | any string | `API` | OpenAPI `info.title` |
 | `--version` | - | any string | `1.0.0` | OpenAPI `info.version` |
+| `--description` | - | any string | library default | OpenAPI `info.description` (Markdown / CommonMark supported) |
 | `--output` | `-o` | file path | stdout | Write generated content to file |
 | `--format` | `-f` | `json`, `yaml` | `json` | Output serialization format |
 | `--openapi-version` | - | `3.0`, `3.1` | `3.0` | OpenAPI schema version |
 | `--pretty` | `-p` | flag | `false` | Pretty-print JSON output (adds indentation); no effect on YAML |
+| `--route-prefix` | - | any string (or `""`) | `/api` | HTTP route prefix from `host.json` `extensions.http.routePrefix`. See [Route Prefix](route-prefix.md). |
+| `--fail-on-empty-paths` | - | flag | `false` | Exit with code 1 if the generated spec has no paths |
 
 ## Exit codes
 

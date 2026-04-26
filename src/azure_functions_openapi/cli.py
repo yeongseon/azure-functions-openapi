@@ -8,6 +8,7 @@ import sys
 
 from azure_functions_openapi.exceptions import OpenAPISpecConfigError
 from azure_functions_openapi.openapi import (
+    DEFAULT_OPENAPI_INFO_DESCRIPTION,
     OPENAPI_VERSION_3_0,
     OPENAPI_VERSION_3_1,
     generate_openapi_spec,
@@ -80,6 +81,14 @@ Examples:
     )
     generate_parser.add_argument("--title", default="API", help="API title (default: API)")
     generate_parser.add_argument("--version", default="1.0.0", help="API version (default: 1.0.0)")
+    generate_parser.add_argument(
+        "--description",
+        default=None,
+        help=(
+            "API description placed in info.description (Markdown supported, "
+            "CommonMark). When omitted, the library default is used."
+        ),
+    )
     generate_parser.add_argument("--output", "-o", help="Output file path")
     generate_parser.add_argument(
         "--format",
@@ -148,10 +157,15 @@ def handle_generate(args: argparse.Namespace) -> int:
 
         # Check for empty paths before serialising — gives a clear signal
         # instead of silently producing a spec with no routes.
+        description = getattr(args, "description", None)
+        if not isinstance(description, str):
+            description = DEFAULT_OPENAPI_INFO_DESCRIPTION
+
         spec = generate_openapi_spec(
             args.title,
             args.version,
             openapi_version,
+            description=description,
             route_prefix=getattr(args, "route_prefix", "/api"),
         )
         if not spec.get("paths"):

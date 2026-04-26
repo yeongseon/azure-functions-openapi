@@ -740,3 +740,67 @@ class TestRoutePrefix:
 
         _, kwargs = mock_gen.call_args
         assert kwargs.get("route_prefix") == ""
+
+
+class TestDescription:
+    def test_description_default_uses_library_default(self) -> None:
+        from azure_functions_openapi.openapi import DEFAULT_OPENAPI_INFO_DESCRIPTION
+
+        with mock.patch.object(sys, "argv", ["azure-functions-openapi", "generate"]):
+            with mock.patch("azure_functions_openapi.cli.generate_openapi_spec") as mock_gen:
+                mock_gen.return_value = {"paths": {"/api/users": {}}}
+                with mock.patch("builtins.print"):
+                    main()
+
+        _, kwargs = mock_gen.call_args
+        assert kwargs.get("description") == DEFAULT_OPENAPI_INFO_DESCRIPTION
+
+    def test_description_flag_passes_value(self) -> None:
+        with mock.patch.object(
+            sys,
+            "argv",
+            [
+                "azure-functions-openapi",
+                "generate",
+                "--description",
+                "Custom CLI description with **markdown**",
+            ],
+        ):
+            with mock.patch("azure_functions_openapi.cli.generate_openapi_spec") as mock_gen:
+                mock_gen.return_value = {"paths": {"/api/users": {}}}
+                with mock.patch("builtins.print"):
+                    main()
+
+        _, kwargs = mock_gen.call_args
+        assert kwargs.get("description") == "Custom CLI description with **markdown**"
+
+    def test_description_appears_in_generated_output(self) -> None:
+        from azure_functions_openapi.decorator import (
+            clear_openapi_registry,
+            register_openapi_metadata,
+        )
+
+        clear_openapi_registry()
+        register_openapi_metadata(path="/users", method="get")
+
+        captured: list[str] = []
+
+        def _capture(*args: object, **_kw: object) -> None:
+            captured.append(" ".join(str(x) for x in args))
+
+        with mock.patch.object(
+            sys,
+            "argv",
+            [
+                "azure-functions-openapi",
+                "generate",
+                "--description",
+                "Spec for the Users API",
+            ],
+        ):
+            with mock.patch("builtins.print", side_effect=_capture):
+                rc = main()
+
+        assert rc == 0
+        joined = "\n".join(captured)
+        assert "Spec for the Users API" in joined
