@@ -97,7 +97,7 @@ def submit_report(req: func.HttpRequest) -> func.HttpResponse:
 The OpenAPI YAML route uses `generate_openapi_spec()` with `OPENAPI_VERSION_3_1`:
 
 ```python
-from azure_functions_openapi.openapi import OPENAPI_VERSION_3_1, generate_openapi_spec
+from azure_functions_openapi import OPENAPI_VERSION_3_1, generate_openapi_spec
 
 spec = generate_openapi_spec(
     title="Report Jobs API",

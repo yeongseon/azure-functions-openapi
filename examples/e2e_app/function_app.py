@@ -3,6 +3,7 @@
 Exposes minimal routes that the e2e test suite can call
 against a real Azure Functions Consumption host.
 """
+
 from __future__ import annotations
 
 import json
@@ -11,8 +12,8 @@ import logging
 import azure.functions as func
 from pydantic import BaseModel
 
+from azure_functions_openapi import get_openapi_json, get_openapi_yaml
 from azure_functions_openapi.decorator import openapi
-from azure_functions_openapi.openapi import get_openapi_json, get_openapi_yaml
 from azure_functions_openapi.swagger_ui import render_swagger_ui
 
 app = func.FunctionApp()

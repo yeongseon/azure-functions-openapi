@@ -8,8 +8,8 @@ import sys
 
 import yaml
 
+from azure_functions_openapi import get_openapi_json, get_openapi_yaml
 import azure_functions_openapi.decorator as decorator_module
-from azure_functions_openapi.openapi import get_openapi_json, get_openapi_yaml
 from azure_functions_openapi.swagger_ui import render_swagger_ui
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

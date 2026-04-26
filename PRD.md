@@ -70,9 +70,11 @@ import json
 
 import azure.functions as func
 
-from azure_functions_openapi.decorator import openapi
-from azure_functions_openapi.openapi import get_openapi_json
-from azure_functions_openapi.swagger_ui import render_swagger_ui
+from azure_functions_openapi import (
+    get_openapi_json,
+    openapi,
+    render_swagger_ui,
+)
 
 
 app = func.FunctionApp()

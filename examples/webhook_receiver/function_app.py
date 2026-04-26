@@ -6,22 +6,23 @@ Demonstrates:
 - render_swagger_ui()
 - Practical pattern: accept inbound webhook events and return 202 Accepted
 """
+
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import hashlib
 import hmac
 import json
 import logging
 import os
-import uuid
-from datetime import datetime, timezone
 from typing import Any
+import uuid
 
 import azure.functions as func
 from pydantic import BaseModel, Field
 
+from azure_functions_openapi import get_openapi_json, get_openapi_yaml
 from azure_functions_openapi.decorator import openapi
-from azure_functions_openapi.openapi import get_openapi_json, get_openapi_yaml
 from azure_functions_openapi.swagger_ui import render_swagger_ui
 
 app = func.FunctionApp()
@@ -57,13 +58,13 @@ _seen_delivery_ids: set[str] = set()
 # Maximum age (seconds) for webhook timestamp before rejection
 _MAX_WEBHOOK_AGE_SECONDS = 300  # 5 minutes
 
-def _verify_signature(
-    payload: bytes, timestamp: str, signature: str, secret: str
-) -> bool:
+
+def _verify_signature(payload: bytes, timestamp: str, signature: str, secret: str) -> bool:
     """Verify HMAC-SHA256 signature bound to timestamp."""
     signed_content = f"{timestamp}.{payload.decode()}".encode()
     expected = "sha256=" + hmac.new(secret.encode(), signed_content, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature)
+
 
 # ---------------------------------------------------------------------------
 # Routes

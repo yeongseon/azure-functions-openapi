@@ -8,24 +8,25 @@ Demonstrates:
 - render_swagger_ui() with custom_csp, enable_client_logging
 - Practical pattern: submit report → poll status → download result
 """
+
 from __future__ import annotations
 
-import json
-import logging
-import uuid
 from datetime import datetime, timezone
 from enum import Enum
+import json
+import logging
 from typing import Any
+import uuid
 
 import azure.functions as func
 from pydantic import BaseModel, Field
 
-from azure_functions_openapi.decorator import openapi
-from azure_functions_openapi.openapi import (
+from azure_functions_openapi import (
     OPENAPI_VERSION_3_1,
     generate_openapi_spec,
     get_openapi_json,
 )
+from azure_functions_openapi.decorator import openapi
 from azure_functions_openapi.swagger_ui import render_swagger_ui
 
 app = func.FunctionApp()
@@ -97,7 +98,7 @@ def _check_bearer_auth(req: func.HttpRequest) -> func.HttpResponse | None:
             mimetype="application/json",
             status_code=401,
         )
-    token = auth_header[len("Bearer "):]
+    token = auth_header[len("Bearer ") :]
     if not token:
         return func.HttpResponse(
             json.dumps({"error": "Empty bearer token"}),
@@ -107,6 +108,7 @@ def _check_bearer_auth(req: func.HttpRequest) -> func.HttpResponse | None:
     # In production: verify JWT signature, expiry, audience, etc.
     logger.info("Authenticated request with bearer token")
     return None
+
 
 # ---------------------------------------------------------------------------
 # Routes
@@ -161,9 +163,7 @@ def submit_report(req: func.HttpRequest) -> func.HttpResponse:
     )
 
 
-@app.route(
-    route="reports/{job_id}/status", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS
-)
+@app.route(route="reports/{job_id}/status", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 @openapi(
     route="/api/reports/{job_id}/status",
     method="get",
@@ -200,26 +200,28 @@ def get_report_status(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     return func.HttpResponse(
-        json.dumps({
-            "job_id": job["job_id"],
-            "status": job["status"],
-            "progress_pct": job["progress_pct"],
-            "download_url": job["download_url"],
-            "error": job["error"],
-        }),
+        json.dumps(
+            {
+                "job_id": job["job_id"],
+                "status": job["status"],
+                "progress_pct": job["progress_pct"],
+                "download_url": job["download_url"],
+                "error": job["error"],
+            }
+        ),
         mimetype="application/json",
         status_code=200,
     )
 
 
-@app.route(
-    route="reports/{job_id}/download", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS
-)
+@app.route(route="reports/{job_id}/download", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 @openapi(
     route="/api/reports/{job_id}/download",
     method="get",
     summary="Download report",
-    description="Download the generated report file. Only available when job status is 'completed'.",
+    description=(
+        "Download the generated report file. Only available when job status is 'completed'."
+    ),
     tags=["reports"],
     parameters=[
         {

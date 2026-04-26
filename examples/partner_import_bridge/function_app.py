@@ -7,25 +7,26 @@ Demonstrates:
 - request_body_required parameter
 - Practical pattern: partner data import with batch processing
 """
+
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import json
 import logging
-import uuid
-from datetime import datetime, timezone
 from typing import Any
+import uuid
 
 import azure.functions as func
+from azure_functions_validation import validate_http
 from pydantic import BaseModel, Field
 
 from azure_functions_openapi import (
     OpenAPIOperationMetadata,
+    get_openapi_json,
     register_openapi_metadata,
     scan_validation_metadata,
 )
-from azure_functions_openapi.openapi import get_openapi_json
 from azure_functions_openapi.swagger_ui import render_swagger_ui
-from azure_functions_validation import validate_http
 
 app = func.FunctionApp()
 
@@ -81,9 +82,7 @@ _partner_records: dict[str, dict[str, Any]] = {}
 @app.function_name(name="import_partners")
 @app.route(route="partners/import", methods=["POST"], auth_level=func.AuthLevel.ANONYMOUS)
 @validate_http(body=ImportBatchRequest, response_model=ImportBatchResponse)
-def import_partners(
-    req: func.HttpRequest, body: ImportBatchRequest
-) -> ImportBatchResponse:
+def import_partners(req: func.HttpRequest, body: ImportBatchRequest) -> ImportBatchResponse:
     logger.info("Importing %d partner records from %s", len(body.records), body.source)
 
     imported = 0
@@ -148,6 +147,7 @@ def purge_partners(req: func.HttpRequest) -> func.HttpResponse:
         mimetype="application/json",
         status_code=200,
     )
+
 
 # ---------------------------------------------------------------------------
 # Bridge: auto-register OpenAPI metadata from @validate_http decorators

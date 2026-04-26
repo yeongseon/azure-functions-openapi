@@ -6,20 +6,20 @@ Demonstrates:
 - requests= and responses= unified parameters
 - Practical pattern: validate notification request and queue for delivery
 """
+
 from __future__ import annotations
 
-import logging
-import json
-import uuid
 from datetime import datetime, timezone
+import logging
+import uuid
 
 import azure.functions as func
+from azure_functions_validation import validate_http
 from pydantic import BaseModel, Field
 
+from azure_functions_openapi import get_openapi_json, get_openapi_yaml
 from azure_functions_openapi.decorator import openapi
-from azure_functions_openapi.openapi import get_openapi_json, get_openapi_yaml
 from azure_functions_openapi.swagger_ui import render_swagger_ui
-from azure_functions_validation import validate_http
 
 app = func.FunctionApp()
 
@@ -83,9 +83,7 @@ _notifications: dict[str, dict[str, str]] = {}
     },
 )
 @validate_http(body=EmailNotificationRequest, response_model=NotificationAcceptedResponse)
-def send_notification(
-    req: func.HttpRequest, body: EmailNotificationRequest
-) -> func.HttpResponse:
+def send_notification(req: func.HttpRequest, body: EmailNotificationRequest) -> func.HttpResponse:
     logger.info("Queuing email notification to %d recipients", len(body.to))
 
     notification_id = f"ntf_{uuid.uuid4().hex[:12]}"
@@ -105,9 +103,7 @@ def send_notification(
 
 
 @app.function_name(name="get_notification_status")
-@app.route(
-    route="notifications/status", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS
-)
+@app.route(route="notifications/status", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 @openapi(
     route="/api/notifications/status",
     method="get",
@@ -135,7 +131,9 @@ def get_notification_status(
 ) -> NotificationStatusResponse | func.HttpResponse:
     entry = _notifications.get(query.notification_id)
     if not entry:
-        return func.HttpResponse('{"error": "Not found"}', mimetype="application/json", status_code=404)
+        return func.HttpResponse(
+            '{"error": "Not found"}', mimetype="application/json", status_code=404
+        )
 
     return NotificationStatusResponse(
         notification_id=entry["notification_id"],
