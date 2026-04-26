@@ -7,6 +7,11 @@ from azure.functions import HttpResponse
 
 logger = logging.getLogger(__name__)
 
+# Pinned to avoid supply-chain drift from the unpinned `latest` tag on jsDelivr.
+# Bump intentionally; verify releases at https://github.com/swagger-api/swagger-ui/releases.
+_SWAGGER_UI_DIST_VERSION = "5.32.4"
+_SWAGGER_UI_CDN_BASE = f"https://cdn.jsdelivr.net/npm/swagger-ui-dist@{_SWAGGER_UI_DIST_VERSION}"
+
 
 def render_swagger_ui(
     title: str = "API Documentation",
@@ -73,11 +78,11 @@ def render_swagger_ui(
         <title>{sanitized_title}</title>
         <link rel="stylesheet" 
               type="text/css" 
-              href="https://cdn.jsdelivr.net/npm/swagger-ui-dist/swagger-ui.css" />
+              href="{_SWAGGER_UI_CDN_BASE}/swagger-ui.css" />
       </head>
       <body>
         <div id="swagger-ui"></div>
-        <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist/swagger-ui-bundle.js"></script>
+        <script src="{_SWAGGER_UI_CDN_BASE}/swagger-ui-bundle.js"></script>
         <script nonce="{nonce}">
           // Enhanced security configuration
           const ui = SwaggerUIBundle({{
