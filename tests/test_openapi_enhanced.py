@@ -7,13 +7,13 @@ from unittest.mock import patch
 from pydantic import BaseModel, Field
 import pytest
 
-from azure_functions_openapi.openapi import (
+from azure_functions_openapi.spec import (
     generate_openapi_spec,
     get_openapi_json,
     get_openapi_yaml,
 )
 
-OPENAPI_MODULE = importlib.import_module("azure_functions_openapi.openapi")
+OPENAPI_MODULE = importlib.import_module("azure_functions_openapi.spec")
 
 
 class SampleRequestModel(BaseModel):

@@ -13,7 +13,7 @@ from azure_functions_openapi.decorator import (
     openapi,
     register_openapi_metadata,
 )
-from azure_functions_openapi.openapi import (
+from azure_functions_openapi.spec import (
     DEFAULT_OPENAPI_INFO_DESCRIPTION,
     _ensure_default_response,
     generate_openapi_spec,
@@ -21,7 +21,7 @@ from azure_functions_openapi.openapi import (
     get_openapi_yaml,
 )
 
-OPENAPI_MODULE = importlib.import_module("azure_functions_openapi.openapi")
+OPENAPI_MODULE = importlib.import_module("azure_functions_openapi.spec")
 
 
 def _register_http_trigger() -> None:

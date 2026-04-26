@@ -46,18 +46,49 @@ class TestAPISurface:
         )
 
     def test_openapi_root_export_is_decorator(self) -> None:
-        from azure_functions_openapi.decorator import openapi as decorator_openapi
+        import subprocess
+        import sys
 
-        assert azure_functions_openapi.openapi is decorator_openapi
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-W",
+                "ignore::DeprecationWarning",
+                "-c",
+                "import azure_functions_openapi as p; "
+                "from azure_functions_openapi.decorator import openapi as d; "
+                "assert p.openapi is d, type(p.openapi).__name__",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, result.stderr or result.stdout
 
     def test_openapi_submodule_is_importable_via_importlib(self) -> None:
         import importlib
         import types
+        import warnings
 
-        openapi_module = importlib.import_module("azure_functions_openapi.openapi")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            openapi_module = importlib.import_module("azure_functions_openapi.openapi")
 
         assert isinstance(openapi_module, types.ModuleType)
         assert openapi_module.generate_openapi_spec is azure_functions_openapi.generate_openapi_spec
+
+    def test_openapi_submodule_emits_deprecation_warning(self) -> None:
+        import importlib
+        import sys
+        import warnings
+
+        sys.modules.pop("azure_functions_openapi.openapi", None)
+        with warnings.catch_warnings(record=True) as captured:
+            warnings.simplefilter("always")
+            importlib.import_module("azure_functions_openapi.openapi")
+
+        deprecations = [w for w in captured if issubclass(w.category, DeprecationWarning)]
+        assert deprecations, "expected DeprecationWarning when importing the shim"
+        assert "azure_functions_openapi.spec" in str(deprecations[0].message)
 
     def test_generate_openapi_spec_is_callable(self) -> None:
         assert callable(azure_functions_openapi.generate_openapi_spec)

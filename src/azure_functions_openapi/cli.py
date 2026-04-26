@@ -7,7 +7,7 @@ from pathlib import Path
 import sys
 
 from azure_functions_openapi.exceptions import OpenAPISpecConfigError
-from azure_functions_openapi.openapi import (
+from azure_functions_openapi.spec import (
     DEFAULT_OPENAPI_INFO_DESCRIPTION,
     OPENAPI_VERSION_3_0,
     OPENAPI_VERSION_3_1,

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from azure_functions_openapi.openapi import (
+from azure_functions_openapi.spec import (
     OPENAPI_VERSION_3_0,
     OPENAPI_VERSION_3_1,
     _convert_nullable_to_type_array,

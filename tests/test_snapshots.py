@@ -3,6 +3,7 @@
 
 Run with UPDATE_SNAPSHOTS=1 pytest tests/test_snapshots.py to regenerate.
 """
+
 from __future__ import annotations
 
 import importlib
@@ -14,7 +15,7 @@ from typing import Any
 import pytest
 
 import azure_functions_openapi.decorator as decorator_module
-from azure_functions_openapi.openapi import generate_openapi_spec
+from azure_functions_openapi.spec import generate_openapi_spec
 
 SNAPSHOTS_DIR = Path(__file__).parent / "snapshots"
 UPDATE = os.environ.get("UPDATE_SNAPSHOTS", "").strip() not in ("", "0", "false", "no")
@@ -32,6 +33,7 @@ def _clean_registry() -> Any:
     yield
     with decorator_module._registry_lock:
         decorator_module._openapi_registry.clear()
+
 
 def _reload_example(module_path: str) -> None:
     """Clear registry and reload an example module to repopulate it.
@@ -61,8 +63,7 @@ def _assert_snapshot(spec: dict[str, Any], snapshot_name: str) -> None:
 
     if not snapshot_path.exists():
         pytest.fail(
-            f"Snapshot file missing: {snapshot_path}. "
-            "Run with UPDATE_SNAPSHOTS=1 to create it."
+            f"Snapshot file missing: {snapshot_path}. Run with UPDATE_SNAPSHOTS=1 to create it."
         )
 
     expected = snapshot_path.read_text(encoding="utf-8")
@@ -92,18 +93,14 @@ class TestWebhookReceiverSnapshot:
         _reload_example("examples.webhook_receiver.function_app")
         spec = generate_openapi_spec("Webhook Receiver API", "1.0.0")
         path_keys = list(spec["paths"].keys())
-        assert path_keys == sorted(path_keys), (
-            f"Paths are not sorted: {path_keys}"
-        )
+        assert path_keys == sorted(path_keys), f"Paths are not sorted: {path_keys}"
 
     def test_schemas_are_deterministically_ordered(self) -> None:
         """Component schemas must be in sorted order."""
         _reload_example("examples.webhook_receiver.function_app")
         spec = generate_openapi_spec("Webhook Receiver API", "1.0.0")
         schema_keys = list(spec.get("components", {}).get("schemas", {}).keys())
-        assert schema_keys == sorted(schema_keys), (
-            f"Schemas are not sorted: {schema_keys}"
-        )
+        assert schema_keys == sorted(schema_keys), f"Schemas are not sorted: {schema_keys}"
 
 
 class TestReportJobsSnapshot:
@@ -120,18 +117,14 @@ class TestReportJobsSnapshot:
         _reload_example("examples.report_jobs.function_app")
         spec = generate_openapi_spec("Report Jobs API", "1.0.0")
         path_keys = list(spec["paths"].keys())
-        assert path_keys == sorted(path_keys), (
-            f"Paths are not sorted: {path_keys}"
-        )
+        assert path_keys == sorted(path_keys), f"Paths are not sorted: {path_keys}"
 
     def test_schemas_are_deterministically_ordered(self) -> None:
         """Component schemas must be in sorted order."""
         _reload_example("examples.report_jobs.function_app")
         spec = generate_openapi_spec("Report Jobs API", "1.0.0")
         schema_keys = list(spec.get("components", {}).get("schemas", {}).keys())
-        assert schema_keys == sorted(schema_keys), (
-            f"Schemas are not sorted: {schema_keys}"
-        )
+        assert schema_keys == sorted(schema_keys), f"Schemas are not sorted: {schema_keys}"
 
 
 class TestNotificationRequestSnapshot:
@@ -148,9 +141,7 @@ class TestNotificationRequestSnapshot:
         _reload_example("examples.notification_request.function_app")
         spec = generate_openapi_spec("Notification API", "1.0.0")
         path_keys = list(spec["paths"].keys())
-        assert path_keys == sorted(path_keys), (
-            f"Paths are not sorted: {path_keys}"
-        )
+        assert path_keys == sorted(path_keys), f"Paths are not sorted: {path_keys}"
 
 
 class TestWebhookReceiverSnapshot31:
@@ -215,18 +206,14 @@ class TestPartnerImportBridgeSnapshot:
         _reload_example("examples.partner_import_bridge.function_app")
         spec = generate_openapi_spec("Partner Import API", "1.0.0")
         path_keys = list(spec["paths"].keys())
-        assert path_keys == sorted(path_keys), (
-            f"Paths are not sorted: {path_keys}"
-        )
+        assert path_keys == sorted(path_keys), f"Paths are not sorted: {path_keys}"
 
     def test_schemas_are_deterministically_ordered(self) -> None:
         """Component schemas must be in sorted order."""
         _reload_example("examples.partner_import_bridge.function_app")
         spec = generate_openapi_spec("Partner Import API", "1.0.0")
         schema_keys = list(spec.get("components", {}).get("schemas", {}).keys())
-        assert schema_keys == sorted(schema_keys), (
-            f"Schemas are not sorted: {schema_keys}"
-        )
+        assert schema_keys == sorted(schema_keys), f"Schemas are not sorted: {schema_keys}"
 
 
 class TestPartnerImportBridgeSnapshot31:
