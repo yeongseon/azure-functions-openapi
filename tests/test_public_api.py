@@ -45,9 +45,10 @@ class TestAPISurface:
             scan_validation_metadata,
         )
 
-    def test_openapi_is_importable_module(self) -> None:
-        import types
-        assert isinstance(azure_functions_openapi.openapi, types.ModuleType)
+    def test_openapi_root_export_is_decorator(self) -> None:
+        from azure_functions_openapi.decorator import openapi as decorator_openapi
+
+        assert azure_functions_openapi.openapi is decorator_openapi
 
     def test_generate_openapi_spec_is_callable(self) -> None:
         assert callable(azure_functions_openapi.generate_openapi_spec)

@@ -1,5 +1,6 @@
 # tests/test_openapi_enhanced.py
 
+import importlib
 from typing import Any, Dict
 from unittest.mock import patch
 
@@ -11,6 +12,8 @@ from azure_functions_openapi.openapi import (
     get_openapi_json,
     get_openapi_yaml,
 )
+
+OPENAPI_MODULE = importlib.import_module("azure_functions_openapi.openapi")
 
 
 class SampleRequestModel(BaseModel):
@@ -50,9 +53,7 @@ class TestGenerateOpenAPISpecEnhanced:
             }
         }
 
-        with patch(
-            "azure_functions_openapi.openapi.get_openapi_registry", return_value=mock_registry
-        ):
+        with patch.object(OPENAPI_MODULE, "get_openapi_registry", return_value=mock_registry):
             spec = generate_openapi_spec("Test API", "1.0.0")
 
             assert spec["openapi"] == "3.0.0"
@@ -79,10 +80,8 @@ class TestGenerateOpenAPISpecEnhanced:
             }
         }
 
-        with patch(
-            "azure_functions_openapi.openapi.get_openapi_registry", return_value=mock_registry
-        ):
-            with patch("azure_functions_openapi.openapi.model_to_schema") as mock_model_to_schema:
+        with patch.object(OPENAPI_MODULE, "get_openapi_registry", return_value=mock_registry):
+            with patch.object(OPENAPI_MODULE, "model_to_schema") as mock_model_to_schema:
                 # First call succeeds, second call fails
                 mock_model_to_schema.side_effect = [{"type": "object"}, Exception("Schema error")]
 
@@ -129,10 +128,8 @@ class TestGenerateOpenAPISpecEnhanced:
             },
         }
 
-        with patch(
-            "azure_functions_openapi.openapi.get_openapi_registry", return_value=mock_registry
-        ):
-            with patch("azure_functions_openapi.openapi.logger"):
+        with patch.object(OPENAPI_MODULE, "get_openapi_registry", return_value=mock_registry):
+            with patch.object(OPENAPI_MODULE, "logger"):
                 # Mock the processing to fail for bad_func
                 original_spec = generate_openapi_spec("Test API", "1.0.0")
 
@@ -143,7 +140,7 @@ class TestGenerateOpenAPISpecEnhanced:
 
     def test_generate_openapi_spec_general_error(self) -> None:
         """Test OpenAPI spec generation with general error."""
-        with patch("azure_functions_openapi.openapi.get_openapi_registry") as mock_registry:
+        with patch.object(OPENAPI_MODULE, "get_openapi_registry") as mock_registry:
             mock_registry.side_effect = Exception("Registry error")
 
             with pytest.raises(RuntimeError) as exc_info:
@@ -159,10 +156,8 @@ class TestGenerateOpenAPISpecEnhanced:
             "func2": {"summary": "Function 2", "route": "/func2", "method": "post"},
         }
 
-        with patch(
-            "azure_functions_openapi.openapi.get_openapi_registry", return_value=mock_registry
-        ):
-            with patch("azure_functions_openapi.openapi.logger") as mock_logger:
+        with patch.object(OPENAPI_MODULE, "get_openapi_registry", return_value=mock_registry):
+            with patch.object(OPENAPI_MODULE, "logger") as mock_logger:
                 generate_openapi_spec("Test API", "1.0.0")
 
                 # Should log successful generation
@@ -178,7 +173,7 @@ class TestGetOpenAPIJSONEnhanced:
 
     def test_get_openapi_json_success(self) -> None:
         """Test successful JSON generation."""
-        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+        with patch.object(OPENAPI_MODULE, "generate_openapi_spec") as mock_generate:
             mock_generate.return_value = {"openapi": "3.0.0", "info": {"title": "Test API"}}
 
             result = get_openapi_json("Test API", "1.0.0")
@@ -197,7 +192,7 @@ class TestGetOpenAPIJSONEnhanced:
 
     def test_get_openapi_json_error(self) -> None:
         """Test JSON generation with error."""
-        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+        with patch.object(OPENAPI_MODULE, "generate_openapi_spec") as mock_generate:
             mock_generate.side_effect = Exception("Spec error")
 
             with pytest.raises(RuntimeError) as exc_info:
@@ -208,7 +203,7 @@ class TestGetOpenAPIJSONEnhanced:
 
     def test_get_openapi_json_passes_custom_description(self) -> None:
         """Test custom description forwarding for JSON generation."""
-        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+        with patch.object(OPENAPI_MODULE, "generate_openapi_spec") as mock_generate:
             mock_generate.return_value = {"openapi": "3.0.0", "info": {"title": "Test API"}}
 
             get_openapi_json("Test API", "1.0.0", description="Custom description")
@@ -223,10 +218,10 @@ class TestGetOpenAPIJSONEnhanced:
 
     def test_get_openapi_json_logging(self) -> None:
         """Test that JSON generation logs errors."""
-        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+        with patch.object(OPENAPI_MODULE, "generate_openapi_spec") as mock_generate:
             mock_generate.side_effect = Exception("Spec error")
 
-            with patch("azure_functions_openapi.openapi.logger") as mock_logger:
+            with patch.object(OPENAPI_MODULE, "logger") as mock_logger:
                 with pytest.raises(RuntimeError):
                     get_openapi_json("Test API", "1.0.0")
 
@@ -240,7 +235,7 @@ class TestGetOpenAPIYAMLEnhanced:
 
     def test_get_openapi_yaml_success(self) -> None:
         """Test successful YAML generation."""
-        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+        with patch.object(OPENAPI_MODULE, "generate_openapi_spec") as mock_generate:
             mock_generate.return_value = {"openapi": "3.0.0", "info": {"title": "Test API"}}
 
             result = get_openapi_yaml("Test API", "1.0.0")
@@ -258,7 +253,7 @@ class TestGetOpenAPIYAMLEnhanced:
 
     def test_get_openapi_yaml_error(self) -> None:
         """Test YAML generation with error."""
-        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+        with patch.object(OPENAPI_MODULE, "generate_openapi_spec") as mock_generate:
             mock_generate.side_effect = Exception("Spec error")
 
             with pytest.raises(RuntimeError) as exc_info:
@@ -269,7 +264,7 @@ class TestGetOpenAPIYAMLEnhanced:
 
     def test_get_openapi_yaml_passes_custom_description(self) -> None:
         """Test custom description forwarding for YAML generation."""
-        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+        with patch.object(OPENAPI_MODULE, "generate_openapi_spec") as mock_generate:
             mock_generate.return_value = {"openapi": "3.0.0", "info": {"title": "Test API"}}
 
             get_openapi_yaml("Test API", "1.0.0", description="Custom description")
@@ -284,10 +279,10 @@ class TestGetOpenAPIYAMLEnhanced:
 
     def test_get_openapi_yaml_logging(self) -> None:
         """Test that YAML generation logs errors."""
-        with patch("azure_functions_openapi.openapi.generate_openapi_spec") as mock_generate:
+        with patch.object(OPENAPI_MODULE, "generate_openapi_spec") as mock_generate:
             mock_generate.side_effect = Exception("Spec error")
 
-            with patch("azure_functions_openapi.openapi.logger") as mock_logger:
+            with patch.object(OPENAPI_MODULE, "logger") as mock_logger:
                 with pytest.raises(RuntimeError):
                     get_openapi_yaml("Test API", "1.0.0")
 
@@ -329,10 +324,8 @@ class TestOpenAPISpecComplexScenarios:
             }
         }
 
-        with patch(
-            "azure_functions_openapi.openapi.get_openapi_registry", return_value=mock_registry
-        ):
-            with patch("azure_functions_openapi.openapi.model_to_schema") as mock_model_to_schema:
+        with patch.object(OPENAPI_MODULE, "get_openapi_registry", return_value=mock_registry):
+            with patch.object(OPENAPI_MODULE, "model_to_schema") as mock_model_to_schema:
                 mock_model_to_schema.return_value = {
                     "type": "object",
                     "properties": {"name": {"type": "string"}},
@@ -400,9 +393,7 @@ class TestOpenAPISpecComplexScenarios:
             },
         }
 
-        with patch(
-            "azure_functions_openapi.openapi.get_openapi_registry", return_value=mock_registry
-        ):
+        with patch.object(OPENAPI_MODULE, "get_openapi_registry", return_value=mock_registry):
             spec = generate_openapi_spec("User API", "1.0.0")
 
             # Check that all methods are on the same path
@@ -429,8 +420,9 @@ class TestDeterministicOrdering:
             "func_a": {"route": "/a", "method": "get", "response": {}, "tags": ["t"]},
             "func_m": {"route": "/m", "method": "get", "response": {}, "tags": ["t"]},
         }
-        with patch(
-            "azure_functions_openapi.openapi.get_openapi_registry",
+        with patch.object(
+            OPENAPI_MODULE,
+            "get_openapi_registry",
             return_value=mock_registry,
         ):
             spec = generate_openapi_spec("Test", "1.0.0")
@@ -463,8 +455,9 @@ class TestDeterministicOrdering:
                 "tags": ["t"],
             },
         }
-        with patch(
-            "azure_functions_openapi.openapi.get_openapi_registry",
+        with patch.object(
+            OPENAPI_MODULE,
+            "get_openapi_registry",
             return_value=mock_registry,
         ):
             spec = generate_openapi_spec("Test", "1.0.0")
@@ -474,8 +467,9 @@ class TestDeterministicOrdering:
 
     def test_empty_registry_produces_sorted_empty_paths(self) -> None:
         """Empty registry produces an empty (but sorted) paths dict."""
-        with patch(
-            "azure_functions_openapi.openapi.get_openapi_registry",
+        with patch.object(
+            OPENAPI_MODULE,
+            "get_openapi_registry",
             return_value={},
         ):
             spec = generate_openapi_spec("Test", "1.0.0")

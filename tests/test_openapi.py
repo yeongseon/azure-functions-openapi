@@ -1,4 +1,5 @@
 # tests/test_openapi.py
+import importlib
 import json
 from typing import Any
 from unittest.mock import patch
@@ -14,6 +15,8 @@ from azure_functions_openapi.openapi import (
     get_openapi_json,
     get_openapi_yaml,
 )
+
+OPENAPI_MODULE = importlib.import_module("azure_functions_openapi.openapi")
 
 
 def _register_http_trigger() -> None:
@@ -425,6 +428,7 @@ def test_generate_openapi_spec_keeps_explicit_non_200_responses_without_adding_2
 
 def test_generate_openapi_spec_with_security_schemes_param() -> None:
     """Test that security_schemes param adds components.securitySchemes."""
+
     @openapi(
         route="/secure-param",
         summary="Secured with param",
@@ -449,6 +453,7 @@ def test_generate_openapi_spec_with_security_schemes_param() -> None:
 
 def test_generate_openapi_spec_with_decorator_security_scheme() -> None:
     """Test that security_scheme in @openapi decorator adds components.securitySchemes."""
+
     @openapi(
         route="/secure-decorator",
         summary="Secured with decorator scheme",
@@ -471,19 +476,22 @@ def test_generate_openapi_spec_with_decorator_security_scheme() -> None:
 
 def test_generate_openapi_spec_merges_security_schemes() -> None:
     """Test that security schemes from both param and decorators are merged."""
+
     @openapi(
         route="/secure-merged",
         summary="Merged schemes",
         security=[{"OAuth2": ["read"]}],
-        security_scheme={"OAuth2": {
-            "type": "oauth2",
-            "flows": {
-                "implicit": {
-                    "authorizationUrl": "https://example.com/auth",
-                    "scopes": {"read": "Read"},
+        security_scheme={
+            "OAuth2": {
+                "type": "oauth2",
+                "flows": {
+                    "implicit": {
+                        "authorizationUrl": "https://example.com/auth",
+                        "scopes": {"read": "Read"},
+                    },
                 },
-            },
-        }},
+            }
+        },
         response={200: {"description": "OK"}},
     )
     def secure_merged_endpoint() -> None:
@@ -499,6 +507,7 @@ def test_generate_openapi_spec_merges_security_schemes() -> None:
 
 def test_security_schemes_in_json_output() -> None:
     """Test that security schemes appear in JSON output."""
+
     @openapi(
         route="/secure-json",
         summary="Secured JSON",
@@ -514,6 +523,8 @@ def test_security_schemes_in_json_output() -> None:
     )
     spec = json.loads(json_str)
     assert "securitySchemes" in spec.get("components", {})
+
+
 def test_response_model_with_content_not_dict() -> None:
     """When existing 200 response has content that is not a dict, it gets replaced."""
 
@@ -586,8 +597,9 @@ def test_response_model_schema_generation_failure_no_200() -> None:
     def schema_fail_no_200_func() -> None:
         pass
 
-    with patch(
-        "azure_functions_openapi.openapi.model_to_schema",
+    with patch.object(
+        OPENAPI_MODULE,
+        "model_to_schema",
         side_effect=Exception("schema generation failed"),
     ):
         spec = generate_openapi_spec()
@@ -612,8 +624,9 @@ def test_response_model_schema_generation_failure_with_200() -> None:
     def schema_fail_with_200_func() -> None:
         pass
 
-    with patch(
-        "azure_functions_openapi.openapi.model_to_schema",
+    with patch.object(
+        OPENAPI_MODULE,
+        "model_to_schema",
         side_effect=Exception("schema generation failed"),
     ):
         spec = generate_openapi_spec()
@@ -649,8 +662,9 @@ def test_malformed_registry_entry_skipped() -> None:
         "response": {200: 42},  # detail=42 → dict(42) raises TypeError
     }
 
-    with patch(
-        "azure_functions_openapi.openapi.get_openapi_registry",
+    with patch.object(
+        OPENAPI_MODULE,
+        "get_openapi_registry",
         return_value=malformed_registry,
     ):
         spec = generate_openapi_spec()
@@ -675,6 +689,7 @@ def test_security_scheme_collision_raises_value_error() -> None:
         pass
 
     from azure_functions_openapi.decorator import get_openapi_registry
+
     real_registry = get_openapi_registry()
     conflicting = dict(real_registry)
     # Inject a second entry that redefines SharedAuth with a *different* definition
@@ -696,8 +711,9 @@ def test_security_scheme_collision_raises_value_error() -> None:
         "_function_id": "tests.test_openapi.collision_func_b",
     }
 
-    with patch(
-        "azure_functions_openapi.openapi.get_openapi_registry",
+    with patch.object(
+        OPENAPI_MODULE,
+        "get_openapi_registry",
         return_value=conflicting,
     ):
         with pytest.raises(ValueError, match="Conflicting security scheme definition"):
@@ -706,6 +722,7 @@ def test_security_scheme_collision_raises_value_error() -> None:
 
 def test_generate_openapi_spec_with_delete_request_body() -> None:
     """DELETE endpoints can have a requestBody when one is specified."""
+
     @openapi(
         route="/items/{id}",
         method="delete",
@@ -726,6 +743,7 @@ def test_generate_openapi_spec_with_delete_request_body() -> None:
 
 def test_generate_openapi_spec_request_body_required_false() -> None:
     """request_body_required=False is reflected in the generated spec."""
+
     @openapi(
         route="/optional-body-spec",
         method="post",
@@ -746,35 +764,59 @@ def _make_conflicting_registry() -> dict[str, Any]:
     """Return a registry with two entries that define the same security scheme differently."""
     empty_scopes: list[str] = []
     return {
-        "fn_a": {"route": "/a", "method": "get", "summary": "", "description": "",
-                 "tags": ["default"], "operation_id": None, "parameters": [],
-                 "security": [{"Auth": empty_scopes}],
-                 "security_scheme": {"Auth": {"type": "http", "scheme": "bearer"}},
-                 "request_model": None, "request_body": None, "request_body_required": True,
-                 "response_model": None, "response": {200: {"description": "OK"}},
-                 "function_name": "fn_a", "_function_id": "fn_a"},
-        "fn_b": {"route": "/b", "method": "get", "summary": "", "description": "",
-                 "tags": ["default"], "operation_id": None, "parameters": [],
-                 "security": [{"Auth": empty_scopes}],
-                 "security_scheme": {"Auth": {"type": "apiKey", "in": "header", "name": "X-Key"}},
-                 "request_model": None, "request_body": None, "request_body_required": True,
-                 "response_model": None, "response": {200: {"description": "OK"}},
-                 "function_name": "fn_b", "_function_id": "fn_b"},
+        "fn_a": {
+            "route": "/a",
+            "method": "get",
+            "summary": "",
+            "description": "",
+            "tags": ["default"],
+            "operation_id": None,
+            "parameters": [],
+            "security": [{"Auth": empty_scopes}],
+            "security_scheme": {"Auth": {"type": "http", "scheme": "bearer"}},
+            "request_model": None,
+            "request_body": None,
+            "request_body_required": True,
+            "response_model": None,
+            "response": {200: {"description": "OK"}},
+            "function_name": "fn_a",
+            "_function_id": "fn_a",
+        },
+        "fn_b": {
+            "route": "/b",
+            "method": "get",
+            "summary": "",
+            "description": "",
+            "tags": ["default"],
+            "operation_id": None,
+            "parameters": [],
+            "security": [{"Auth": empty_scopes}],
+            "security_scheme": {"Auth": {"type": "apiKey", "in": "header", "name": "X-Key"}},
+            "request_model": None,
+            "request_body": None,
+            "request_body_required": True,
+            "response_model": None,
+            "response": {200: {"description": "OK"}},
+            "function_name": "fn_b",
+            "_function_id": "fn_b",
+        },
     }
 
 
 def test_get_openapi_json_propagates_value_error() -> None:
     """get_openapi_json must not swallow ValueError from collision detection."""
-    with patch("azure_functions_openapi.openapi.get_openapi_registry",
-               return_value=_make_conflicting_registry()):
+    with patch.object(
+        OPENAPI_MODULE, "get_openapi_registry", return_value=_make_conflicting_registry()
+    ):
         with pytest.raises(ValueError, match="Conflicting security scheme definition"):
             get_openapi_json()
 
 
 def test_get_openapi_yaml_propagates_value_error() -> None:
     """get_openapi_yaml must not swallow ValueError from collision detection."""
-    with patch("azure_functions_openapi.openapi.get_openapi_registry",
-               return_value=_make_conflicting_registry()):
+    with patch.object(
+        OPENAPI_MODULE, "get_openapi_registry", return_value=_make_conflicting_registry()
+    ):
         with pytest.raises(ValueError, match="Conflicting security scheme definition"):
             get_openapi_yaml()
 

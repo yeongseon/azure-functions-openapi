@@ -110,6 +110,9 @@ known-first-party = ["azure_functions_openapi"]
 force-sort-within-sections = true
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
 
+[tool.ruff.lint.per-file-ignores]
+"src/azure_functions_openapi/__init__.py" = ["I001"]
+
 [tool.mypy]
 python_version = "3.10"
 strict = true
