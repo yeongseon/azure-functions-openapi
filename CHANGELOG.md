@@ -2,8 +2,51 @@
 
 All notable changes to this project will be documented in this file.
 
+### Bug Fixes
+
+- *(swagger-ui)* Pin swagger-ui-dist CDN version (#191) (#196) 
+- Resolve `openapi` package attribute to the decorator (#187) (#188) 
+
 ### Documentation
 
+- Add Request Flow and Runtime Relationship section to architecture 
+- Align all documentation with redesigned examples (#176) 
+
+### Features
+
+- *(cli)* Expose --description option for generated OpenAPI info (#200) 
+- *(route-prefix)* Make Azure Functions route prefix configurable (#193) (#197) 
+- Harden metadata convention reader (#172) (#178) 
+- Replace examples with practical, production-ready patterns (#173) 
+
+### Miscellaneous Tasks
+
+- *(deps)* Bump ruff from 0.15.10 to 0.15.12 (#185) 
+- *(deps)* Bump mypy from 1.20.1 to 1.20.2 (#186) 
+- Fix project metadata URLs to match the actual repository (#195) 
+- *(deps)* Bump softprops/action-gh-release from 2.6.1 to 3.0.0 
+- *(deps)* Bump github/codeql-action from 4.35.1 to 4.35.2 
+- *(deps)* Bump actions/github-script from 8.0.0 to 9.0.0 
+- *(deps)* Bump actions/upload-artifact from 7.0.0 to 7.0.1 
+- *(deps)* Bump mypy from 1.20.0 to 1.20.1 
+
+### Other
+
+- Bump version to 0.18.0 
+
+### Refactor
+
+- *(spec)* Rename internal openapi.py submodule to spec.py (#194) (#202) 
+- Remove legacy _azure_functions_toolkit_metadata fallback from bridge (#177) 
+
+### Testing
+
+- Bump expected __version__ to 0.18.0 ahead of release-minor 
+- *(bridge)* Cover substring-trap regression for route prefix matching (#199) 
+
+### Documentation
+
+- Update changelog 
 - Add Before/After section to README (#167) 
 - Standardize ecosystem table in README 
 
@@ -508,6 +551,7 @@ All notable changes to this project will be documented in this file.
 - *(ci)* Replace test.yml with ci-test.yml for clarity and maintainability 
 - *(build)* Clean up config and align with Hatch-based Makefile execution 
 - Improve Makefile with Python 3.9+ check, .PHONY, and cross-platform venv support 
+- Release v0.4.0 
 
 ### Other
 
@@ -553,7 +597,6 @@ All notable changes to this project will be documented in this file.
 
 ### Miscellaneous Tasks
 
-- Release v0.4.0 
 - Release v0.4.0 
 - Add junit.xml to .gitignore 
 - Update pre-commit config to include black, ruff, mypy, and bandit 
