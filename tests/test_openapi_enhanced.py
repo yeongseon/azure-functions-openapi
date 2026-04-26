@@ -54,7 +54,7 @@ class TestGenerateOpenAPISpecEnhanced:
         }
 
         with patch.object(OPENAPI_MODULE, "get_openapi_registry", return_value=mock_registry):
-            spec = generate_openapi_spec("Test API", "1.0.0")
+            spec = generate_openapi_spec("Test API", "1.0.0", route_prefix="")
 
             assert spec["openapi"] == "3.0.0"
             assert spec["info"]["title"] == "Test API"
@@ -85,7 +85,7 @@ class TestGenerateOpenAPISpecEnhanced:
                 # First call succeeds, second call fails
                 mock_model_to_schema.side_effect = [{"type": "object"}, Exception("Schema error")]
 
-                spec = generate_openapi_spec("Test API", "1.0.0")
+                spec = generate_openapi_spec("Test API", "1.0.0", route_prefix="")
 
                 assert spec["openapi"] == "3.0.0"
                 assert "/test" in spec["paths"]
@@ -131,7 +131,7 @@ class TestGenerateOpenAPISpecEnhanced:
         with patch.object(OPENAPI_MODULE, "get_openapi_registry", return_value=mock_registry):
             with patch.object(OPENAPI_MODULE, "logger"):
                 # Mock the processing to fail for bad_func
-                original_spec = generate_openapi_spec("Test API", "1.0.0")
+                original_spec = generate_openapi_spec("Test API", "1.0.0", route_prefix="")
 
                 # Should still generate spec for good functions
                 assert original_spec["openapi"] == "3.0.0"
@@ -188,6 +188,7 @@ class TestGetOpenAPIJSONEnhanced:
                 description="Auto-generated OpenAPI documentation. "
                 "Markdown supported in descriptions (CommonMark).",
                 security_schemes=None,
+                route_prefix="/api",
             )
 
     def test_get_openapi_json_error(self) -> None:
@@ -214,6 +215,7 @@ class TestGetOpenAPIJSONEnhanced:
                 "3.0.0",
                 description="Custom description",
                 security_schemes=None,
+                route_prefix="/api",
             )
 
     def test_get_openapi_json_logging(self) -> None:
@@ -249,6 +251,7 @@ class TestGetOpenAPIYAMLEnhanced:
                 description="Auto-generated OpenAPI documentation. "
                 "Markdown supported in descriptions (CommonMark).",
                 security_schemes=None,
+                route_prefix="/api",
             )
 
     def test_get_openapi_yaml_error(self) -> None:
@@ -275,6 +278,7 @@ class TestGetOpenAPIYAMLEnhanced:
                 "3.0.0",
                 description="Custom description",
                 security_schemes=None,
+                route_prefix="/api",
             )
 
     def test_get_openapi_yaml_logging(self) -> None:
@@ -331,7 +335,7 @@ class TestOpenAPISpecComplexScenarios:
                     "properties": {"name": {"type": "string"}},
                 }
 
-                spec = generate_openapi_spec("Complex API", "2.0.0")
+                spec = generate_openapi_spec("Complex API", "2.0.0", route_prefix="")
 
                 assert spec["openapi"] == "3.0.0"
                 assert spec["info"]["title"] == "Complex API"
@@ -394,7 +398,7 @@ class TestOpenAPISpecComplexScenarios:
         }
 
         with patch.object(OPENAPI_MODULE, "get_openapi_registry", return_value=mock_registry):
-            spec = generate_openapi_spec("User API", "1.0.0")
+            spec = generate_openapi_spec("User API", "1.0.0", route_prefix="")
 
             # Check that all methods are on the same path
             assert "/users/{id}" in spec["paths"]
@@ -425,7 +429,7 @@ class TestDeterministicOrdering:
             "get_openapi_registry",
             return_value=mock_registry,
         ):
-            spec = generate_openapi_spec("Test", "1.0.0")
+            spec = generate_openapi_spec("Test", "1.0.0", route_prefix="")
 
         assert list(spec["paths"].keys()) == ["/a", "/m", "/z"]
 
@@ -460,7 +464,7 @@ class TestDeterministicOrdering:
             "get_openapi_registry",
             return_value=mock_registry,
         ):
-            spec = generate_openapi_spec("Test", "1.0.0")
+            spec = generate_openapi_spec("Test", "1.0.0", route_prefix="")
 
         schema_keys = list(spec["components"]["schemas"].keys())
         assert schema_keys == sorted(schema_keys)
@@ -472,6 +476,6 @@ class TestDeterministicOrdering:
             "get_openapi_registry",
             return_value={},
         ):
-            spec = generate_openapi_spec("Test", "1.0.0")
+            spec = generate_openapi_spec("Test", "1.0.0", route_prefix="")
 
         assert spec["paths"] == {}

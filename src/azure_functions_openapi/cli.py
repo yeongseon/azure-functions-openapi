@@ -101,6 +101,15 @@ Examples:
         default="3.0",
         help="OpenAPI version (default: 3.0)",
     )
+    generate_parser.add_argument(
+        "--route-prefix",
+        default="/api",
+        help=(
+            "HTTP route prefix from host.json extensions.http.routePrefix "
+            "(default: /api). Pass an empty string for hosts that disable "
+            "the prefix, or a custom value such as /v1 for a custom deployment."
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -139,7 +148,12 @@ def handle_generate(args: argparse.Namespace) -> int:
 
         # Check for empty paths before serialising — gives a clear signal
         # instead of silently producing a spec with no routes.
-        spec = generate_openapi_spec(args.title, args.version, openapi_version)
+        spec = generate_openapi_spec(
+            args.title,
+            args.version,
+            openapi_version,
+            route_prefix=getattr(args, "route_prefix", "/api"),
+        )
         if not spec.get("paths"):
             print(
                 "Warning: No routes found in the OpenAPI registry. "

@@ -97,9 +97,7 @@ def _make_app(
 
 
 def test_scan_discovers_validation_metadata() -> None:
-    app = _make_app(
-        metadata={"body": CreateBody, "response_model": ResponseModel}
-    )
+    app = _make_app(metadata={"body": CreateBody, "response_model": ResponseModel})
 
     scan_validation_metadata(app)
 
@@ -119,14 +117,13 @@ def test_scan_skips_non_validated_functions() -> None:
 
 def test_explicit_openapi_wins() -> None:
     register_openapi_metadata(path="/api/users", method="post", summary="explicit")
-    app = _make_app(
-        metadata={"body": CreateBody, "response_model": ResponseModel}
-    )
+    app = _make_app(metadata={"body": CreateBody, "response_model": ResponseModel})
 
     scan_validation_metadata(app)
 
     entry = get_openapi_registry()["post::/api/users"]
     assert entry["summary"] == "explicit"
+
 
 def test_body_model_registered_as_request_body() -> None:
     app = _make_app(metadata={"body": CreateBody})
@@ -148,9 +145,7 @@ def test_query_model_registered_as_parameters() -> None:
 
 
 def test_path_model_registered_as_parameters() -> None:
-    app = _make_app(
-        route="users/{user_id}", metadata={"path": PathModel}
-    )
+    app = _make_app(route="users/{user_id}", metadata={"path": PathModel})
 
     scan_validation_metadata(app)
 
@@ -373,10 +368,14 @@ class TestVersionValidation:
     def test_version_1_accepted(self) -> None:
         """Explicit version=1 is accepted."""
         handler = lambda req: req  # noqa: E731
-        setattr(handler, _HANDLER_METADATA_ATTR, {
-            "version": 1,
-            "validation": {"body": CreateBody},
-        })
+        setattr(
+            handler,
+            _HANDLER_METADATA_ATTR,
+            {
+                "version": 1,
+                "validation": {"body": CreateBody},
+            },
+        )
 
         result = _read_validation_hints(handler)
         assert result is not None
@@ -385,10 +384,14 @@ class TestVersionValidation:
     def test_unsupported_version_skipped(self) -> None:
         """Unsupported integer version emits warning and returns None."""
         handler = lambda req: req  # noqa: E731
-        setattr(handler, _HANDLER_METADATA_ATTR, {
-            "version": 999,
-            "validation": {"body": CreateBody},
-        })
+        setattr(
+            handler,
+            _HANDLER_METADATA_ATTR,
+            {
+                "version": 999,
+                "validation": {"body": CreateBody},
+            },
+        )
 
         result = _read_validation_hints(handler)
         assert result is None
@@ -396,10 +399,14 @@ class TestVersionValidation:
     def test_malformed_version_string_skipped(self) -> None:
         """Non-int version (e.g. string) emits warning and returns None."""
         handler = lambda req: req  # noqa: E731
-        setattr(handler, _HANDLER_METADATA_ATTR, {
-            "version": "1",
-            "validation": {"body": CreateBody},
-        })
+        setattr(
+            handler,
+            _HANDLER_METADATA_ATTR,
+            {
+                "version": "1",
+                "validation": {"body": CreateBody},
+            },
+        )
 
         result = _read_validation_hints(handler)
         assert result is None
@@ -407,10 +414,14 @@ class TestVersionValidation:
     def test_malformed_version_float_skipped(self) -> None:
         """Float version is rejected (only int accepted)."""
         handler = lambda req: req  # noqa: E731
-        setattr(handler, _HANDLER_METADATA_ATTR, {
-            "version": 1.0,
-            "validation": {"body": CreateBody},
-        })
+        setattr(
+            handler,
+            _HANDLER_METADATA_ATTR,
+            {
+                "version": 1.0,
+                "validation": {"body": CreateBody},
+            },
+        )
 
         result = _read_validation_hints(handler)
         assert result is None
@@ -418,10 +429,14 @@ class TestVersionValidation:
     def test_unsupported_version_warning_logged(self, caplog: pytest.LogCaptureFixture) -> None:
         """Warning is logged with handler repr and unsupported version."""
         handler = lambda req: req  # noqa: E731
-        setattr(handler, _HANDLER_METADATA_ATTR, {
-            "version": 42,
-            "validation": {"body": CreateBody},
-        })
+        setattr(
+            handler,
+            _HANDLER_METADATA_ATTR,
+            {
+                "version": 42,
+                "validation": {"body": CreateBody},
+            },
+        )
 
         with caplog.at_level("WARNING", logger="azure_functions_openapi.bridge"):
             _read_validation_hints(handler)
@@ -429,20 +444,27 @@ class TestVersionValidation:
         assert any("unsupported version" in m for m in caplog.messages)
         assert any("42" in m for m in caplog.messages)
 
-
     def test_outer_invalid_version_inner_valid_discovered(self) -> None:
         """Invalid version on outer should not block valid inner metadata."""
         inner: Any = lambda req: req  # noqa: E731
-        setattr(inner, _HANDLER_METADATA_ATTR, {
-            "version": 1,
-            "validation": {"body": CreateBody},
-        })
+        setattr(
+            inner,
+            _HANDLER_METADATA_ATTR,
+            {
+                "version": 1,
+                "validation": {"body": CreateBody},
+            },
+        )
 
         outer: Any = lambda req: inner(req)  # noqa: E731
-        setattr(outer, _HANDLER_METADATA_ATTR, {
-            "version": 999,
-            "validation": {"body": ResponseModel},
-        })
+        setattr(
+            outer,
+            _HANDLER_METADATA_ATTR,
+            {
+                "version": 999,
+                "validation": {"body": ResponseModel},
+            },
+        )
         outer.__wrapped__ = inner
 
         result = _read_validation_hints(outer)
@@ -453,13 +475,18 @@ class TestVersionValidation:
     def test_boolean_version_rejected(self) -> None:
         """version=True is a bool, not int — should be rejected."""
         handler = lambda req: req  # noqa: E731
-        setattr(handler, _HANDLER_METADATA_ATTR, {
-            "version": True,
-            "validation": {"body": CreateBody},
-        })
+        setattr(
+            handler,
+            _HANDLER_METADATA_ATTR,
+            {
+                "version": True,
+                "validation": {"body": CreateBody},
+            },
+        )
 
         result = _read_validation_hints(handler)
         assert result is None
+
 
 class TestDeepCopyMutationSafety:
     """Returned hints are deep copies — mutating them doesn't affect the handler."""
@@ -483,9 +510,13 @@ class TestDeepCopyMutationSafety:
 
     def test_successive_reads_are_independent(self) -> None:
         handler = lambda req: req  # noqa: E731
-        setattr(handler, _HANDLER_METADATA_ATTR, {
-            "validation": {"body": CreateBody, "extra": {"key": "original"}},
-        })
+        setattr(
+            handler,
+            _HANDLER_METADATA_ATTR,
+            {
+                "validation": {"body": CreateBody, "extra": {"key": "original"}},
+            },
+        )
 
         first = _read_validation_hints(handler)
         assert first is not None
@@ -494,3 +525,44 @@ class TestDeepCopyMutationSafety:
         second = _read_validation_hints(handler)
         assert second is not None
         assert second["extra"]["key"] == "original"
+
+
+def test_scan_uses_default_api_prefix() -> None:
+    app = _make_app(metadata={"body": CreateBody})
+
+    scan_validation_metadata(app)
+
+    assert "post::/api/users" in get_openapi_registry()
+
+
+def test_scan_supports_empty_prefix_for_disabled_host_prefix() -> None:
+    app = _make_app(metadata={"body": CreateBody})
+
+    scan_validation_metadata(app, route_prefix="")
+
+    assert "post::/users" in get_openapi_registry()
+
+
+def test_scan_supports_custom_prefix() -> None:
+    app = _make_app(metadata={"body": CreateBody})
+
+    scan_validation_metadata(app, route_prefix="/v1")
+
+    assert "post::/v1/users" in get_openapi_registry()
+
+
+def test_scan_does_not_double_apply_prefix() -> None:
+    app = _make_app(route="/api/users", metadata={"body": CreateBody})
+
+    scan_validation_metadata(app, route_prefix="/api")
+
+    assert "post::/api/users" in get_openapi_registry()
+    assert "post::/api/api/users" not in get_openapi_registry()
+
+
+def test_scan_normalizes_prefix_with_trailing_slash() -> None:
+    app = _make_app(metadata={"body": CreateBody})
+
+    scan_validation_metadata(app, route_prefix="v1/")
+
+    assert "post::/v1/users" in get_openapi_registry()

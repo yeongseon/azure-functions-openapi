@@ -9,6 +9,11 @@ import yaml
 
 from azure_functions_openapi.decorator import get_openapi_registry
 from azure_functions_openapi.exceptions import OpenAPISpecConfigError
+from azure_functions_openapi.routes import (
+    DEFAULT_ROUTE_PREFIX,
+    apply_route_prefix,
+    normalize_route_prefix,
+)
 from azure_functions_openapi.utils import model_to_schema
 
 logger = logging.getLogger(__name__)
@@ -106,6 +111,7 @@ def generate_openapi_spec(
     openapi_version: str = OPENAPI_VERSION_3_0,
     description: str = DEFAULT_OPENAPI_INFO_DESCRIPTION,
     security_schemes: dict[str, dict[str, Any]] | None = None,
+    route_prefix: str = DEFAULT_ROUTE_PREFIX,
 ) -> dict[str, Any]:
     """
     Compile an OpenAPI specification from the registry.
@@ -117,6 +123,11 @@ def generate_openapi_spec(
         description: Description for the OpenAPI info object
         security_schemes: Security scheme definitions for components.securitySchemes.
             Example: {"BearerAuth": {"type": "http", "scheme": "bearer"}}
+        route_prefix: HTTP route prefix from ``host.json``
+            (``extensions.http.routePrefix``). Defaults to ``"/api"``. Pass
+            ``""`` for hosts that disable the prefix or a custom value such
+            as ``"/v1"``. Routes that already start with the prefix are not
+            re-prefixed.
 
     Returns:
         OpenAPI specification dictionary
@@ -127,6 +138,8 @@ def generate_openapi_spec(
             f"{OPENAPI_VERSION_3_0}, {OPENAPI_VERSION_3_1}"
         )
 
+    normalized_prefix = normalize_route_prefix(route_prefix)
+
     try:
         registry = get_openapi_registry()
         paths: dict[str, dict[str, Any]] = {}
@@ -136,7 +149,8 @@ def generate_openapi_spec(
             try:
                 logical_name = meta.get("function_name") or func_name
                 # route & method --------------------------------------------------
-                path = f"/{(meta.get('route') or logical_name).lstrip('/')}"
+                raw_path = f"/{(meta.get('route') or logical_name).lstrip('/')}"
+                path = apply_route_prefix(raw_path, normalized_prefix)
                 method = (meta.get("method") or "get").lower()
 
                 # responses -------------------------------------------------------
@@ -309,6 +323,7 @@ def get_openapi_json(
     openapi_version: str = OPENAPI_VERSION_3_0,
     description: str = DEFAULT_OPENAPI_INFO_DESCRIPTION,
     security_schemes: dict[str, dict[str, Any]] | None = None,
+    route_prefix: str = DEFAULT_ROUTE_PREFIX,
 ) -> str:
     """Return the spec as pretty-printed JSON (UTF-8).
 
@@ -318,15 +333,22 @@ def get_openapi_json(
         openapi_version: OpenAPI specification version ("3.0.0" or "3.1.0")
         description: Description for the OpenAPI info object
         security_schemes: Security scheme definitions for components.securitySchemes.
+        route_prefix: HTTP route prefix from ``host.json``
+            (``extensions.http.routePrefix``). Defaults to ``"/api"``. Pass
+            ``""`` for hosts that disable the prefix or a custom value such
+            as ``"/v1"``.
 
     Returns:
         OpenAPI spec in JSON format.
     """
     try:
         spec = generate_openapi_spec(
-            title, version, openapi_version,
+            title,
+            version,
+            openapi_version,
             description=description,
             security_schemes=security_schemes,
+            route_prefix=route_prefix,
         )
         return json.dumps(spec, indent=2, ensure_ascii=False)
     except OpenAPISpecConfigError:
@@ -342,6 +364,7 @@ def get_openapi_yaml(
     openapi_version: str = OPENAPI_VERSION_3_0,
     description: str = DEFAULT_OPENAPI_INFO_DESCRIPTION,
     security_schemes: dict[str, dict[str, Any]] | None = None,
+    route_prefix: str = DEFAULT_ROUTE_PREFIX,
 ) -> str:
     """Return the spec as YAML.
 
@@ -351,15 +374,22 @@ def get_openapi_yaml(
         openapi_version: OpenAPI specification version ("3.0.0" or "3.1.0")
         description: Description for the OpenAPI info object
         security_schemes: Security scheme definitions for components.securitySchemes.
+        route_prefix: HTTP route prefix from ``host.json``
+            (``extensions.http.routePrefix``). Defaults to ``"/api"``. Pass
+            ``""`` for hosts that disable the prefix or a custom value such
+            as ``"/v1"``.
 
     Returns:
         OpenAPI spec in YAML format.
     """
     try:
         spec = generate_openapi_spec(
-            title, version, openapi_version,
+            title,
+            version,
+            openapi_version,
             description=description,
             security_schemes=security_schemes,
+            route_prefix=route_prefix,
         )
         return yaml.safe_dump(spec, sort_keys=False, allow_unicode=True)
     except OpenAPISpecConfigError:

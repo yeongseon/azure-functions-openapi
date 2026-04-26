@@ -6,8 +6,13 @@ from unittest.mock import patch
 
 from pydantic import BaseModel
 import pytest
+import yaml
 
-from azure_functions_openapi.decorator import openapi
+from azure_functions_openapi.decorator import (
+    clear_openapi_registry,
+    openapi,
+    register_openapi_metadata,
+)
 from azure_functions_openapi.openapi import (
     DEFAULT_OPENAPI_INFO_DESCRIPTION,
     _ensure_default_response,
@@ -58,7 +63,7 @@ def test_generate_openapi_spec_structure() -> None:
     def sample_func() -> None:
         pass
 
-    spec = generate_openapi_spec(title="My API", version="1.2.3")
+    spec = generate_openapi_spec(title="My API", version="1.2.3", route_prefix="")
 
     assert spec["openapi"] == "3.0.0"
     assert spec["info"]["title"] == "My API"
@@ -84,7 +89,7 @@ def test_get_openapi_json_output() -> None:
 
 
 def test_generate_openapi_spec_uses_default_info_description() -> None:
-    spec = generate_openapi_spec()
+    spec = generate_openapi_spec(route_prefix="")
 
     assert spec["info"]["description"] == DEFAULT_OPENAPI_INFO_DESCRIPTION
 
@@ -118,7 +123,7 @@ def test_generate_openapi_spec_with_request_body() -> None:
     def func_with_body() -> None:
         pass
 
-    spec = generate_openapi_spec()
+    spec = generate_openapi_spec(route_prefix="")
     rb = spec["paths"]["/func_with_body"]["post"]["requestBody"]
     schema = rb["content"]["application/json"]["schema"]
     assert {"username", "password"} <= schema["properties"].keys()
@@ -152,7 +157,7 @@ def test_response_schema_and_examples() -> None:
     def greet() -> None:
         pass
 
-    op = generate_openapi_spec()["paths"]["/greet"]["get"]
+    op = generate_openapi_spec(route_prefix="")["paths"]["/greet"]["get"]
     assert (
         op["responses"]["200"]["content"]["application/json"]["examples"]["sample"]["value"][
             "message"
@@ -172,7 +177,7 @@ def test_generate_openapi_spec_with_route_and_method() -> None:
     def custom_func() -> None:
         pass
 
-    spec = generate_openapi_spec()
+    spec = generate_openapi_spec(route_prefix="")
     assert "post" in spec["paths"]["/custom-path"]
 
 
@@ -186,7 +191,7 @@ def test_generate_openapi_spec_normalizes_route_without_leading_slash() -> None:
     def hello() -> None:
         pass
 
-    spec = generate_openapi_spec()
+    spec = generate_openapi_spec(route_prefix="")
     assert "/hello" in spec["paths"]
     assert "hello" not in spec["paths"]
     assert "post" in spec["paths"]["/hello"]
@@ -200,7 +205,7 @@ def test_generate_openapi_spec_normalizes_default_function_path() -> None:
     def default_path_func() -> None:
         pass
 
-    spec = generate_openapi_spec()
+    spec = generate_openapi_spec(route_prefix="")
     assert "/default_path_func" in spec["paths"]
 
 
@@ -222,13 +227,13 @@ def test_generate_spec_with_pydantic_models() -> None:
     def login() -> None:
         pass
 
-    op = generate_openapi_spec()["paths"]["/login"]["post"]
+    op = generate_openapi_spec(route_prefix="")["paths"]["/login"]["post"]
     schema_req = op["requestBody"]["content"]["application/json"]["schema"]
     schema_resp = op["responses"]["200"]["content"]["application/json"]["schema"]
     assert schema_req == {"$ref": "#/components/schemas/RequestModel"}
     assert schema_resp == {"$ref": "#/components/schemas/ResponseModel"}
 
-    spec = generate_openapi_spec()
+    spec = generate_openapi_spec(route_prefix="")
     components = spec.get("components", {})
     schemas = components.get("schemas", {})
     assert "RequestModel" in schemas
@@ -262,7 +267,9 @@ def test_response_200_is_preserved_when_response_model_exists() -> None:
     def merge_response_func() -> None:
         pass
 
-    response_200 = generate_openapi_spec()["paths"]["/merge-response"]["get"]["responses"]["200"]
+    response_200 = generate_openapi_spec(route_prefix="")["paths"]["/merge-response"]["get"][
+        "responses"
+    ]["200"]
     assert response_200["description"] == "Custom 200"
     assert "X-Trace-Id" in response_200["headers"]
     assert "sample" in response_200["content"]["application/json"]["examples"]
@@ -285,7 +292,9 @@ def test_response_model_uses_explicit_first_success_status_code() -> None:
     def created_with_model_func() -> None:
         pass
 
-    responses = generate_openapi_spec()["paths"]["/created-with-model"]["post"]["responses"]
+    responses = generate_openapi_spec(route_prefix="")["paths"]["/created-with-model"]["post"][
+        "responses"
+    ]
     assert "200" not in responses
     assert responses["201"]["description"] == "Created"
     assert responses["201"]["content"]["application/json"]["schema"] == {
@@ -306,7 +315,9 @@ def test_response_model_defaults_to_200_when_no_success_response_declared() -> N
     def response_model_default_200_func() -> None:
         pass
 
-    responses = generate_openapi_spec()["paths"]["/response-model-default-200"]["get"]["responses"]
+    responses = generate_openapi_spec(route_prefix="")["paths"]["/response-model-default-200"][
+        "get"
+    ]["responses"]
     assert "200" in responses
     assert responses["200"]["description"] == "Successful Response"
     assert responses["200"]["content"]["application/json"]["schema"] == {
@@ -327,7 +338,9 @@ def test_response_model_uses_explicit_200_when_declared() -> None:
     def response_model_explicit_200_func() -> None:
         pass
 
-    responses = generate_openapi_spec()["paths"]["/response-model-explicit-200"]["get"]["responses"]
+    responses = generate_openapi_spec(route_prefix="")["paths"]["/response-model-explicit-200"][
+        "get"
+    ]["responses"]
     assert responses["200"]["description"] == "OK"
     assert responses["200"]["content"]["application/json"]["schema"] == {
         "$ref": "#/components/schemas/Explicit200Model"
@@ -372,7 +385,7 @@ def test_generate_openapi_spec_with_cookie_parameter() -> None:
     def cookie_test() -> None:
         pass
 
-    params = generate_openapi_spec()["paths"]["/cookie_test"]["get"]["parameters"]
+    params = generate_openapi_spec(route_prefix="")["paths"]["/cookie_test"]["get"]["parameters"]
     cookie_param = next(p for p in params if p["in"] == "cookie")
     assert cookie_param["name"] == "session_id"
 
@@ -387,7 +400,7 @@ def test_generate_openapi_spec_with_security() -> None:
     def secure_endpoint() -> None:
         pass
 
-    op = generate_openapi_spec()["paths"]["/secure"]["get"]
+    op = generate_openapi_spec(route_prefix="")["paths"]["/secure"]["get"]
     assert op["security"] == [{"BearerAuth": []}]
 
 
@@ -404,7 +417,9 @@ def test_generate_openapi_spec_adds_default_200_response_when_missing() -> None:
     def default_response_func() -> None:
         pass
 
-    responses = generate_openapi_spec()["paths"]["/default-response"]["post"]["responses"]
+    responses = generate_openapi_spec(route_prefix="")["paths"]["/default-response"]["post"][
+        "responses"
+    ]
     assert responses["200"] == {
         "description": "Successful Response",
         "content": {"application/json": {"schema": {"type": "object"}}},
@@ -421,7 +436,9 @@ def test_generate_openapi_spec_keeps_explicit_non_200_responses_without_adding_2
     def created_response_func() -> None:
         pass
 
-    responses = generate_openapi_spec()["paths"]["/created-response"]["post"]["responses"]
+    responses = generate_openapi_spec(route_prefix="")["paths"]["/created-response"]["post"][
+        "responses"
+    ]
     assert "200" not in responses
     assert responses["201"] == {"description": "Created"}
 
@@ -440,6 +457,7 @@ def test_generate_openapi_spec_with_security_schemes_param() -> None:
 
     spec = generate_openapi_spec(
         security_schemes={"BearerAuth": {"type": "http", "scheme": "bearer"}},
+        route_prefix="",
     )
     assert "components" in spec
     assert "securitySchemes" in spec["components"]
@@ -464,7 +482,7 @@ def test_generate_openapi_spec_with_decorator_security_scheme() -> None:
     def secure_decorator_endpoint() -> None:
         pass
 
-    spec = generate_openapi_spec()
+    spec = generate_openapi_spec(route_prefix="")
     assert "components" in spec
     assert "securitySchemes" in spec["components"]
     assert spec["components"]["securitySchemes"]["ApiKeyAuth"] == {
@@ -499,6 +517,7 @@ def test_generate_openapi_spec_merges_security_schemes() -> None:
 
     spec = generate_openapi_spec(
         security_schemes={"BearerAuth": {"type": "http", "scheme": "bearer"}},
+        route_prefix="",
     )
     schemes = spec["components"]["securitySchemes"]
     assert "BearerAuth" in schemes
@@ -545,7 +564,7 @@ def test_response_model_with_content_not_dict() -> None:
     def content_not_dict_func() -> None:
         pass
 
-    spec = generate_openapi_spec()
+    spec = generate_openapi_spec(route_prefix="")
     resp_200 = spec["paths"]["/content-not-dict"]["get"]["responses"]["200"]
     assert resp_200["description"] == "OK"
     # content should have been replaced with a proper dict containing the schema
@@ -576,7 +595,7 @@ def test_response_model_with_json_content_not_dict() -> None:
     def json_content_not_dict_func() -> None:
         pass
 
-    spec = generate_openapi_spec()
+    spec = generate_openapi_spec(route_prefix="")
     resp_200 = spec["paths"]["/json-content-not-dict"]["get"]["responses"]["200"]
     json_content = resp_200["content"]["application/json"]
     assert isinstance(json_content, dict)
@@ -602,7 +621,7 @@ def test_response_model_schema_generation_failure_no_200() -> None:
         "model_to_schema",
         side_effect=Exception("schema generation failed"),
     ):
-        spec = generate_openapi_spec()
+        spec = generate_openapi_spec(route_prefix="")
 
     resp_200 = spec["paths"]["/schema-fail-no-200"]["get"]["responses"]["200"]
     assert resp_200["description"] == "Successful Response"
@@ -629,7 +648,7 @@ def test_response_model_schema_generation_failure_with_200() -> None:
         "model_to_schema",
         side_effect=Exception("schema generation failed"),
     ):
-        spec = generate_openapi_spec()
+        spec = generate_openapi_spec(route_prefix="")
 
     # Since 200 already exists, the fallback shouldn't overwrite it (L138 check)
     resp_200 = spec["paths"]["/schema-fail-with-200"]["get"]["responses"]["200"]
@@ -667,7 +686,7 @@ def test_malformed_registry_entry_skipped() -> None:
         "get_openapi_registry",
         return_value=malformed_registry,
     ):
-        spec = generate_openapi_spec()
+        spec = generate_openapi_spec(route_prefix="")
 
     # Valid endpoint should still be present
     assert "/valid-endpoint" in spec["paths"]
@@ -717,7 +736,7 @@ def test_security_scheme_collision_raises_value_error() -> None:
         return_value=conflicting,
     ):
         with pytest.raises(ValueError, match="Conflicting security scheme definition"):
-            generate_openapi_spec()
+            generate_openapi_spec(route_prefix="")
 
 
 def test_generate_openapi_spec_with_delete_request_body() -> None:
@@ -733,7 +752,7 @@ def test_generate_openapi_spec_with_delete_request_body() -> None:
     def delete_with_body_func() -> None:
         pass
 
-    spec = generate_openapi_spec()
+    spec = generate_openapi_spec(route_prefix="")
     op = spec["paths"]["/items/{id}"]["delete"]
     assert "requestBody" in op
     assert op["requestBody"]["required"] is True
@@ -755,7 +774,7 @@ def test_generate_openapi_spec_request_body_required_false() -> None:
     def optional_body_spec_func() -> None:
         pass
 
-    spec = generate_openapi_spec()
+    spec = generate_openapi_spec(route_prefix="")
     rb = spec["paths"]["/optional-body-spec"]["post"]["requestBody"]
     assert rb["required"] is False
 
@@ -856,3 +875,32 @@ def test_ensure_default_response_noop_with_non_200_entry() -> None:
     _ensure_default_response(existing)
     assert "200" not in existing
     assert "404" in existing
+
+
+def test_get_openapi_json_accepts_empty_route_prefix() -> None:
+    clear_openapi_registry()
+    register_openapi_metadata(path="/users", method="get")
+
+    spec = json.loads(get_openapi_json(route_prefix=""))
+
+    assert "/users" in spec["paths"]
+    assert "/api/users" not in spec["paths"]
+
+
+def test_get_openapi_yaml_accepts_custom_route_prefix() -> None:
+    clear_openapi_registry()
+    register_openapi_metadata(path="/users", method="get")
+
+    spec = yaml.safe_load(get_openapi_yaml(route_prefix="/v1"))
+
+    assert "/v1/users" in spec["paths"]
+    assert "/api/users" not in spec["paths"]
+
+
+def test_get_openapi_json_default_route_prefix_matches_runtime_url() -> None:
+    clear_openapi_registry()
+    register_openapi_metadata(path="/users", method="get")
+
+    spec = json.loads(get_openapi_json())
+
+    assert "/api/users" in spec["paths"]
