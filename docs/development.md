@@ -51,7 +51,7 @@ azure-functions-openapi/
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/yeongseon/azure-functions-openapi.git
+    git clone https://github.com/yeongseon/azure-functions-openapi-python.git
     cd azure-functions-openapi
     ```
 

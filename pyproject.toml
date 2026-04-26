@@ -29,10 +29,10 @@ dependencies = [
 ]
 
     [project.urls]
-    Homepage = "https://yeongseon.github.io/azure-functions-openapi/"
-    Documentation = "https://yeongseon.github.io/azure-functions-openapi/"
-    Repository = "https://github.com/yeongseon/azure-functions-openapi"
-Issues = "https://github.com/yeongseon/azure-functions-openapi/issues"
+    Homepage = "https://yeongseon.github.io/azure-functions-openapi-python/"
+    Documentation = "https://yeongseon.github.io/azure-functions-openapi-python/"
+    Repository = "https://github.com/yeongseon/azure-functions-openapi-python"
+Issues = "https://github.com/yeongseon/azure-functions-openapi-python/issues"
 
 [project.optional-dependencies]
 dev = [
