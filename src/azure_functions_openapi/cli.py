@@ -155,8 +155,6 @@ def handle_generate(args: argparse.Namespace) -> int:
             OPENAPI_VERSION_3_1 if args.openapi_version == "3.1" else OPENAPI_VERSION_3_0
         )
 
-        # Check for empty paths before serialising — gives a clear signal
-        # instead of silently producing a spec with no routes.
         description = getattr(args, "description", None)
         if not isinstance(description, str):
             description = DEFAULT_OPENAPI_INFO_DESCRIPTION
@@ -168,6 +166,8 @@ def handle_generate(args: argparse.Namespace) -> int:
             description=description,
             route_prefix=getattr(args, "route_prefix", "/api"),
         )
+        # Check for empty paths before serialising — gives a clear signal
+        # instead of silently producing a spec with no routes.
         if not spec.get("paths"):
             print(
                 "Warning: No routes found in the OpenAPI registry. "
