@@ -193,4 +193,4 @@ Open an issue on GitHub with:
 
 ## Code of Conduct
 
-Be respectful and inclusive. See the [Code of Conduct](https://github.com/yeongseon/azure-functions-openapi/blob/main/CODE_OF_CONDUCT.md) for details.
+Be respectful and inclusive. See the [Code of Conduct](https://github.com/yeongseon/azure-functions-openapi-python/blob/main/CODE_OF_CONDUCT.md) for details.

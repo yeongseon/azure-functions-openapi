@@ -67,7 +67,7 @@ pydantic>=2.0
 Clone the repository and create a virtual environment:
 
 ```bash
-git clone https://github.com/yeongseon/azure-functions-openapi.git
+git clone https://github.com/yeongseon/azure-functions-openapi-python.git
 cd azure-functions-openapi
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
