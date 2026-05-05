@@ -2,13 +2,19 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from pydantic import BaseModel
 import pytest
 
 from azure_functions_openapi.bridge import (
     _HANDLER_METADATA_ATTR,
+    _extract_methods,
+    _field_type_to_schema,
+    _merge_parameters,
+    _models_conflict,
+    _normalize_method,
+    _normalize_path,
     _model_to_parameters,
     _read_validation_hints,
     scan_validation_metadata,
@@ -599,3 +605,77 @@ def test_scan_treats_exact_prefix_match_as_already_prefixed() -> None:
 
     assert "post::/api" in get_openapi_registry()
     assert "post::/api/api" not in get_openapi_registry()
+
+
+def test_bridge_helpers_cover_default_normalization_paths() -> None:
+    assert _normalize_method(None) == "get"
+    assert _normalize_path("", "users", "/api") == "/api/users"
+
+
+def test_extract_methods_handles_string_and_invalid_type() -> None:
+    class _Binding:
+        def __init__(self, methods: Any) -> None:
+            self.methods = methods
+
+    assert _extract_methods(_Binding("POST")) == ["post"]
+    assert _extract_methods(_Binding(123)) == ["get"]
+
+
+def test_merge_parameters_appends_non_conflicting_items() -> None:
+    merged = _merge_parameters(
+        [{"name": "id", "in": "path", "schema": {"type": "string"}}],
+        [{"name": "limit", "in": "query", "schema": {"type": "integer"}}],
+    )
+    assert len(merged) == 2
+    assert any(p["name"] == "limit" and p["in"] == "query" for p in merged)
+
+
+def test_models_conflict_detects_request_body_mismatch() -> None:
+    assert (
+        _models_conflict(
+            {"request_body": {"type": "object", "properties": {"a": {"type": "string"}}}},
+            {"request_body": {"type": "object", "properties": {"a": {"type": "integer"}}}},
+        )
+        is True
+    )
+
+
+def test_field_type_to_schema_primitives_and_collected_defs() -> None:
+    class _NestedModel(BaseModel):
+        name: str
+
+    assert _field_type_to_schema(str) == {"type": "string"}
+    assert _field_type_to_schema(float) == {"type": "number"}
+    assert _field_type_to_schema(bool) == {"type": "boolean"}
+    assert _field_type_to_schema(list[int]) == {"type": "array"}
+
+    schema = _field_type_to_schema(list[_NestedModel])
+    assert "$defs" not in schema
+    assert schema["type"] == "array"
+
+
+def test_model_to_parameters_rejects_non_pydantic_model() -> None:
+    with pytest.raises(TypeError, match="model_fields"):
+        _model_to_parameters(object, "query")
+
+
+def test_scan_includes_headers_model_as_header_parameters() -> None:
+    class HeaderModel(BaseModel):
+        x_request_id: str
+
+    app = _make_app(metadata={"headers": HeaderModel})
+    scan_validation_metadata(app)
+
+    params = get_openapi_registry()["post::/api/users"]["parameters"]
+    header_param = next(p for p in params if p["name"] == "x_request_id")
+    assert header_param["in"] == "header"
+
+
+def test_scan_skips_builders_without_function_or_handler() -> None:
+    builder_without_function: Any = type("Builder", (), {"_function": None})()
+    function_without_handler = MockFunction(_name="no_handler", _func=None, _bindings=[])
+    builder_without_handler = MockBuilder(_function=function_without_handler)
+    app = MockApp(_function_builders=cast(Any, [builder_without_function, builder_without_handler]))
+
+    scan_validation_metadata(app)
+    assert get_openapi_registry() == {}

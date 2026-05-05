@@ -14,6 +14,7 @@ from azure_functions_openapi.utils import (
     _rewrite_refs_with_map,
     model_to_schema,
     sanitize_operation_id,
+    type_to_schema,
     validate_route_path,
 )
 
@@ -47,6 +48,7 @@ class TestModelToSchema:
         assert "name" in registered["required"]
         assert "email" in registered["required"]
         assert "age" not in registered["required"]  # Has default value
+
     def test_model_to_schema_rewrites_defs_v2(self) -> None:
         """Test that $defs and refs are rewritten for OpenAPI."""
         with patch.object(SampleModel, "model_json_schema") as mock_schema:
@@ -69,6 +71,7 @@ class TestModelToSchema:
             assert "$defs" not in registered
             assert registered["items"]["$ref"] == "#/components/schemas/Item"
             assert "Item" in components["schemas"]
+
     def test_model_to_schema_initializes_components_when_missing(self) -> None:
         with pytest.raises(OpenAPISpecConfigError):
             model_to_schema(SampleModel, None)
@@ -102,6 +105,7 @@ class TestModelToSchema:
             assert "Child_2" in components["schemas"]
             child_ref = components["schemas"]["SampleModel_2"]["properties"]["child"]["$ref"]
             assert child_ref == "#/components/schemas/Child_2"
+
 
 class TestUtilsInternals:
     def test_collect_schemas_skips_non_dict_definitions_and_hoists_nested_defs(self) -> None:
@@ -235,16 +239,17 @@ class TestValidateRoutePath:
     def test_validate_route_path_invalid_brace_structures(self) -> None:
         """Test that malformed brace structures are rejected."""
         invalid_brace_routes = [
-            "{}",           # Empty param name
-            "/{}",          # Empty param name with slash
-            "/api/{}",      # Empty param in path
-            "{{id}}",       # Nested/doubled opening brace
+            "{}",  # Empty param name
+            "/{}",  # Empty param name with slash
+            "/api/{}",  # Empty param in path
+            "{{id}}",  # Nested/doubled opening brace
             "/api/{{id}}",  # Nested brace in path
             "/api/{123bad}",  # Param name starts with digit
-            "/api/{id",     # Unclosed brace
+            "/api/{id",  # Unclosed brace
         ]
         for route in invalid_brace_routes:
             assert validate_route_path_any(route) is False, f"Route '{route}' should be invalid"
+
 
 class TestSanitizeOperationId:
     """Test sanitize_operation_id function."""
@@ -543,6 +548,7 @@ class TestModelToSchemaCollisionPath:
             # Original should be preserved
             other_type = components["schemas"]["SampleModel"]["properties"]["other"]["type"]
             assert other_type == "string"
+
     def test_identical_schema_no_overwrite(self) -> None:
         """When schema already exists with identical content, no rename or overwrite."""
         with patch.object(SampleModel, "model_json_schema") as mock_schema:
@@ -552,14 +558,13 @@ class TestModelToSchemaCollisionPath:
             }
             mock_schema.return_value = dict(schema_content)
             # Pre-populate with identical schema
-            components: Dict[str, Any] = {
-                "schemas": {"SampleModel": dict(schema_content)}
-            }
+            components: Dict[str, Any] = {"schemas": {"SampleModel": dict(schema_content)}}
             result = model_to_schema(SampleModel, components)
 
             assert result == {"$ref": "#/components/schemas/SampleModel"}
             # Should still be the same content, no _2 variant
             assert "SampleModel_2" not in components["schemas"]
+
     def test_name_collision_with_nested_refs_rewritten(self) -> None:
         """When collision occurs, $refs in the schema body are also rewritten."""
         with patch.object(SampleModel, "model_json_schema") as mock_schema:
@@ -586,6 +591,31 @@ class TestModelToSchemaCollisionPath:
             # The ref in SampleModel should point to Child_2
             registered = components["schemas"]["SampleModel"]
             assert registered["properties"]["child"]["$ref"] == "#/components/schemas/Child_2"
+
+
+class TestTypeToSchemaCoverage:
+    def test_basemodel_with_components_uses_model_to_schema_path(self) -> None:
+        components: Dict[str, Any] = {"schemas": {}}
+        ref = type_to_schema(SampleModel, components)
+        assert ref == {"$ref": "#/components/schemas/SampleModel"}
+        assert "SampleModel" in components["schemas"]
+
+    def test_generic_type_name_collision_rewrites_refs(self) -> None:
+        components: Dict[str, Any] = {
+            "schemas": {
+                "Address": {"type": "string"},
+            }
+        }
+
+        schema = type_to_schema(list[Address], components)
+
+        assert schema["type"] == "array"
+        assert schema["items"]["$ref"] == "#/components/schemas/Address_2"
+        assert "Address_2" in components["schemas"]
+
+    def test_validate_route_path_rejects_stray_closing_brace(self) -> None:
+        assert validate_route_path("/users/id}") is False
+
 
 # ---------------------------------------------------------------------------
 # Pydantic v2 real-model edge cases (no mocking — exercises actual schema gen)
