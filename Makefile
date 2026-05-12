@@ -114,7 +114,7 @@ build: ensure-hatch
 
 .PHONY: changelog
 changelog: ensure-hatch
-	@$(HATCH) run git-cliff -o CHANGELOG.md
+	@$(HATCH) run git-cliff $(if $(VERSION),--tag v$(VERSION),) -o CHANGELOG.md
 	@echo "Changelog generated."
 
 .PHONY: commit-changelog
@@ -147,7 +147,7 @@ release-core:
 ifndef VERSION
 	$(error VERSION is not set. Usage: make release-core VERSION=1.0.1)
 endif
-	@$(MAKE) changelog
+	@$(MAKE) changelog VERSION=$(VERSION)
 	@$(MAKE) commit-changelog
 	@$(MAKE) tag-release VERSION=$(VERSION)
 

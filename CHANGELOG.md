@@ -1,6 +1,19 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [Unreleased]
+
+### Documentation
+
+- Fix ecosystem table names, badges, and Part of intro line 
+- Mark cookbook as dogfood, fix ecosystem table description 
+- Fix ecosystem table — add knowledge row, fix labels and links 
+- *(agents)* Add Issue Conventions section to AGENTS.md 
+
+### Testing
+
+- Raise coverage to 95%+ and enforce via AGENTS.md and pyproject.toml 
+## [0.18.0] - 2026-04-26
 
 ### Bug Fixes
 
@@ -9,6 +22,7 @@ All notable changes to this project will be documented in this file.
 
 ### Documentation
 
+- Update changelog 
 - Add Request Flow and Runtime Relationship section to architecture 
 - Align all documentation with redesigned examples (#176) 
 
@@ -43,6 +57,7 @@ All notable changes to this project will be documented in this file.
 
 - Bump expected __version__ to 0.18.0 ahead of release-minor 
 - *(bridge)* Cover substring-trap regression for route prefix matching (#199) 
+## [0.17.1] - 2026-04-10
 
 ### Documentation
 
@@ -63,6 +78,7 @@ All notable changes to this project will be documented in this file.
 ### Refactor
 
 - Rename metadata attr to _azure_functions_metadata (#171) 
+## [0.17.0] - 2026-04-07
 
 ### Bug Fixes
 
@@ -88,6 +104,7 @@ All notable changes to this project will be documented in this file.
 ### Testing
 
 - Update version assertion to 0.17.0 for upcoming release 
+## [0.16.0] - 2026-04-06
 
 ### Bug Fixes
 
@@ -121,6 +138,7 @@ All notable changes to this project will be documented in this file.
 ### Testing
 
 - Align with_validation snapshots with 201 response schema (#134) 
+## [0.15.1] - 2026-03-29
 
 ### Documentation
 
@@ -138,6 +156,7 @@ All notable changes to this project will be documented in this file.
 - Use standard pypi environment name for Trusted Publisher 
 - Rename publish environment from production to release 
 - Unify CI/CD workflow configurations 
+## [0.15.0] - 2026-03-21
 
 ### Bug Fixes
 
@@ -171,6 +190,7 @@ All notable changes to this project will be documented in this file.
 - Enforce coverage fail_under = 96 
 - Add keywords to pyproject.toml 
 - Add AGENTS.md, Typing classifier, test_public_api, Dev Status 4-Beta, .venv-review in .gitignore 
+## [0.14.0] - 2026-03-15
 
 ### Bug Fixes
 
@@ -202,6 +222,7 @@ All notable changes to this project will be documented in this file.
 ### Testing
 
 - Add snapshot regression tests 
+## [0.13.1] - 2026-03-14
 
 ### Bug Fixes
 
@@ -253,6 +274,7 @@ All notable changes to this project will be documented in this file.
 ### Styling
 
 - Unify tooling — remove black, standardize pre-commit and Makefile 
+## [0.12.1] - 2026-03-09
 
 ### Bug Fixes
 
@@ -272,6 +294,7 @@ All notable changes to this project will be documented in this file.
 ### Styling
 
 - Fix line length in error messages 
+## [0.12.0] - 2026-03-08
 
 ### Bug Fixes
 
@@ -337,6 +360,7 @@ All notable changes to this project will be documented in this file.
 
 - Raise openapi coverage for cli and utils 
 - Cover todo CRUD example app 
+## [0.10.1] - 2026-02-10
 
 ### Documentation
 
@@ -351,6 +375,7 @@ All notable changes to this project will be documented in this file.
 ### Other
 
 - Bump version to 0.10.1 
+## [0.10.0] - 2026-02-09
 
 ### Bug Fixes
 
@@ -429,6 +454,7 @@ All notable changes to this project will be documented in this file.
 
 - Harden registry and runtime state handling 
 - Simplify branch strategy to GitHub Flow 
+## [0.8.0] - 2026-01-22
 
 ### Documentation
 
@@ -445,6 +471,7 @@ All notable changes to this project will be documented in this file.
 ### Testing
 
 - Fix test naming and add missing module tests (#28) 
+## [0.7.0] - 2026-01-22
 
 ### Bug Fixes
 
@@ -468,6 +495,7 @@ All notable changes to this project will be documented in this file.
 - Add py.typed marker for PEP 561 compliance (#21) 
 - Align pre-commit hooks with pyproject.toml settings (#20) 
 - Add GitHub issue templates 
+## [0.6.1] - 2026-01-22
 
 ### Documentation
 
@@ -480,6 +508,7 @@ All notable changes to this project will be documented in this file.
 ### Refactor
 
 - Adopt Python 3.10 type hint syntax (PEP 604/585) (#9) 
+## [0.6.0] - 2026-01-21
 
 ### Documentation
 
@@ -498,6 +527,7 @@ All notable changes to this project will be documented in this file.
 
 - Resolve lint issues 
 - Format code with ruff and black 
+## [0.5.1] - 2026-01-21
 
 ### Bug Fixes
 
@@ -511,6 +541,7 @@ All notable changes to this project will be documented in this file.
 ### Other
 
 - Bump version to 0.5.1 
+## [0.5.0] - 2025-09-04
 
 ### Documentation
 
@@ -534,6 +565,7 @@ All notable changes to this project will be documented in this file.
 ### Other
 
 - Bump version to 0.5.0 
+## [0.4.1] - 2025-06-22
 
 ### Bug Fixes
 
@@ -551,13 +583,13 @@ All notable changes to this project will be documented in this file.
 - *(ci)* Replace test.yml with ci-test.yml for clarity and maintainability 
 - *(build)* Clean up config and align with Hatch-based Makefile execution 
 - Improve Makefile with Python 3.9+ check, .PHONY, and cross-platform venv support 
-- Release v0.4.0 
 
 ### Other
 
 - Bump version to 0.4.1 
 - *(pyproject)* Configure hatch build and publish targets 
 - *(makefile)* Add Hatch-based automation for test, build, release 
+## [0.4.0] - 2025-05-13
 
 ### Bug Fixes
 
@@ -597,6 +629,7 @@ All notable changes to this project will be documented in this file.
 
 ### Miscellaneous Tasks
 
+- Release v0.4.0 
 - Release v0.4.0 
 - Add junit.xml to .gitignore 
 - Update pre-commit config to include black, ruff, mypy, and bandit 
@@ -645,6 +678,7 @@ All notable changes to this project will be documented in this file.
 
 - Align OpenAPI tests with /api prefix and enable pytest -v 
 - Add pytest-cov and configure coverage report for Codecov 
+## [0.3.0] - 2025-05-07
 
 ### Documentation
 
@@ -677,6 +711,7 @@ All notable changes to this project will be documented in this file.
 - Add OpenAPI spec test for cookie parameter support 
 - Add test for OpenAPI schema generation using Pydantic models 
 - Add tests/ directory for unit tests 
+## [0.2.0] - 2025-05-03
 
 ### Documentation
 

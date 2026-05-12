@@ -67,8 +67,7 @@ When splitting a large piece of work into focused issues, keep the umbrella open
 
 ## Release Process
 - Version is managed via `hatch` (dynamic from `src/azure_functions_openapi/__init__.py`).
-- **Do NOT manually edit version strings.** Use the Makefile targets below.
-- When bumping version, update `tests/test_public_api.py` to match the new version string.
+- **Do NOT manually edit version strings.** Use the Makefile targets below. The public-API test reads `__version__` against `importlib.metadata.version(...)`, so no test changes are needed when bumping.
 
 ### Commands
 - `make release-patch` — bump patch version, update changelog, tag, and push

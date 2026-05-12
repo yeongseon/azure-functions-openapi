@@ -23,8 +23,10 @@ class TestAPISurface:
             "scan_validation_metadata",
         }
 
-    def test_version_is_0_17_1(self) -> None:
-        assert azure_functions_openapi.__version__ == "0.18.0"
+    def test_version_matches_distribution_metadata(self) -> None:
+        from importlib.metadata import version
+
+        assert azure_functions_openapi.__version__ == version("azure-functions-openapi")
 
     def test_version_is_string(self) -> None:
         assert isinstance(azure_functions_openapi.__version__, str)
