@@ -12,10 +12,10 @@ from azure_functions_openapi.bridge import (
     _extract_methods,
     _field_type_to_schema,
     _merge_parameters,
+    _model_to_parameters,
     _models_conflict,
     _normalize_method,
     _normalize_path,
-    _model_to_parameters,
     _read_validation_hints,
     scan_validation_metadata,
 )
