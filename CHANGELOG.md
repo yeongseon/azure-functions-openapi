@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-## [Unreleased]
+## [0.18.1] - 2026-05-14
 
 ### Documentation
 
@@ -9,6 +9,19 @@ All notable changes to this project will be documented in this file.
 - Mark cookbook as dogfood, fix ecosystem table description 
 - Fix ecosystem table — add knowledge row, fix labels and links 
 - *(agents)* Add Issue Conventions section to AGENTS.md 
+
+### Miscellaneous Tasks
+
+- *(deps)* Bump mypy from 1.20.2 to 2.1.0 
+- *(release)* Fix changelog template and decouple version test from literals 
+
+### Other
+
+- Bump version to 0.18.1 
+
+### Styling
+
+- *(tests)* Sort imports in test_bridge.py 
 
 ### Testing
 
